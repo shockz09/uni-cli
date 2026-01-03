@@ -801,6 +801,172 @@ async function readLine() {
   });
 }
 
+// src/core/completions.ts
+async function generateZshCompletions() {
+  const services = await registry.list();
+  let completions = `#compdef uni
+
+# uni CLI completions for Zsh
+# Add to ~/.zshrc: eval "$(uni completions zsh)"
+
+_uni() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  _arguments -C \\
+    '1: :->service' \\
+    '2: :->command' \\
+    '3: :->subcommand' \\
+    '*::arg:->args'
+
+  case $state in
+    service)
+      local services=(
+`;
+  for (const svc of services) {
+    completions += `        '${svc.name}:${svc.description.replace(/'/g, "\\'")}'
+`;
+  }
+  completions += `        'list:List available services'
+        'auth:Manage authentication'
+        'config:Manage configuration'
+      )
+      _describe 'service' services
+      ;;
+
+    command)
+      case $line[1] in
+`;
+  for (const svc of services) {
+    const service = await registry.load(svc.name);
+    completions += `        ${svc.name})
+          local commands=(
+`;
+    for (const cmd of service.commands) {
+      const desc = cmd.description.replace(/'/g, "\\'");
+      completions += `            '${cmd.name}:${desc}'
+`;
+    }
+    completions += `          )
+          _describe 'command' commands
+          ;;
+`;
+  }
+  completions += `      esac
+      ;;
+
+    subcommand)
+      case $line[1] in
+`;
+  for (const svc of services) {
+    const service = await registry.load(svc.name);
+    for (const cmd of service.commands) {
+      if (cmd.subcommands) {
+        completions += `        ${svc.name})
+          case $line[2] in
+            ${cmd.name})
+              local subcommands=(
+`;
+        for (const sub of cmd.subcommands) {
+          const desc = sub.description.replace(/'/g, "\\'");
+          completions += `                '${sub.name}:${desc}'
+`;
+        }
+        completions += `              )
+              _describe 'subcommand' subcommands
+              ;;
+          esac
+          ;;
+`;
+      }
+    }
+  }
+  completions += `      esac
+      ;;
+  esac
+}
+
+_uni "$@"
+`;
+  return completions;
+}
+async function generateBashCompletions() {
+  const services = await registry.list();
+  const serviceNames = services.map((s) => s.name).join(" ");
+  let completions = `# uni CLI completions for Bash
+# Add to ~/.bashrc: eval "$(uni completions bash)"
+
+_uni_completions() {
+  local cur prev services commands
+  COMPREPLY=()
+  cur="\${COMP_WORDS[COMP_CWORD]}"
+  prev="\${COMP_WORDS[COMP_CWORD-1]}"
+
+  services="${serviceNames} list auth config"
+
+  if [[ \${COMP_CWORD} -eq 1 ]]; then
+    COMPREPLY=( $(compgen -W "\${services}" -- "\${cur}") )
+    return 0
+  fi
+
+  case "\${COMP_WORDS[1]}" in
+`;
+  for (const svc of services) {
+    const service = await registry.load(svc.name);
+    const cmdNames = service.commands.map((c) => c.name).join(" ");
+    completions += `    ${svc.name})
+      commands="${cmdNames}"
+      ;;
+`;
+  }
+  completions += `  esac
+
+  if [[ \${COMP_CWORD} -eq 2 ]]; then
+    COMPREPLY=( $(compgen -W "\${commands}" -- "\${cur}") )
+    return 0
+  fi
+}
+
+complete -F _uni_completions uni
+`;
+  return completions;
+}
+async function generateFishCompletions() {
+  const services = await registry.list();
+  let completions = `# uni CLI completions for Fish
+# Add to ~/.config/fish/completions/uni.fish
+
+# Disable file completion
+complete -c uni -f
+
+# Services
+`;
+  for (const svc of services) {
+    completions += `complete -c uni -n "__fish_use_subcommand" -a "${svc.name}" -d "${svc.description}"
+`;
+  }
+  completions += `complete -c uni -n "__fish_use_subcommand" -a "list" -d "List available services"
+complete -c uni -n "__fish_use_subcommand" -a "auth" -d "Manage authentication"
+complete -c uni -n "__fish_use_subcommand" -a "config" -d "Manage configuration"
+
+# Commands per service
+`;
+  for (const svc of services) {
+    const service = await registry.load(svc.name);
+    for (const cmd of service.commands) {
+      completions += `complete -c uni -n "__fish_seen_subcommand_from ${svc.name}" -a "${cmd.name}" -d "${cmd.description}"
+`;
+      if (cmd.subcommands) {
+        for (const sub of cmd.subcommands) {
+          completions += `complete -c uni -n "__fish_seen_subcommand_from ${cmd.name}" -a "${sub.name}" -d "${sub.description}"
+`;
+        }
+      }
+    }
+  }
+  return completions;
+}
+
 // src/core/cli.ts
 var VERSION = "0.1.0";
 
@@ -832,6 +998,10 @@ class UniCLI {
       }
       if (parsed.service === "config") {
         await this.handleConfig(parsed, output);
+        return;
+      }
+      if (parsed.service === "completions") {
+        await this.handleCompletions(parsed, output);
         return;
       }
       const exists = await registry.has(parsed.service);
@@ -919,6 +1089,7 @@ ${bold("COMMANDS")}
   list            List available services
   auth            Manage authentication
   config          Manage configuration
+  completions     Generate shell completions
 
 ${bold("EXAMPLES")}
   uni exa search "React hooks"
@@ -1011,6 +1182,33 @@ ${bold("Configuration")}
       console.log(`    ${JSON.stringify(config.getGlobal(), null, 2).replace(/\n/g, `
     `)}`);
       console.log("");
+    }
+  }
+  async handleCompletions(parsed, output) {
+    const shell = parsed.command || "zsh";
+    switch (shell) {
+      case "zsh":
+        console.log(await generateZshCompletions());
+        break;
+      case "bash":
+        console.log(await generateBashCompletions());
+        break;
+      case "fish":
+        console.log(await generateFishCompletions());
+        break;
+      default:
+        output.error(`Unknown shell: ${shell}`);
+        console.log(`
+${bold("Usage:")}`);
+        console.log(`  uni completions zsh   # For Zsh`);
+        console.log(`  uni completions bash  # For Bash`);
+        console.log(`  uni completions fish  # For Fish`);
+        console.log(`
+${bold("Setup:")}`);
+        console.log(`  ${cyan("Zsh:")}  eval "$(uni completions zsh)"`);
+        console.log(`  ${cyan("Bash:")} eval "$(uni completions bash)"`);
+        console.log(`  ${cyan("Fish:")} uni completions fish > ~/.config/fish/completions/uni.fish`);
+        console.log("");
     }
   }
 }

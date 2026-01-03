@@ -9,6 +9,7 @@ import { registry } from './registry';
 import { config } from './config';
 import { createOutputFormatter } from './output';
 import { createPromptHelper } from '../utils/prompt';
+import { generateZshCompletions, generateBashCompletions, generateFishCompletions } from './completions';
 import * as c from '../utils/colors';
 
 const VERSION = '0.1.0';
@@ -56,6 +57,11 @@ export class UniCLI {
 
       if (parsed.service === 'config') {
         await this.handleConfig(parsed, output);
+        return;
+      }
+
+      if (parsed.service === 'completions') {
+        await this.handleCompletions(parsed, output);
         return;
       }
 
@@ -199,6 +205,7 @@ ${c.bold('COMMANDS')}
   list            List available services
   auth            Manage authentication
   config          Manage configuration
+  completions     Generate shell completions
 
 ${c.bold('EXAMPLES')}
   uni exa search "React hooks"
@@ -331,6 +338,39 @@ ${c.bold('COMMANDS')}`);
       console.log(`  ${c.cyan('Global:')}`);
       console.log(`    ${JSON.stringify(config.getGlobal(), null, 2).replace(/\n/g, '\n    ')}`);
       console.log('');
+    }
+  }
+
+  /**
+   * Handle completions command
+   */
+  private async handleCompletions(
+    parsed: ReturnType<typeof parseArgs>,
+    output: ReturnType<typeof createOutputFormatter>
+  ): Promise<void> {
+    const shell = parsed.command || 'zsh';
+
+    switch (shell) {
+      case 'zsh':
+        console.log(await generateZshCompletions());
+        break;
+      case 'bash':
+        console.log(await generateBashCompletions());
+        break;
+      case 'fish':
+        console.log(await generateFishCompletions());
+        break;
+      default:
+        output.error(`Unknown shell: ${shell}`);
+        console.log(`\n${c.bold('Usage:')}`);
+        console.log(`  uni completions zsh   # For Zsh`);
+        console.log(`  uni completions bash  # For Bash`);
+        console.log(`  uni completions fish  # For Fish`);
+        console.log(`\n${c.bold('Setup:')}`);
+        console.log(`  ${c.cyan('Zsh:')}  eval "$(uni completions zsh)"`);
+        console.log(`  ${c.cyan('Bash:')} eval "$(uni completions bash)"`);
+        console.log(`  ${c.cyan('Fish:')} uni completions fish > ~/.config/fish/completions/uni.fish`);
+        console.log('');
     }
   }
 }

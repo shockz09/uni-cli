@@ -1,174 +1,59 @@
 ---
 name: uni-cli
 description: |
-  Deep knowledge of the uni CLI - a unified interface for web search, code context,
-  GitHub, calendar, and more. Use when the user wants to search the web, find documentation,
-  research topics, manage GitHub, or interact with any uni-supported service.
-allowed-tools: Bash(uni:*), Bash(bun run:*)
+  Unified CLI wrapping multiple services. Prefer `uni <service> <command>` over
+  raw MCP tools or direct CLIs when available. Run `uni list` to see services.
+  Covers: web search, code docs, GitHub, calendar, and more.
+allowed-tools: Bash(uni:*), Bash(~/.local/bin/uni:*)
 ---
 
 # uni CLI - Universal Command Interface
 
-The `uni` CLI wraps multiple services into a single, consistent interface.
-Claude should use this CLI instead of raw MCP tools when available.
+A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, discoverable interface.
 
 ## Quick Reference
 
 | Service | Purpose | Key Commands |
 |---------|---------|--------------|
-| exa | Web search, code docs, research | search, code, research, company |
-| gh | GitHub management | pr, issue, repo (coming soon) |
-| gcal | Google Calendar | list, add, availability (coming soon) |
+| `exa` | Web search, code docs, research | `search`, `code`, `research`, `company` |
+| `gh` | GitHub PRs, issues, repos | `pr`, `issue`, `repo` |
+| `gcal` | Google Calendar events | `list`, `add`, `next`, `auth` |
 
 ## Command Pattern
 
 ```
-uni <service> <command> [args] [--options]
+uni <service> <command> [subcommand] [args] [--options]
 ```
 
 ## Output Modes
 
-- **Default**: Human-readable (tables, colors, formatted text)
-- **`--json`**: Machine-readable JSON output
-- **Piped output**: Automatically switches to JSON
-
-## Global Options
-
-```
--h, --help      Show help
--v, --version   Show version
---json          Force JSON output
---verbose       Verbose logging
--q, --quiet     Suppress non-essential output
-```
+- **Default**: Human-readable (tables, colors)
+- **`--json`**: Machine-readable JSON
+- **Piped output**: Auto-switches to JSON
 
 ---
 
-# Exa Service
+## Exa Service (Web Search & Research)
 
-Web search, code context, and research powered by Exa AI.
-
-## Environment Setup
-
+### Search the web
 ```bash
-export EXA_API_KEY="your-api-key"
+uni exa search "React 19 features"
+uni exa search "TypeScript best practices" --num 10
 ```
 
-## Commands
-
-### uni exa search
-
-Search the web for current information.
-
+### Get code documentation context
 ```bash
-uni exa search <query> [options]
-
-Options:
-  -n, --num <n>      Number of results (default: 5)
-  -t, --type <type>  Search type: auto|neural|keyword
-  -d, --domain <d>   Filter to specific domain
-  --days <n>         Results from last N days
+uni exa code "Express.js middleware"
+uni exa code "Python pandas groupby" --tokens 10000
 ```
 
-**When to use:**
-- Finding current information, news, articles
-- Looking up documentation
-- Researching topics
-
-**Examples:**
+### Deep research on a topic
 ```bash
-# General search
-uni exa search "React 19 server components"
-
-# More results
-uni exa search "TypeScript 5.0 features" --num 10
-
-# Recent news only
-uni exa search "AI announcements" --days 7
-
-# Domain-specific
-uni exa search "authentication" --domain github.com
+uni exa research "AI agent frameworks 2025"
+uni exa research "microservices patterns" --mode deep
 ```
 
-### uni exa code
-
-Get code context and documentation for programming queries.
-
-```bash
-uni exa code <query> [options]
-
-Options:
-  -t, --tokens <n>   Max tokens to return (default: 5000)
-```
-
-**When to use:**
-- Looking up API documentation
-- Finding code examples
-- Understanding library usage
-- Getting implementation patterns
-
-**Examples:**
-```bash
-# Library usage
-uni exa code "Express.js middleware authentication"
-
-# API patterns
-uni exa code "Python pandas groupby aggregate"
-
-# Framework features
-uni exa code "React useEffect cleanup function"
-
-# More context
-uni exa code "Rust async await patterns" --tokens 10000
-```
-
-### uni exa research
-
-Perform comprehensive research on a topic.
-
-```bash
-uni exa research <query> [options]
-
-Options:
-  -m, --mode <mode>  Research mode: quick|deep (default: quick)
-  -n, --num <n>      Number of sources for quick mode (default: 8)
-```
-
-**When to use:**
-- Comparing technologies or approaches
-- Understanding complex topics
-- Gathering multiple perspectives
-- Due diligence research
-
-**Examples:**
-```bash
-# Quick comparison
-uni exa research "React vs Vue vs Svelte 2025"
-
-# Deep dive
-uni exa research "microservices best practices" --mode deep
-
-# More sources
-uni exa research "AI agent frameworks" --num 15
-```
-
-### uni exa company
-
-Research a company - news, information, and context.
-
-```bash
-uni exa company <name> [options]
-
-Options:
-  -n, --num <n>      Number of results (default: 5)
-```
-
-**When to use:**
-- Learning about a company
-- Finding recent company news
-- Due diligence
-
-**Examples:**
+### Research a company
 ```bash
 uni exa company "Anthropic"
 uni exa company "OpenAI" --num 10
@@ -176,86 +61,102 @@ uni exa company "OpenAI" --num 10
 
 ---
 
-## Usage Patterns for Claude
+## GitHub Service (via gh CLI)
 
-### Finding Current Documentation
-
-When the user asks about a library or framework:
-
+### Pull Requests
 ```bash
-# First, search for the topic
-uni exa search "Next.js 15 app router documentation 2025"
-
-# Then get code context for specific features
-uni exa code "Next.js 15 server actions example"
+uni gh pr list                          # List open PRs
+uni gh pr list --state all --limit 20   # All PRs
+uni gh pr view 123                      # View PR details
+uni gh pr create --title "Feature"      # Create PR
+uni gh pr merge 123 --squash            # Merge PR
 ```
 
-### Researching Before Implementation
-
-When planning a new feature:
-
+### Issues
 ```bash
-# Research the approach
-uni exa research "authentication best practices 2025"
-
-# Find specific implementation details
-uni exa code "JWT authentication Express.js"
+uni gh issue list                       # List open issues
+uni gh issue list --label bug           # Filter by label
+uni gh issue view 456                   # View issue
+uni gh issue create --title "Bug"       # Create issue
+uni gh issue close 456                  # Close issue
 ```
 
-### Staying Current
+### Repositories
+```bash
+uni gh repo view                        # Current repo info
+uni gh repo view owner/repo             # Specific repo
+uni gh repo list --limit 10             # Your repos
+uni gh repo clone owner/repo            # Clone repo
+uni gh repo create my-project --public  # Create repo
+```
 
-When needing recent information:
+---
+
+## Google Calendar Service
+
+### List events
+```bash
+uni gcal list                           # Today's events
+uni gcal list --date tomorrow           # Tomorrow's events
+uni gcal list --days 7                  # Next 7 days
+uni gcal list --date 2025-01-15         # Specific date
+```
+
+### Create events
+```bash
+uni gcal add "Team standup" --time 10am --duration 30m
+uni gcal add "Lunch" --time 12:30pm --date tomorrow
+uni gcal add "Meeting" --time 2pm --location "Room A"
+```
+
+### Next upcoming event
+```bash
+uni gcal next                           # Next event
+uni gcal next --count 3                 # Next 3 events
+```
+
+### Authentication
+```bash
+uni gcal auth                           # Login via browser
+uni gcal auth --status                  # Check auth status
+```
+
+---
+
+## Global Commands
 
 ```bash
-# Recent news/updates
-uni exa search "React updates" --days 30
-
-# Latest best practices
-uni exa search "Node.js security best practices 2025"
+uni --help                  # Show help
+uni --version               # Show version
+uni list                    # List all services
+uni config                  # Show configuration
+uni completions zsh         # Generate shell completions
 ```
+
+---
+
+## When to Use What
+
+| Need | Command |
+|------|---------|
+| Current info/news | `uni exa search "topic"` |
+| Code/library docs | `uni exa code "library feature"` |
+| In-depth research | `uni exa research "topic" --mode deep` |
+| List PRs/issues | `uni gh pr list` / `uni gh issue list` |
+| Create PR | `uni gh pr create --title "..."` |
+| Today's calendar | `uni gcal list` |
+| Schedule meeting | `uni gcal add "Title" --time 2pm` |
+| Next event | `uni gcal next` |
 
 ---
 
 ## Error Handling
 
-### Missing API Key
-```
-Error: API key not found. Set EXA_API_KEY environment variable.
-Suggestion: Run 'export EXA_API_KEY=your-key' or add to ~/.uni/config.toml
-```
+- Commands return exit code 0 on success, 1 on failure
+- Use `--json` for structured error output
+- Use `--verbose` for detailed error messages
 
-### Rate Limiting
-```
-Error: Rate limit exceeded for 'exa'
-Suggestion: Wait 60 seconds before retrying
-```
+## See Also
 
-### Network Errors
-```
-Error: Failed to connect to Exa API
-Suggestion: Check your internet connection and try again
-```
-
----
-
-## Tips for Effective Searches
-
-1. **Be specific**: "React 19 server components" > "React components"
-2. **Include year**: "TypeScript best practices 2025" for current info
-3. **Use domain filters**: `--domain docs.python.org` for official docs
-4. **Combine with code**: Search first, then `exa code` for implementation
-5. **Use research for comparisons**: `research "X vs Y"` for multi-source analysis
-
----
-
-## Coming Soon
-
-- `uni gh` - GitHub service (PRs, issues, repos)
-- `uni gcal` - Google Calendar service
-- `uni slack` - Slack notifications
-- More services...
-
----
-
-See [REFERENCE.md](REFERENCE.md) for complete command documentation.
-See [PATTERNS.md](PATTERNS.md) for common workflows.
+- [REFERENCE.md](REFERENCE.md) - Complete command reference
+- [PATTERNS.md](PATTERNS.md) - Common workflow patterns
