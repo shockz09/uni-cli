@@ -185,6 +185,19 @@ uni gcal list --date 2025-01-15
 uni gcal next --count 3
 ```
 
+### Fixing Event Names
+
+```bash
+# Rename ambiguous events
+uni gcal update "Flight Check-in" --title "Web Check-in: 6E 906"
+
+# Update location
+uni gcal update "Team Sync" --location "Zoom"
+
+# Fix typos quickly
+uni gcal update "Standpu" -t "Standup"
+```
+
 ---
 
 ## Task Management Workflows

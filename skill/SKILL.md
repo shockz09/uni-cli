@@ -18,7 +18,7 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 |---------|---------|--------------|
 | `exa` | Web search, code docs, research | `search`, `code`, `research`, `company` |
 | `gh` | GitHub PRs, issues, repos | `pr`, `issue`, `repo` |
-| `gcal` | Google Calendar events | `list`, `add`, `next`, `auth` |
+| `gcal` | Google Calendar events | `list`, `add`, `next`, `update`, `auth` |
 | `gtasks` | Google Tasks todos | `list`, `add`, `done`, `delete`, `lists` |
 | `gcontacts` | Google Contacts | `list`, `search`, `get`, `add`, `delete` |
 | `gmeet` | Google Meet video calls | `create`, `schedule`, `list` |
@@ -130,6 +130,13 @@ uni gcal add "Meeting" --time 2pm --location "Room A"
 ```bash
 uni gcal next                           # Next event
 uni gcal next --count 3                 # Next 3 events
+```
+
+### Update/rename events
+```bash
+uni gcal update "Meeting" --title "Team Sync"
+uni gcal update "Call" --location "Zoom"
+uni gcal update "Event" -t "New Name" -l "Room A"
 ```
 
 ---

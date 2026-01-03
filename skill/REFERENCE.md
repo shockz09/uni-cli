@@ -1269,6 +1269,36 @@ uni gcal next --count 3
 
 ---
 
+### `uni gcal update`
+
+Update/rename a calendar event
+
+**Aliases:** `edit`, `rename`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `search` | Yes | Event name or ID to search for |
+
+**Options:**
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--title` | -t | string | New event title |
+| `--location` | -l | string | New location |
+| `--description` | -d | string | New description |
+
+**Examples:**
+
+```bash
+uni gcal update "Flight Check-in" --title "Web Check-in: 6E 906"
+uni gcal update "Meeting" --location "Room B"
+uni gcal update "Standup" -t "Daily Standup"
+```
+
+---
+
 ### `uni gcal auth`
 
 Authenticate with Google Calendar
