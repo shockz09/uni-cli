@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { slack } from '../api';
 
 export const messagesCommand: Command = {
@@ -63,9 +64,9 @@ export const messagesCommand: Command = {
       for (const msg of messages.reverse()) {
         const time = new Date(parseFloat(msg.ts) * 1000).toLocaleTimeString();
         const user = msg.user || 'bot';
-        const thread = msg.reply_count ? ` \x1b[90m(${msg.reply_count} replies)\x1b[0m` : '';
+        const thread = msg.reply_count ? ` ${c.dim(`(${msg.reply_count} replies)`)}` : '';
 
-        console.log(`\x1b[36m${time}\x1b[0m \x1b[1m${user}\x1b[0m${thread}`);
+        console.log(`${c.cyan(time)} ${c.bold(user)}${thread}`);
         console.log(`  ${msg.text}`);
         console.log('');
       }

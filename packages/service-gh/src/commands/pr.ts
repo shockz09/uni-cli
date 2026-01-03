@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gh } from '../gh-wrapper';
 
 interface PullRequest {
@@ -92,16 +93,16 @@ const listCommand: Command = {
 
     console.log('');
     for (const pr of prs) {
-      const draft = pr.isDraft ? ' \x1b[33m[draft]\x1b[0m' : '';
+      const draft = pr.isDraft ? ` ${c.yellow('[draft]')}` : '';
       const state = pr.state === 'OPEN'
-        ? '\x1b[32mOPEN\x1b[0m'
+        ? c.green('OPEN')
         : pr.state === 'MERGED'
-          ? '\x1b[35mMERGED\x1b[0m'
-          : '\x1b[31mCLOSED\x1b[0m';
+          ? c.magenta('MERGED')
+          : c.red('CLOSED');
 
-      console.log(`\x1b[1m#${pr.number}\x1b[0m ${pr.title}${draft}`);
+      console.log(`${c.bold(`#${pr.number}`)} ${pr.title}${draft}`);
       console.log(`  ${state} • ${pr.headRefName} → ${pr.baseRefName} • by ${pr.author.login}`);
-      console.log(`  \x1b[36m${pr.url}\x1b[0m`);
+      console.log(`  ${c.cyan(pr.url)}`);
       console.log('');
     }
   },
@@ -170,31 +171,31 @@ const viewCommand: Command = {
       return;
     }
 
-    const draft = pr.isDraft ? ' \x1b[33m[draft]\x1b[0m' : '';
+    const draft = pr.isDraft ? ` ${c.yellow('[draft]')}` : '';
     const state = pr.state === 'OPEN'
-      ? '\x1b[32mOPEN\x1b[0m'
+      ? c.green('OPEN')
       : pr.state === 'MERGED'
-        ? '\x1b[35mMERGED\x1b[0m'
-        : '\x1b[31mCLOSED\x1b[0m';
+        ? c.magenta('MERGED')
+        : c.red('CLOSED');
 
     console.log('');
-    console.log(`\x1b[1m#${pr.number} ${pr.title}\x1b[0m${draft}`);
+    console.log(`${c.bold(`#${pr.number} ${pr.title}`)}${draft}`);
     console.log(`${state} • ${pr.headRefName} → ${pr.baseRefName}`);
     console.log(`Author: ${pr.author.login}`);
 
     if (pr.additions !== undefined && pr.deletions !== undefined) {
-      console.log(`Changes: \x1b[32m+${pr.additions}\x1b[0m / \x1b[31m-${pr.deletions}\x1b[0m`);
+      console.log(`Changes: ${c.green(`+${pr.additions}`)} / ${c.red(`-${pr.deletions}`)}`);
     }
 
     if (pr.mergeable) {
-      const mergeColor = pr.mergeable === 'MERGEABLE' ? '32' : '31';
-      console.log(`Mergeable: \x1b[${mergeColor}m${pr.mergeable}\x1b[0m`);
+      const mergeStatus = pr.mergeable === 'MERGEABLE' ? c.green(pr.mergeable) : c.red(pr.mergeable);
+      console.log(`Mergeable: ${mergeStatus}`);
     }
 
-    console.log(`\x1b[36m${pr.url}\x1b[0m`);
+    console.log(c.cyan(pr.url));
 
     if (pr.body) {
-      console.log('\n\x1b[90m─── Description ───\x1b[0m\n');
+      console.log(`\n${c.dim('─── Description ───')}\n`);
       console.log(pr.body);
     }
     console.log('');

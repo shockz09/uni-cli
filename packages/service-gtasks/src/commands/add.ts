@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gtasks } from '../api';
 
 export const addCommand: Command = {
@@ -85,12 +86,12 @@ export const addCommand: Command = {
       }
 
       console.log('');
-      console.log(`  ○ \x1b[1m${task.title}\x1b[0m`);
+      console.log(`  ○ ${c.bold(task.title)}`);
       if (task.notes) {
-        console.log(`    \x1b[90m${task.notes}\x1b[0m`);
+        console.log(`    ${c.dim(task.notes)}`);
       }
       if (task.due) {
-        console.log(`    \x1b[90mDue: ${new Date(task.due).toLocaleDateString()}\x1b[0m`);
+        console.log(`    ${c.dim(`Due: ${new Date(task.due).toLocaleDateString()}`)}`);
       }
       console.log('');
     } catch (error) {

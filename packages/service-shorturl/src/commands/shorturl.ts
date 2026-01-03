@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { shorten, expand, isShortUrl } from '../api';
 
 export const shorturlCommand: Command = {
@@ -57,8 +58,8 @@ export const shorturlCommand: Command = {
         }
 
         console.log('');
-        console.log(`  \x1b[90mShort:\x1b[0m    ${url}`);
-        console.log(`  \x1b[1mOriginal:\x1b[0m ${original}`);
+        console.log(`  ${c.dim('Short:')}    ${url}`);
+        console.log(`  ${c.bold('Original:')} ${original}`);
         console.log('');
       } else {
         // Check if already a short URL
@@ -76,8 +77,8 @@ export const shorturlCommand: Command = {
         }
 
         console.log('');
-        console.log(`  \x1b[90mOriginal:\x1b[0m ${result.original}`);
-        console.log(`  \x1b[32m\x1b[1mShort:\x1b[0m    ${result.short}`);
+        console.log(`  ${c.dim('Original:')} ${result.original}`);
+        console.log(`  ${c.green(c.bold('Short:'))}    ${result.short}`);
         console.log('');
       }
     } catch (error) {

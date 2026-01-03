@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { convert, SUPPORTED_CURRENCIES, CURRENCY_NAMES, formatCurrency } from '../api';
 
 export const currencyCommand: Command = {
@@ -62,7 +63,7 @@ export const currencyCommand: Command = {
       }
 
       console.log('');
-      console.log('\x1b[1mSupported Currencies:\x1b[0m');
+      console.log(c.bold('Supported Currencies:'));
       console.log('');
 
       // Display in 3 columns
@@ -73,7 +74,7 @@ export const currencyCommand: Command = {
           const idx = i + j * perColumn;
           if (idx < SUPPORTED_CURRENCIES.length) {
             const code = SUPPORTED_CURRENCIES[idx];
-            cols.push(`  \x1b[1m${code}\x1b[0m ${CURRENCY_NAMES[code].padEnd(20)}`);
+            cols.push(`  ${c.bold(code)} ${CURRENCY_NAMES[code].padEnd(20)}`);
           }
         }
         console.log(cols.join(''));
@@ -156,8 +157,8 @@ export const currencyCommand: Command = {
       console.log('');
       for (const result of results) {
         const formatted = formatCurrency(result.result, result.to);
-        console.log(`  \x1b[1m${formatCurrency(amount, from)} ${from}\x1b[0m = \x1b[32m${formatted} ${result.to}\x1b[0m`);
-        console.log(`  \x1b[90mRate: 1 ${from} = ${result.rate.toFixed(4)} ${result.to}\x1b[0m`);
+        console.log(`  ${c.bold(`${formatCurrency(amount, from)} ${from}`)} = ${c.green(`${formatted} ${result.to}`)}`);
+        console.log(`  ${c.dim(`Rate: 1 ${from} = ${result.rate.toFixed(4)} ${result.to}`)}`);
         console.log('');
       }
     } catch (error) {

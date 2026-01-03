@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gdocs, extractDocumentId } from '../api';
 
 export const replaceCommand: Command = {
@@ -60,7 +61,7 @@ export const replaceCommand: Command = {
       }
 
       console.log('');
-      console.log(`\x1b[32mReplaced ${count} occurrence(s)\x1b[0m`);
+      console.log(c.green(`Replaced ${count} occurrence(s)`));
       console.log(`  "${oldText}" → "${newText}"`);
       console.log('');
     } catch (error) {

@@ -12,6 +12,7 @@
  */
 
 import type { UniService } from '@uni/shared';
+import { c } from '@uni/shared';
 import { channelsCommand } from './commands/channels';
 import { messagesCommand } from './commands/messages';
 import { sendCommand } from './commands/send';
@@ -33,7 +34,7 @@ const slackService: UniService = {
 
   async setup() {
     if (!slack.hasToken()) {
-      console.error('\x1b[33mWarning: SLACK_BOT_TOKEN not set.\x1b[0m');
+      console.error(c.yellow('Warning: SLACK_BOT_TOKEN not set.'));
     }
   },
 };

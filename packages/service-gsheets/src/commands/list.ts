@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gsheets } from '../api';
 
 export const listCommand: Command = {
@@ -50,13 +51,13 @@ export const listCommand: Command = {
       }
 
       console.log('');
-      console.log('\x1b[1mRecent Spreadsheets:\x1b[0m');
+      console.log(c.bold('Recent Spreadsheets:'));
       console.log('');
 
       for (const file of files) {
         const modified = new Date(file.modifiedTime).toLocaleDateString();
-        console.log(`  \x1b[1m${file.name}\x1b[0m`);
-        console.log(`  \x1b[90mID: ${file.id} | Modified: ${modified}\x1b[0m`);
+        console.log(`  ${c.bold(file.name)}`);
+        console.log(`  ${c.dim(`ID: ${file.id} | Modified: ${modified}`)}`);
         console.log('');
       }
     } catch (error) {

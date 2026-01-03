@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gdocs } from '../api';
 
 export const createCommand: Command = {
@@ -44,9 +45,9 @@ export const createCommand: Command = {
       }
 
       console.log('');
-      console.log(`\x1b[32mCreated:\x1b[0m https://docs.google.com/document/d/${doc.documentId}/edit`);
-      console.log(`\x1b[1mDocument:\x1b[0m ${doc.title}`);
-      console.log(`\x1b[90mID: ${doc.documentId}\x1b[0m`);
+      console.log(`${c.green('Created:')} https://docs.google.com/document/d/${doc.documentId}/edit`);
+      console.log(`${c.bold('Document:')} ${doc.title}`);
+      console.log(c.dim(`ID: ${doc.documentId}`));
       console.log('');
     } catch (error) {
       spinner.fail('Failed to create document');

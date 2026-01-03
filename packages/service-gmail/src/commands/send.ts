@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gmail } from '../api';
 
 export const sendCommand: Command = {
@@ -69,7 +70,7 @@ export const sendCommand: Command = {
         return;
       }
 
-      console.log(`\x1b[90mMessage ID: ${result.id}\x1b[0m`);
+      console.log(c.dim(`Message ID: ${result.id}`));
     } catch (error) {
       spinner.fail('Failed to send email');
       throw error;

@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gsheets, extractSpreadsheetId } from '../api';
 
 export const setCommand: Command = {
@@ -76,7 +77,7 @@ export const setCommand: Command = {
       }
 
       console.log('');
-      console.log(`\x1b[32mSet ${range} to:\x1b[0m ${value}`);
+      console.log(`${c.green(`Set ${range} to:`)} ${value}`);
       console.log('');
     } catch (error) {
       spinner.fail('Failed to set cell value');

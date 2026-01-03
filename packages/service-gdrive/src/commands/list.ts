@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gdrive } from '../api';
 
 export const listCommand: Command = {
@@ -68,9 +69,9 @@ export const listCommand: Command = {
       for (const file of files) {
         const icon = gdrive.getMimeIcon(file.mimeType);
         const size = file.size ? ` (${formatSize(parseInt(file.size))})` : '';
-        console.log(`${icon} \x1b[1m${file.name}\x1b[0m${size}`);
+        console.log(`${icon} ${c.bold(file.name)}${size}`);
         if (file.webViewLink) {
-          console.log(`   \x1b[36m${file.webViewLink}\x1b[0m`);
+          console.log(`   ${c.cyan(file.webViewLink)}`);
         }
       }
       console.log('');

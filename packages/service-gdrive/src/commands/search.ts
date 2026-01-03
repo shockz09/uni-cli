@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gdrive } from '../api';
 
 export const searchCommand: Command = {
@@ -64,9 +65,9 @@ export const searchCommand: Command = {
       console.log('');
       for (const file of files) {
         const icon = gdrive.getMimeIcon(file.mimeType);
-        console.log(`${icon} \x1b[1m${file.name}\x1b[0m`);
+        console.log(`${icon} ${c.bold(file.name)}`);
         if (file.webViewLink) {
-          console.log(`   \x1b[36m${file.webViewLink}\x1b[0m`);
+          console.log(`   ${c.cyan(file.webViewLink)}`);
         }
       }
       console.log('');

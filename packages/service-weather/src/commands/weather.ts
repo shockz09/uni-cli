@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { getWeatherByCity, getWeatherByCoords, toFahrenheit, toMph, type WeatherData } from '../api';
 
 // Weather emoji based on condition code
@@ -96,7 +97,7 @@ export const weatherCommand: Command = {
         ? `${data.location.name}, ${data.location.country}`
         : data.location.name;
       console.log('');
-      console.log(`\x1b[1m${locationStr}\x1b[0m`);
+      console.log(c.bold(locationStr));
       console.log('');
 
       // Current weather
@@ -113,13 +114,13 @@ export const weatherCommand: Command = {
         : `${Math.round(current.windSpeed)} km/h`;
 
       console.log(`  ${emoji} ${temp}, ${current.condition}`);
-      console.log(`  \x1b[90mFeels like: ${feelsLike}\x1b[0m`);
-      console.log(`  \x1b[90mHumidity: ${current.humidity}% | Wind: ${wind}\x1b[0m`);
+      console.log(`  ${c.dim(`Feels like: ${feelsLike}`)}`);
+      console.log(`  ${c.dim(`Humidity: ${current.humidity}% | Wind: ${wind}`)}`);
 
       // Forecast
       if (data.forecast && data.forecast.length > 0) {
         console.log('');
-        console.log('\x1b[1mForecast:\x1b[0m');
+        console.log(c.bold('Forecast:'));
         console.log('');
 
         for (const day of data.forecast) {

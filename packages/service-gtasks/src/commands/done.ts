@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gtasks } from '../api';
 
 export const doneCommand: Command = {
@@ -65,7 +66,7 @@ export const doneCommand: Command = {
       }
 
       console.log('');
-      console.log(`  \x1b[32m✓\x1b[0m \x1b[90m\x1b[9m${task.title}\x1b[0m`);
+      console.log(`  ${c.green('✓')} ${c.dim(c.strikethrough(task.title))}`);
       console.log('');
     } catch (error) {
       spinner.fail('Failed to complete task');

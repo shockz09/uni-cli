@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { slack } from '../api';
 
 export const sendCommand: Command = {
@@ -65,7 +66,7 @@ export const sendCommand: Command = {
         return;
       }
 
-      console.log(`\x1b[90mSent to ${result.channel} at ${result.ts}\x1b[0m`);
+      console.log(c.dim(`Sent to ${result.channel} at ${result.ts}`));
     } catch (error) {
       spinner.fail('Failed to send message');
       throw error;

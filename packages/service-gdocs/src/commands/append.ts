@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gdocs, extractDocumentId } from '../api';
 
 export const appendCommand: Command = {
@@ -54,7 +55,7 @@ export const appendCommand: Command = {
       }
 
       console.log('');
-      console.log(`\x1b[32mAppended to document\x1b[0m`);
+      console.log(c.green('Appended to document'));
       console.log('');
     } catch (error) {
       spinner.fail('Failed to append text');

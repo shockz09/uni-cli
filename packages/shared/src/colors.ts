@@ -19,6 +19,7 @@ export const colors = {
   dim: (s: string) => `\x1b[90m${s}\x1b[0m`,
   italic: (s: string) => `\x1b[3m${s}\x1b[0m`,
   underline: (s: string) => `\x1b[4m${s}\x1b[0m`,
+  strikethrough: (s: string) => `\x1b[9m${s}\x1b[0m`,
 
   // Semantic aliases
   success: (s: string) => `\x1b[32m${s}\x1b[0m`,

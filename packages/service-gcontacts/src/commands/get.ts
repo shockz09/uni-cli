@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gcontacts } from '../api';
 
 export const getCommand: Command = {
@@ -54,20 +55,20 @@ export const getCommand: Command = {
       const company = gcontacts.getCompany(contact);
 
       console.log('');
-      console.log(`  \x1b[1m${name}\x1b[0m`);
+      console.log(`  ${c.bold(name)}`);
 
       if (emails.length > 0) {
         console.log('');
-        console.log('  \x1b[90mEmails:\x1b[0m');
+        console.log(`  ${c.dim('Emails:')}`);
         for (const email of emails) {
           const type = email.type ? ` (${email.type})` : '';
-          console.log(`    \x1b[36m${email.value}\x1b[0m${type}`);
+          console.log(`    ${c.cyan(email.value)}${type}`);
         }
       }
 
       if (phones.length > 0) {
         console.log('');
-        console.log('  \x1b[90mPhones:\x1b[0m');
+        console.log(`  ${c.dim('Phones:')}`);
         for (const phone of phones) {
           const type = phone.type ? ` (${phone.type})` : '';
           console.log(`    ${phone.value}${type}`);
@@ -76,7 +77,7 @@ export const getCommand: Command = {
 
       if (company) {
         console.log('');
-        console.log(`  \x1b[90mCompany:\x1b[0m ${company}`);
+        console.log(`  ${c.dim('Company:')} ${company}`);
       }
 
       console.log('');

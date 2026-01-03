@@ -4,6 +4,7 @@
 
 import * as fs from 'node:fs';
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gdrive } from '../api';
 
 export const uploadCommand: Command = {
@@ -68,9 +69,9 @@ export const uploadCommand: Command = {
       }
 
       console.log('');
-      console.log(`${gdrive.getMimeIcon(file.mimeType)} \x1b[1m${file.name}\x1b[0m`);
+      console.log(`${gdrive.getMimeIcon(file.mimeType)} ${c.bold(file.name)}`);
       if (file.webViewLink) {
-        console.log(`   \x1b[90m${file.webViewLink}\x1b[0m`);
+        console.log(`   ${c.dim(file.webViewLink)}`);
       }
       console.log('');
     } catch (error) {

@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { notion } from '../api';
 
 const viewCommand: Command = {
@@ -80,14 +81,14 @@ const viewCommand: Command = {
       }
 
       console.log('');
-      console.log(`📄 \x1b[1m${title}\x1b[0m`);
-      console.log(`   \x1b[36m${page.url}\x1b[0m`);
+      console.log(`📄 ${c.bold(title)}`);
+      console.log(`   ${c.cyan(page.url)}`);
       console.log(`   Created: ${new Date(page.created_time).toLocaleDateString()}`);
       console.log(`   Updated: ${new Date(page.last_edited_time).toLocaleDateString()}`);
 
       if (flags.content) {
         const blocks = await notion.getPageContent(pageId);
-        console.log('\n\x1b[90m─── Content ───\x1b[0m\n');
+        console.log(`\n${c.dim('─── Content ───')}\n`);
 
         for (const block of blocks) {
           const text = notion.extractBlockText(block);

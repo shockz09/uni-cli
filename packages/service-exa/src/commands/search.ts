@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { ExaMCPClient } from '../mcp-client';
 import { ExaClient } from '../api';
 
@@ -77,14 +78,14 @@ export const searchCommand: Command = {
       // Display results
       console.log('');
       for (const result of results) {
-        console.log(`\x1b[1m${result.title}\x1b[0m`);
-        console.log(`\x1b[36m${result.url}\x1b[0m`);
+        console.log(c.bold(result.title));
+        console.log(c.cyan(result.url));
         if (result.text) {
           const snippet = result.text.slice(0, 200).replace(/\n/g, ' ');
-          console.log(`\x1b[90m${snippet}${result.text.length > 200 ? '...' : ''}\x1b[0m`);
+          console.log(c.dim(`${snippet}${result.text.length > 200 ? '...' : ''}`));
         }
         if (result.publishedDate) {
-          console.log(`\x1b[90mPublished: ${result.publishedDate}\x1b[0m`);
+          console.log(c.dim(`Published: ${result.publishedDate}`));
         }
         console.log('');
       }

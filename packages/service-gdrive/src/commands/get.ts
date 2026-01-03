@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gdrive } from '../api';
 
 export const getCommand: Command = {
@@ -52,7 +53,7 @@ export const getCommand: Command = {
     }
 
     console.log('');
-    console.log(`${gdrive.getMimeIcon(file.mimeType)} \x1b[1m${file.name}\x1b[0m`);
+    console.log(`${gdrive.getMimeIcon(file.mimeType)} ${c.bold(file.name)}`);
     console.log(`   ID: ${file.id}`);
     console.log(`   Type: ${file.mimeType}`);
     if (file.size) {
@@ -66,7 +67,7 @@ export const getCommand: Command = {
       console.log(`   Owner: ${file.owners[0].displayName} <${file.owners[0].emailAddress}>`);
     }
     if (file.webViewLink) {
-      console.log(`   \x1b[36m${file.webViewLink}\x1b[0m`);
+      console.log(`   ${c.cyan(file.webViewLink)}`);
     }
     console.log('');
   },

@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gdrive } from '../api';
 
 export const deleteCommand: Command = {
@@ -86,7 +87,7 @@ export const deleteCommand: Command = {
       console.log('');
       for (const file of files) {
         console.log(`  ${gdrive.getMimeIcon(file.mimeType)} ${file.name}`);
-        console.log(`    \x1b[90mID: ${file.id}\x1b[0m`);
+        console.log(`    ${c.dim(`ID: ${file.id}`)}`);
       }
       console.log('');
 
@@ -99,7 +100,7 @@ export const deleteCommand: Command = {
         });
 
         const answer = await new Promise<string>((resolve) => {
-          rl.question(`\x1b[33mDelete ${files.length} file(s)? [y/N] \x1b[0m`, resolve);
+          rl.question(c.yellow(`Delete ${files.length} file(s)? [y/N] `), resolve);
         });
         rl.close();
 

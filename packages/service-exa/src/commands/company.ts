@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { ExaMCPClient } from '../mcp-client';
 import { ExaClient } from '../api';
 
@@ -75,17 +76,17 @@ export const companyCommand: Command = {
       }
 
       // Display company info
-      console.log(`\n\x1b[1m🏢 ${companyName}\x1b[0m\n`);
+      console.log(`\n${c.bold(`🏢 ${companyName}`)}\n`);
 
       for (const result of results) {
-        console.log(`\x1b[1m${result.title}\x1b[0m`);
-        console.log(`\x1b[36m${result.url}\x1b[0m`);
+        console.log(c.bold(result.title));
+        console.log(c.cyan(result.url));
         if (result.text) {
           const snippet = result.text.slice(0, 250).replace(/\n/g, ' ');
-          console.log(`\x1b[90m${snippet}${result.text.length > 250 ? '...' : ''}\x1b[0m`);
+          console.log(c.dim(`${snippet}${result.text.length > 250 ? '...' : ''}`));
         }
         if (result.publishedDate) {
-          console.log(`\x1b[90m📅 ${result.publishedDate}\x1b[0m`);
+          console.log(c.dim(`📅 ${result.publishedDate}`));
         }
         console.log('');
       }

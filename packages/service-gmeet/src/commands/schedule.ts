@@ -3,7 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
-import { timestamp } from '@uni/shared';
+import { timestamp, c } from '@uni/shared';
 import { gmeet } from '../api';
 
 export const scheduleCommand: Command = {
@@ -118,20 +118,20 @@ export const scheduleCommand: Command = {
       }
 
       console.log('');
-      console.log(`  \x1b[1m${event.summary}\x1b[0m`);
+      console.log(`  ${c.bold(event.summary)}`);
       if (meetLink) {
-        console.log(`  \x1b[36m${meetLink}\x1b[0m`);
+        console.log(`  ${c.cyan(meetLink)}`);
       }
 
       const startDate = new Date(event.start.dateTime!);
       const endDate = new Date(event.end.dateTime!);
-      console.log(`  \x1b[90m${startDate.toLocaleString()} - ${endDate.toLocaleTimeString()}\x1b[0m`);
+      console.log(`  ${c.dim(`${startDate.toLocaleString()} - ${endDate.toLocaleTimeString()}`)}`);
 
       if (event.attendees && event.attendees.length > 0) {
-        console.log(`  \x1b[90mInvited: ${event.attendees.map(a => a.email).join(', ')}\x1b[0m`);
+        console.log(`  ${c.dim(`Invited: ${event.attendees.map(a => a.email).join(', ')}`)}`);
       }
       console.log('');
-      console.log(`\x1b[90m${timestamp()}\x1b[0m`);
+      console.log(c.dim(timestamp()));
     } catch (error) {
       spinner.fail('Failed to schedule meeting');
       throw error;

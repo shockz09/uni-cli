@@ -3,7 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
-import { timestamp } from '@uni/shared';
+import { timestamp, c } from '@uni/shared';
 import { gmeet } from '../api';
 
 export const listCommand: Command = {
@@ -73,7 +73,7 @@ export const listCommand: Command = {
           month: 'short',
           day: 'numeric',
         });
-        console.log(`\x1b[1m📅 ${dateLabel}\x1b[0m`);
+        console.log(c.bold(`📅 ${dateLabel}`));
 
         for (const meeting of dayMeetings) {
           const startTime = meeting.start.dateTime
@@ -86,14 +86,14 @@ export const listCommand: Command = {
 
           const meetLink = gmeet.getMeetLink(meeting);
 
-          console.log(`  \x1b[36m${startTime}\x1b[0m ${meeting.summary}`);
+          console.log(`  ${c.cyan(startTime)} ${meeting.summary}`);
           if (meetLink) {
-            console.log(`    \x1b[90m${meetLink}\x1b[0m`);
+            console.log(`    ${c.dim(meetLink)}`);
           }
         }
         console.log('');
       }
-      console.log(`\x1b[90m${timestamp()}\x1b[0m`);
+      console.log(c.dim(timestamp()));
     } catch (error) {
       spinner.fail('Failed to fetch meetings');
       throw error;

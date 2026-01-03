@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gdocs, extractDocumentId } from '../api';
 
 export const getCommand: Command = {
@@ -58,8 +59,8 @@ export const getCommand: Command = {
       }
 
       console.log('');
-      console.log(`\x1b[1m${doc.title}\x1b[0m`);
-      console.log(`\x1b[90mID: ${doc.documentId}\x1b[0m`);
+      console.log(c.bold(doc.title));
+      console.log(c.dim(`ID: ${doc.documentId}`));
       console.log('');
 
       if (asMarkdown) {

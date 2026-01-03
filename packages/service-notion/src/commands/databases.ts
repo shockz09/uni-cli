@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { notion } from '../api';
 
 const listCommand: Command = {
@@ -49,10 +50,10 @@ const listCommand: Command = {
       console.log('');
       for (const db of databases) {
         const title = db.title?.[0]?.plain_text || 'Untitled';
-        console.log(`📊 \x1b[1m${title}\x1b[0m`);
-        console.log(`   \x1b[36m${db.url}\x1b[0m`);
+        console.log(`📊 ${c.bold(title)}`);
+        console.log(`   ${c.cyan(db.url)}`);
         if (db.description?.[0]?.plain_text) {
-          console.log(`   \x1b[90m${db.description[0].plain_text}\x1b[0m`);
+          console.log(`   ${c.dim(db.description[0].plain_text)}`);
         }
         console.log('');
       }
@@ -137,8 +138,8 @@ const queryCommand: Command = {
           }
         }
 
-        console.log(`📄 \x1b[1m${title}\x1b[0m`);
-        console.log(`   \x1b[36m${page.url}\x1b[0m`);
+        console.log(`📄 ${c.bold(title)}`);
+        console.log(`   ${c.cyan(page.url)}`);
       }
       console.log('');
     } catch (error) {

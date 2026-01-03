@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { ExaMCPClient } from '../mcp-client';
 import { ExaClient } from '../api';
 
@@ -72,14 +73,14 @@ export const codeCommand: Command = {
       }
 
       // Display sources first
-      console.log('\n\x1b[1mSources:\x1b[0m');
+      console.log(`\n${c.bold('Sources:')}`);
       for (const source of response.sources) {
-        console.log(`  • \x1b[36m${source.title}\x1b[0m`);
+        console.log(`  • ${c.cyan(source.title)}`);
         console.log(`    ${source.url}`);
       }
 
       // Display context
-      console.log('\n\x1b[1m─── Context ───\x1b[0m\n');
+      console.log(`\n${c.bold('─── Context ───')}\n`);
       console.log(response.context);
 
     } catch (error) {

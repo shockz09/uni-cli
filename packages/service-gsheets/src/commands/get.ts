@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gsheets, extractSpreadsheetId } from '../api';
 
 export const getCommand: Command = {
@@ -95,23 +96,23 @@ export const getCommand: Command = {
       }
 
       console.log('');
-      console.log(`\x1b[1m${spreadsheet.properties.title}\x1b[0m`);
-      console.log(`\x1b[90mID: ${spreadsheet.spreadsheetId}\x1b[0m`);
+      console.log(c.bold(spreadsheet.properties.title));
+      console.log(c.dim(`ID: ${spreadsheet.spreadsheetId}`));
       console.log('');
 
       // Show sheets info
-      console.log('\x1b[1mSheets:\x1b[0m');
+      console.log(c.bold('Sheets:'));
       for (const sheet of sheets) {
         const grid = sheet.properties.gridProperties;
         const dims = grid ? `${grid.rowCount} rows x ${grid.columnCount} cols` : '';
         const marker = sheet.properties.title === targetSheet.properties.title ? ' *' : '';
-        console.log(`  ${sheet.properties.title}${marker} \x1b[90m(${dims})\x1b[0m`);
+        console.log(`  ${sheet.properties.title}${marker} ${c.dim(`(${dims})`)}`);
       }
 
       // Show data if available
       if (values.length > 0) {
         console.log('');
-        console.log(`\x1b[1mData:\x1b[0m (${values.length} rows)`);
+        console.log(`${c.bold('Data:')} (${values.length} rows)`);
         console.log('');
 
         // Calculate column widths
@@ -126,7 +127,7 @@ export const getCommand: Command = {
         // Print header row
         if (values[0]) {
           const header = values[0].map((cell, i) => String(cell || '').padEnd(colWidths[i] || 0)).join(' | ');
-          console.log(`  \x1b[1m${header}\x1b[0m`);
+          console.log(`  ${c.bold(header)}`);
           console.log(`  ${'-'.repeat(header.length)}`);
         }
 
@@ -137,7 +138,7 @@ export const getCommand: Command = {
         }
 
         if (values.length > 21) {
-          console.log(`  \x1b[90m... and ${values.length - 21} more rows\x1b[0m`);
+          console.log(`  ${c.dim(`... and ${values.length - 21} more rows`)}`);
         }
       }
 

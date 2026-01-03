@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gmail } from '../api';
 
 /**
@@ -80,11 +81,11 @@ export const readCommand: Command = {
       const body = gmail.decodeBody(email);
 
       console.log('');
-      console.log(`\x1b[1m${subject}\x1b[0m`);
-      console.log(`\x1b[36mFrom:\x1b[0m ${from}`);
-      console.log(`\x1b[36mTo:\x1b[0m ${to}`);
-      console.log(`\x1b[36mDate:\x1b[0m ${date}`);
-      console.log('\n\x1b[90m─── Body ───\x1b[0m\n');
+      console.log(c.bold(subject));
+      console.log(`${c.cyan('From:')} ${from}`);
+      console.log(`${c.cyan('To:')} ${to}`);
+      console.log(`${c.cyan('Date:')} ${date}`);
+      console.log(`\n${c.dim('─── Body ───')}\n`);
       console.log(body);
       console.log('');
     } catch (error) {

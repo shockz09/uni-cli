@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gdocs, extractDocumentId } from '../api';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -94,7 +95,7 @@ export const exportCommand: Command = {
       }
 
       console.log('');
-      console.log(`\x1b[32mExported:\x1b[0m ${finalPath}`);
+      console.log(`${c.green('Exported:')} ${finalPath}`);
       console.log('');
     } catch (error) {
       spinner.fail('Failed to export document');

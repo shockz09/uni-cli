@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gh } from '../gh-wrapper';
 
 interface Issue {
@@ -97,16 +98,16 @@ const listCommand: Command = {
     console.log('');
     for (const issue of issues) {
       const state = issue.state === 'OPEN'
-        ? '\x1b[32mOPEN\x1b[0m'
-        : '\x1b[35mCLOSED\x1b[0m';
+        ? c.green('OPEN')
+        : c.magenta('CLOSED');
 
       const labels = issue.labels.length > 0
-        ? ' ' + issue.labels.map(l => `\x1b[33m${l.name}\x1b[0m`).join(' ')
+        ? ' ' + issue.labels.map(l => c.yellow(l.name)).join(' ')
         : '';
 
-      console.log(`\x1b[1m#${issue.number}\x1b[0m ${issue.title}${labels}`);
+      console.log(`${c.bold(`#${issue.number}`)} ${issue.title}${labels}`);
       console.log(`  ${state} • by ${issue.author.login}`);
-      console.log(`  \x1b[36m${issue.url}\x1b[0m`);
+      console.log(`  ${c.cyan(issue.url)}`);
       console.log('');
     }
   },
@@ -176,24 +177,24 @@ const viewCommand: Command = {
     }
 
     const state = issue.state === 'OPEN'
-      ? '\x1b[32mOPEN\x1b[0m'
-      : '\x1b[35mCLOSED\x1b[0m';
+      ? c.green('OPEN')
+      : c.magenta('CLOSED');
 
     const labels = issue.labels.length > 0
-      ? '\nLabels: ' + issue.labels.map(l => `\x1b[33m${l.name}\x1b[0m`).join(' ')
+      ? '\nLabels: ' + issue.labels.map(l => c.yellow(l.name)).join(' ')
       : '';
 
     console.log('');
-    console.log(`\x1b[1m#${issue.number} ${issue.title}\x1b[0m`);
+    console.log(c.bold(`#${issue.number} ${issue.title}`));
     console.log(`${state} • by ${issue.author.login}`);
     if (issue.comments) {
       console.log(`Comments: ${issue.comments}`);
     }
     console.log(labels);
-    console.log(`\x1b[36m${issue.url}\x1b[0m`);
+    console.log(c.cyan(issue.url));
 
     if (issue.body) {
-      console.log('\n\x1b[90m─── Description ───\x1b[0m\n');
+      console.log(`\n${c.dim('─── Description ───')}\n`);
       console.log(issue.body);
     }
     console.log('');

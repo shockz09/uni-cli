@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gcontacts } from '../api';
 
 export const listCommand: Command = {
@@ -54,10 +55,10 @@ export const listCommand: Command = {
         const phone = gcontacts.getPhone(contact);
         const company = gcontacts.getCompany(contact);
 
-        console.log(`  \x1b[1m${name}\x1b[0m`);
-        if (email) console.log(`    \x1b[36m${email}\x1b[0m`);
-        if (phone) console.log(`    \x1b[90m${phone}\x1b[0m`);
-        if (company) console.log(`    \x1b[90m${company}\x1b[0m`);
+        console.log(`  ${c.bold(name)}`);
+        if (email) console.log(`    ${c.cyan(email)}`);
+        if (phone) console.log(`    ${c.dim(phone)}`);
+        if (company) console.log(`    ${c.dim(company)}`);
       }
       console.log('');
     } catch (error) {

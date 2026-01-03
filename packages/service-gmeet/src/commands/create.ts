@@ -3,7 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
-import { timestamp } from '@uni/shared';
+import { timestamp, c } from '@uni/shared';
 import { gmeet } from '../api';
 
 export const createCommand: Command = {
@@ -61,13 +61,13 @@ export const createCommand: Command = {
       }
 
       console.log('');
-      console.log(`  \x1b[1m${event.summary}\x1b[0m`);
+      console.log(`  ${c.bold(event.summary)}`);
       if (meetLink) {
-        console.log(`  \x1b[36m${meetLink}\x1b[0m`);
+        console.log(`  ${c.cyan(meetLink)}`);
       }
-      console.log(`  \x1b[90mNow - ${duration} mins\x1b[0m`);
+      console.log(`  ${c.dim(`Now - ${duration} mins`)}`);
       console.log('');
-      console.log(`\x1b[90m${timestamp()}\x1b[0m`);
+      console.log(c.dim(timestamp()));
     } catch (error) {
       spinner.fail('Failed to create meeting');
       throw error;

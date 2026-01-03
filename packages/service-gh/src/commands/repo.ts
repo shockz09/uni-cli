@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gh } from '../gh-wrapper';
 
 interface Repository {
@@ -86,19 +87,19 @@ const viewCommand: Command = {
       return;
     }
 
-    const visibility = repo.isPrivate ? '\x1b[33mPrivate\x1b[0m' : '\x1b[32mPublic\x1b[0m';
+    const visibility = repo.isPrivate ? c.yellow('Private') : c.green('Public');
     const fork = repo.isFork ? ' (fork)' : '';
     const lang = repo.primaryLanguage?.name || 'Unknown';
     const branch = repo.defaultBranchRef?.name || 'main';
 
     console.log('');
-    console.log(`\x1b[1m${repo.nameWithOwner}\x1b[0m${fork}`);
+    console.log(`${c.bold(repo.nameWithOwner)}${fork}`);
     console.log(`${visibility} • ${lang} • Branch: ${branch}`);
     if (repo.description) {
-      console.log(`\x1b[90m${repo.description}\x1b[0m`);
+      console.log(c.dim(repo.description));
     }
     console.log(`⭐ ${repo.stargazerCount} • 🍴 ${repo.forkCount}`);
-    console.log(`\x1b[36m${repo.url}\x1b[0m`);
+    console.log(c.cyan(repo.url));
     console.log('');
   },
 };
@@ -239,14 +240,14 @@ const listCommand: Command = {
 
     console.log('');
     for (const repo of repos) {
-      const visibility = repo.isPrivate ? '\x1b[33m•\x1b[0m' : '\x1b[32m•\x1b[0m';
+      const visibility = repo.isPrivate ? c.yellow('•') : c.green('•');
       const lang = repo.primaryLanguage?.name || '';
-      const langStr = lang ? `\x1b[90m${lang}\x1b[0m ` : '';
+      const langStr = lang ? `${c.dim(lang)} ` : '';
       const stars = repo.stargazerCount > 0 ? `⭐${repo.stargazerCount}` : '';
 
-      console.log(`${visibility} \x1b[1m${repo.nameWithOwner}\x1b[0m ${langStr}${stars}`);
+      console.log(`${visibility} ${c.bold(repo.nameWithOwner)} ${langStr}${stars}`);
       if (repo.description) {
-        console.log(`  \x1b[90m${repo.description.slice(0, 80)}${repo.description.length > 80 ? '...' : ''}\x1b[0m`);
+        console.log(`  ${c.dim(`${repo.description.slice(0, 80)}${repo.description.length > 80 ? '...' : ''}`)}`);
       }
     }
     console.log('');

@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gsheets } from '../api';
 
 export const createCommand: Command = {
@@ -47,9 +48,9 @@ export const createCommand: Command = {
       }
 
       console.log('');
-      console.log(`\x1b[32mCreated:\x1b[0m ${spreadsheet.spreadsheetUrl}`);
-      console.log(`\x1b[1mSpreadsheet:\x1b[0m ${spreadsheet.properties.title}`);
-      console.log(`\x1b[90mID: ${spreadsheet.spreadsheetId}\x1b[0m`);
+      console.log(`${c.green('Created:')} ${spreadsheet.spreadsheetUrl}`);
+      console.log(`${c.bold('Spreadsheet:')} ${spreadsheet.properties.title}`);
+      console.log(c.dim(`ID: ${spreadsheet.spreadsheetId}`));
       console.log('');
     } catch (error) {
       spinner.fail('Failed to create spreadsheet');

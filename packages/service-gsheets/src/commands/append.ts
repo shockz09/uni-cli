@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gsheets, extractSpreadsheetId } from '../api';
 
 export const appendCommand: Command = {
@@ -67,7 +68,7 @@ export const appendCommand: Command = {
       }
 
       console.log('');
-      console.log(`\x1b[32mAppended row:\x1b[0m ${rowValues.join(' | ')}`);
+      console.log(`${c.green('Appended row:')} ${rowValues.join(' | ')}`);
       console.log('');
     } catch (error) {
       spinner.fail('Failed to append row');

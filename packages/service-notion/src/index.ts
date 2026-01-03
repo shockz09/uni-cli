@@ -11,6 +11,7 @@
  */
 
 import type { UniService } from '@uni/shared';
+import { c } from '@uni/shared';
 import { searchCommand } from './commands/search';
 import { pagesCommand } from './commands/pages';
 import { databasesCommand } from './commands/databases';
@@ -31,7 +32,7 @@ const notionService: UniService = {
 
   async setup() {
     if (!notion.hasToken()) {
-      console.error('\x1b[33mWarning: NOTION_TOKEN not set.\x1b[0m');
+      console.error(c.yellow('Warning: NOTION_TOKEN not set.'));
     }
   },
 };

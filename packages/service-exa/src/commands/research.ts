@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { ExaMCPClient } from '../mcp-client';
 import { ExaClient } from '../api';
 import { sleep } from '@uni/shared';
@@ -93,15 +94,15 @@ export const researchCommand: Command = {
         }
 
         // Display research results
-        console.log('\n\x1b[1m📚 Research Results\x1b[0m\n');
+        console.log(`\n${c.bold('📚 Research Results')}\n`);
 
         for (let i = 0; i < results.length; i++) {
           const result = results[i];
-          console.log(`\x1b[1m${i + 1}. ${result.title}\x1b[0m`);
-          console.log(`   \x1b[36m${result.url}\x1b[0m`);
+          console.log(c.bold(`${i + 1}. ${result.title}`));
+          console.log(`   ${c.cyan(result.url)}`);
           if (result.text) {
             const snippet = result.text.slice(0, 300).replace(/\n/g, ' ');
-            console.log(`   \x1b[90m${snippet}...\x1b[0m`);
+            console.log(`   ${c.dim(`${snippet}...`)}`);
           }
           console.log('');
         }
@@ -132,14 +133,14 @@ export const researchCommand: Command = {
                 return;
               }
 
-              console.log('\n\x1b[1m🔬 Deep Research Results\x1b[0m\n');
+              console.log(`\n${c.bold('🔬 Deep Research Results')}\n`);
               console.log(status.result);
 
               if (status.sources?.length) {
-                console.log('\n\x1b[1mSources:\x1b[0m');
+                console.log(`\n${c.bold('Sources:')}`);
                 for (const source of status.sources) {
                   console.log(`  • ${source.title}`);
-                  console.log(`    \x1b[36m${source.url}\x1b[0m`);
+                  console.log(`    ${c.cyan(source.url)}`);
                 }
               }
               return;
@@ -168,7 +169,7 @@ export const researchCommand: Command = {
             return;
           }
 
-          console.log('\n\x1b[1m🔬 Deep Research Results\x1b[0m\n');
+          console.log(`\n${c.bold('🔬 Deep Research Results')}\n`);
           console.log(result.content || 'No content returned');
         }
       }

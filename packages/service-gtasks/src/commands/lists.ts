@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gtasks } from '../api';
 
 const listSubcommand: Command = {
@@ -30,8 +31,8 @@ const listSubcommand: Command = {
 
       console.log('');
       for (const list of lists) {
-        console.log(`  \x1b[1m${list.title}\x1b[0m`);
-        console.log(`    \x1b[90mID: ${list.id}\x1b[0m`);
+        console.log(`  ${c.bold(list.title)}`);
+        console.log(`    ${c.dim(`ID: ${list.id}`)}`);
       }
       console.log('');
     } catch (error) {
@@ -73,8 +74,8 @@ const addSubcommand: Command = {
       }
 
       console.log('');
-      console.log(`  \x1b[1m${list.title}\x1b[0m`);
-      console.log(`    \x1b[90mID: ${list.id}\x1b[0m`);
+      console.log(`  ${c.bold(list.title)}`);
+      console.log(`    ${c.dim(`ID: ${list.id}`)}`);
       console.log('');
     } catch (error) {
       spinner.fail('Failed to create list');
@@ -121,7 +122,7 @@ const deleteSubcommand: Command = {
       });
 
       const answer = await new Promise<string>((resolve) => {
-        rl.question(`\x1b[33mDelete list "${listId}"? [y/N] \x1b[0m`, resolve);
+        rl.question(c.yellow(`Delete list "${listId}"? [y/N] `), resolve);
       });
       rl.close();
 

@@ -10,6 +10,7 @@
  */
 
 import type { UniService } from '@uni/shared';
+import { c } from '@uni/shared';
 import { prCommand } from './commands/pr';
 import { issueCommand } from './commands/issue';
 import { repoCommand } from './commands/repo';
@@ -30,7 +31,7 @@ const ghService: UniService = {
   async setup() {
     const available = await gh.isAvailable();
     if (!available) {
-      console.error('\x1b[33mWarning: gh CLI not authenticated. Run "gh auth login" first.\x1b[0m');
+      console.error(c.yellow('Warning: gh CLI not authenticated. Run "gh auth login" first.'));
     }
   },
 };

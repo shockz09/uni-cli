@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gtasks } from '../api';
 
 export const deleteCommand: Command = {
@@ -68,7 +69,7 @@ export const deleteCommand: Command = {
         });
 
         const answer = await new Promise<string>((resolve) => {
-          rl.question(`\x1b[33mDelete "${task.title}"? [y/N] \x1b[0m`, resolve);
+          rl.question(c.yellow(`Delete "${task.title}"? [y/N] `), resolve);
         });
         rl.close();
 

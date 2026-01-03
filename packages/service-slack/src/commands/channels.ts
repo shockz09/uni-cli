@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { slack } from '../api';
 
 const listCommand: Command = {
@@ -61,9 +62,9 @@ const listCommand: Command = {
       for (const channel of channels) {
         const prefix = channel.is_private ? '🔒' : '#';
         const members = channel.num_members ? ` (${channel.num_members} members)` : '';
-        console.log(`${prefix} \x1b[1m${channel.name}\x1b[0m${members}`);
+        console.log(`${prefix} ${c.bold(channel.name)}${members}`);
         if (channel.purpose?.value) {
-          console.log(`   \x1b[90m${channel.purpose.value.slice(0, 80)}\x1b[0m`);
+          console.log(`   ${c.dim(channel.purpose.value.slice(0, 80))}`);
         }
       }
       console.log('');
@@ -111,7 +112,7 @@ const infoCommand: Command = {
 
       const prefix = channel.is_private ? '🔒' : '#';
       console.log('');
-      console.log(`${prefix} \x1b[1m${channel.name}\x1b[0m`);
+      console.log(`${prefix} ${c.bold(channel.name)}`);
       console.log(`   ID: ${channel.id}`);
       if (channel.topic?.value) {
         console.log(`   Topic: ${channel.topic.value}`);

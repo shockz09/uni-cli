@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gsheets, extractSpreadsheetId } from '../api';
 
 export const shareCommand: Command = {
@@ -64,7 +65,7 @@ export const shareCommand: Command = {
       }
 
       console.log('');
-      console.log(`\x1b[32mShared with ${email}\x1b[0m (${role} access)`);
+      console.log(`${c.green(`Shared with ${email}`)} (${role} access)`);
       console.log('');
     } catch (error) {
       spinner.fail('Failed to share spreadsheet');

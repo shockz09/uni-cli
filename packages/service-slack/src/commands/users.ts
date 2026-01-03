@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { slack } from '../api';
 
 const listCommand: Command = {
@@ -47,8 +48,8 @@ const listCommand: Command = {
       console.log('');
       for (const user of realUsers) {
         const displayName = user.profile.display_name || user.real_name || user.name;
-        const email = user.profile.email ? ` \x1b[90m<${user.profile.email}>\x1b[0m` : '';
-        console.log(`\x1b[1m${displayName}\x1b[0m (@${user.name})${email}`);
+        const email = user.profile.email ? ` ${c.dim(`<${user.profile.email}>`)}` : '';
+        console.log(`${c.bold(displayName)} (@${user.name})${email}`);
       }
       console.log('');
     } catch (error) {
@@ -93,7 +94,7 @@ const infoCommand: Command = {
       }
 
       console.log('');
-      console.log(`\x1b[1m${user.real_name}\x1b[0m (@${user.name})`);
+      console.log(`${c.bold(user.real_name)} (@${user.name})`);
       console.log(`ID: ${user.id}`);
       if (user.profile.email) {
         console.log(`Email: ${user.profile.email}`);

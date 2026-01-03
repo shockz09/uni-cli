@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gcontacts } from '../api';
 
 export const deleteCommand: Command = {
@@ -62,7 +63,7 @@ export const deleteCommand: Command = {
         });
 
         const answer = await new Promise<string>((resolve) => {
-          rl.question(`\x1b[33mDelete "${name}"? [y/N] \x1b[0m`, resolve);
+          rl.question(c.yellow(`Delete "${name}"? [y/N] `), resolve);
         });
         rl.close();
 

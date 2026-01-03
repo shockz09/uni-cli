@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { notion } from '../api';
 
 export const searchCommand: Command = {
@@ -74,8 +75,8 @@ export const searchCommand: Command = {
       console.log('');
       for (const result of results) {
         const icon = result.object === 'database' ? '📊' : '📄';
-        console.log(`${icon} \x1b[1m${result.title || 'Untitled'}\x1b[0m`);
-        console.log(`   \x1b[36m${result.url}\x1b[0m`);
+        console.log(`${icon} ${c.bold(result.title || 'Untitled')}`);
+        console.log(`   ${c.cyan(result.url)}`);
         console.log('');
       }
     } catch (error) {

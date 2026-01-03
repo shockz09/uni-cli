@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gtasks } from '../api';
 
 export const listCommand: Command = {
@@ -67,10 +68,10 @@ export const listCommand: Command = {
 
       console.log('');
       for (const task of tasks) {
-        const checkbox = task.status === 'completed' ? '\x1b[32m✓\x1b[0m' : '○';
+        const checkbox = task.status === 'completed' ? c.green('✓') : '○';
         const title = task.status === 'completed'
-          ? `\x1b[90m\x1b[9m${task.title}\x1b[0m`
-          : `\x1b[1m${task.title}\x1b[0m`;
+          ? c.dim(c.strikethrough(task.title))
+          : c.bold(task.title);
 
         let due = '';
         if (task.due) {
@@ -79,13 +80,13 @@ export const listCommand: Command = {
           today.setHours(0, 0, 0, 0);
           const isOverdue = dueDate < today && task.status !== 'completed';
           due = isOverdue
-            ? ` \x1b[31m(${dueDate.toLocaleDateString()})\x1b[0m`
-            : ` \x1b[90m(${dueDate.toLocaleDateString()})\x1b[0m`;
+            ? ` ${c.red(`(${dueDate.toLocaleDateString()})`)}`
+            : ` ${c.dim(`(${dueDate.toLocaleDateString()})`)}`;
         }
 
         console.log(`  ${checkbox} ${title}${due}`);
         if (task.notes) {
-          console.log(`    \x1b[90m${task.notes.slice(0, 60)}${task.notes.length > 60 ? '...' : ''}\x1b[0m`);
+          console.log(`    ${c.dim(`${task.notes.slice(0, 60)}${task.notes.length > 60 ? '...' : ''}`)}`);
         }
       }
       console.log('');
