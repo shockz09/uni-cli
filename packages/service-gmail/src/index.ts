@@ -13,6 +13,7 @@
  */
 
 import type { UniService } from '@uni/shared';
+import { createGoogleServiceSetup } from '@uni/shared';
 import { listCommand } from './commands/list';
 import { readCommand } from './commands/read';
 import { sendCommand } from './commands/send';
@@ -33,13 +34,7 @@ const gmailService: UniService = {
     envVar: 'GOOGLE_CLIENT_ID',
   },
 
-  async setup() {
-    if (!gmail.hasCredentials()) {
-      console.error('\x1b[33mWarning: Google credentials not configured.\x1b[0m');
-    } else if (!gmail.isAuthenticated()) {
-      console.error('\x1b[33mWarning: Not authenticated. Run "uni gmail auth".\x1b[0m');
-    }
-  },
+  setup: createGoogleServiceSetup('gmail', gmail),
 };
 
 export default gmailService;

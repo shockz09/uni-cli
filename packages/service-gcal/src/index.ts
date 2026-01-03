@@ -15,6 +15,7 @@
  */
 
 import type { UniService } from '@uni/shared';
+import { createGoogleServiceSetup } from '@uni/shared';
 import { listCommand } from './commands/list';
 import { addCommand } from './commands/add';
 import { nextCommand } from './commands/next';
@@ -36,14 +37,7 @@ const gcalService: UniService = {
     envVar: 'GOOGLE_CLIENT_ID',
   },
 
-  async setup() {
-    if (!gcal.hasCredentials()) {
-      console.error('\x1b[33mWarning: Google Calendar credentials not configured.\x1b[0m');
-      console.error('\x1b[33mSet GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.\x1b[0m');
-    } else if (!gcal.isAuthenticated()) {
-      console.error('\x1b[33mWarning: Not authenticated. Run "uni gcal auth" to login.\x1b[0m');
-    }
-  },
+  setup: createGoogleServiceSetup('gcal', gcal),
 };
 
 export default gcalService;

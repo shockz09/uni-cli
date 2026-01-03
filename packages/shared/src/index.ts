@@ -14,6 +14,7 @@ export * from './helpers';
 // Google Auth
 export * from './google-auth';
 export * from './google-auth-command';
+export * from './google-service-setup';
 
 // Colors
 export * from './colors';

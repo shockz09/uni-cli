@@ -3,6 +3,7 @@
  */
 
 import type { UniService } from '@uni/shared';
+import { createGoogleServiceSetup } from '@uni/shared';
 import { listCommand } from './commands/list';
 import { getCommand } from './commands/get';
 import { createCommand } from './commands/create';
@@ -35,13 +36,7 @@ const gformsService: UniService = {
     envVar: 'GOOGLE_CLIENT_ID',
   },
 
-  async setup() {
-    if (!gforms.hasCredentials()) {
-      console.error('\x1b[33mWarning: Google credentials not set.\x1b[0m');
-    } else if (!gforms.isAuthenticated()) {
-      console.error('\x1b[33mWarning: Run "uni gforms auth".\x1b[0m');
-    }
-  },
+  setup: createGoogleServiceSetup('gforms', gforms),
 };
 
 export default gformsService;

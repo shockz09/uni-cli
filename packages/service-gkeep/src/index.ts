@@ -3,6 +3,7 @@
  */
 
 import type { UniService } from '@uni/shared';
+import { createGoogleServiceSetup } from '@uni/shared';
 import { listCommand } from './commands/list';
 import { getCommand } from './commands/get';
 import { addCommand } from './commands/add';
@@ -23,13 +24,7 @@ const gkeepService: UniService = {
     envVar: 'GOOGLE_CLIENT_ID',
   },
 
-  async setup() {
-    if (!gkeep.hasCredentials()) {
-      console.error('\x1b[33mWarning: Google credentials not set.\x1b[0m');
-    } else if (!gkeep.isAuthenticated()) {
-      console.error('\x1b[33mWarning: Run "uni gkeep auth".\x1b[0m');
-    }
-  },
+  setup: createGoogleServiceSetup('gkeep', gkeep),
 };
 
 export default gkeepService;
