@@ -62,6 +62,17 @@
         "typescript": "^5.0.0",
       },
     },
+    "packages/service-gdocs": {
+      "name": "@uni/service-gdocs",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.0.0",
+      },
+    },
     "packages/service-gdrive": {
       "name": "@uni/service-gdrive",
       "version": "0.1.0",
@@ -94,6 +105,17 @@
     },
     "packages/service-gmeet": {
       "name": "@uni/service-gmeet",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.0.0",
+      },
+    },
+    "packages/service-gsheets": {
+      "name": "@uni/service-gsheets",
       "version": "0.1.0",
       "dependencies": {
         "@uni/shared": "workspace:*",
@@ -209,6 +231,8 @@
 
     "@uni/service-gcontacts": ["@uni/service-gcontacts@workspace:packages/service-gcontacts"],
 
+    "@uni/service-gdocs": ["@uni/service-gdocs@workspace:packages/service-gdocs"],
+
     "@uni/service-gdrive": ["@uni/service-gdrive@workspace:packages/service-gdrive"],
 
     "@uni/service-gh": ["@uni/service-gh@workspace:packages/service-gh"],
@@ -216,6 +240,8 @@
     "@uni/service-gmail": ["@uni/service-gmail@workspace:packages/service-gmail"],
 
     "@uni/service-gmeet": ["@uni/service-gmeet@workspace:packages/service-gmeet"],
+
+    "@uni/service-gsheets": ["@uni/service-gsheets@workspace:packages/service-gsheets"],
 
     "@uni/service-gtasks": ["@uni/service-gtasks@workspace:packages/service-gtasks"],
 
