@@ -13,3 +13,7 @@ export * from './helpers';
 
 // Google Auth
 export * from './google-auth';
+export * from './google-auth-command';
+
+// Colors
+export * from './colors';

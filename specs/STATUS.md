@@ -219,7 +219,21 @@ Unified duplicated OAuth code across 11 Google services into `@uni/shared`.
 
 ---
 
-### Future: Phase 17 (TBD)
+### Phase 17: Shared Command Patterns 🚧
+**Spec file**: `specs/phase-17-shared-commands.md`
+
+Unify duplicated command patterns into shared factories and helpers.
+
+- [ ] Add color helpers to shared (`c.cyan()`, `c.dim()`, etc.)
+- [ ] Add auth command factory (`createGoogleAuthCommand()`)
+- [ ] Refactor all 11 Google auth commands
+- [ ] Build and test
+
+**Impact:** 960 → ~120 lines for auth commands, cleaner ANSI usage.
+
+---
+
+### Future: Phase 18 (TBD)
 - Plugin development documentation
 - More services (YouTube, Linear, etc.)
 - TUI/terminal UI enhancements
