@@ -1,0 +1,21 @@
+{
+  "name": "@uni/service-gh",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "GitHub service for uni CLI",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@uni/shared": "workspace:*"
+  },
+  "peerDependencies": {
+    "@uni/cli": "workspace:*"
+  }
+}

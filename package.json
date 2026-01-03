@@ -1,0 +1,31 @@
+{
+  "name": "uni-cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Universal CLI for everything - wrap MCPs, APIs, and CLIs into one interface",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --filter @uni/cli dev",
+    "build": "bun run --filter '*' build",
+    "test": "bun test",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "uni": "bun run packages/cli/src/main.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "@types/bun": "latest",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20",
+    "bun": ">=1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shockz/uni-cli"
+  },
+  "license": "MIT"
+}

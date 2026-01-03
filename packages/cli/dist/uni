@@ -1,0 +1,1023 @@
+#!/usr/bin/env bun
+// @bun
+// ../shared/src/errors.ts
+class UniError extends Error {
+  code;
+  suggestion;
+  constructor(message, code, suggestion) {
+    super(message);
+    this.code = code;
+    this.suggestion = suggestion;
+    this.name = "UniError";
+  }
+  toJSON() {
+    return {
+      error: this.message,
+      code: this.code,
+      suggestion: this.suggestion
+    };
+  }
+}
+
+class ServiceNotFoundError extends UniError {
+  constructor(serviceName) {
+    super(`Service '${serviceName}' not found`, "SERVICE_NOT_FOUND", `Run 'uni list' to see available services, or install with 'uni install ${serviceName}'`);
+    this.name = "ServiceNotFoundError";
+  }
+}
+
+class CommandNotFoundError extends UniError {
+  constructor(serviceName, commandName, availableCommands) {
+    const suggestions = availableCommands.length > 0 ? `Available commands: ${availableCommands.join(", ")}` : `Run 'uni ${serviceName} --help' for available commands`;
+    super(`Command '${commandName}' not found in service '${serviceName}'`, "COMMAND_NOT_FOUND", suggestions);
+    this.name = "CommandNotFoundError";
+  }
+}
+class MissingArgumentError extends UniError {
+  constructor(argName, command) {
+    super(`Missing required argument: ${argName}`, "MISSING_ARGUMENT", `Usage: uni ${command} <${argName}>`);
+    this.name = "MissingArgumentError";
+  }
+}
+
+class InvalidOptionError extends UniError {
+  constructor(optionName, value, expectedType) {
+    super(`Invalid value for --${optionName}: '${value}'`, "INVALID_OPTION", `Expected ${expectedType}`);
+    this.name = "InvalidOptionError";
+  }
+}
+// ../shared/src/helpers.ts
+function isTTY() {
+  return process.stdout.isTTY ?? false;
+}
+function supportsColor() {
+  if (process.env.NO_COLOR !== undefined)
+    return false;
+  if (process.env.FORCE_COLOR !== undefined)
+    return true;
+  if (process.env.CLICOLOR === "0")
+    return false;
+  return isTTY();
+}
+function truncate(str, maxLength) {
+  if (str.length <= maxLength)
+    return str;
+  return str.slice(0, maxLength - 3) + "...";
+}
+function padRight(str, length) {
+  if (str.length >= length)
+    return str;
+  return str + " ".repeat(length - str.length);
+}
+function deepMerge(target, ...sources) {
+  const result = { ...target };
+  for (const source of sources) {
+    for (const key in source) {
+      const sourceValue = source[key];
+      const targetValue = result[key];
+      if (sourceValue !== null && typeof sourceValue === "object" && !Array.isArray(sourceValue) && targetValue !== null && typeof targetValue === "object" && !Array.isArray(targetValue)) {
+        result[key] = deepMerge(targetValue, sourceValue);
+      } else if (sourceValue !== undefined) {
+        result[key] = sourceValue;
+      }
+    }
+  }
+  return result;
+}
+// src/core/parser.ts
+var GLOBAL_OPTIONS = [
+  { name: "help", short: "h", type: "boolean", description: "Show help" },
+  { name: "version", short: "v", type: "boolean", description: "Show version" },
+  { name: "json", type: "boolean", description: "Output as JSON" },
+  { name: "verbose", type: "boolean", description: "Verbose output" },
+  { name: "quiet", short: "q", type: "boolean", description: "Suppress output" },
+  { name: "config", short: "c", type: "string", description: "Config file path" }
+];
+function parseArgs(argv) {
+  const result = {
+    globalFlags: {
+      json: false,
+      verbose: false,
+      quiet: false
+    },
+    service: null,
+    command: null,
+    subcommand: null,
+    flags: {},
+    args: [],
+    raw: argv
+  };
+  let i = 0;
+  let parsingGlobal = true;
+  while (i < argv.length) {
+    const arg = argv[i];
+    if (arg.startsWith("--")) {
+      const flagName = arg.slice(2);
+      const [name, value] = flagName.includes("=") ? flagName.split("=", 2) : [flagName, undefined];
+      const globalOpt = GLOBAL_OPTIONS.find((o) => o.name === name);
+      if (globalOpt && parsingGlobal) {
+        if (globalOpt.type === "boolean") {
+          result.globalFlags[name] = true;
+        } else {
+          result.globalFlags[name] = value ?? argv[++i];
+        }
+      } else {
+        if (value !== undefined) {
+          result.flags[name] = value;
+        } else {
+          const nextArg = argv[i + 1];
+          if (nextArg && !nextArg.startsWith("-")) {
+            result.flags[name] = nextArg;
+            i++;
+          } else {
+            result.flags[name] = true;
+          }
+        }
+      }
+    } else if (arg.startsWith("-") && arg.length === 2) {
+      const shortFlag = arg.slice(1);
+      const globalOpt = GLOBAL_OPTIONS.find((o) => o.short === shortFlag);
+      if (globalOpt && parsingGlobal) {
+        if (globalOpt.type === "boolean") {
+          result.globalFlags[globalOpt.name] = true;
+        } else {
+          result.globalFlags[globalOpt.name] = argv[++i];
+        }
+      } else {
+        result.flags[shortFlag] = true;
+      }
+    } else {
+      parsingGlobal = false;
+      if (!result.service) {
+        result.service = arg;
+      } else if (!result.command) {
+        result.command = arg;
+      } else if (!result.subcommand) {
+        result.subcommand = arg;
+      } else {
+        result.args.push(arg);
+      }
+    }
+    i++;
+  }
+  return result;
+}
+function parseCommandArgs(args, flags, argDefs = [], optionDefs = []) {
+  const parsedArgs = {};
+  const parsedFlags = {};
+  for (let i = 0;i < argDefs.length; i++) {
+    const def = argDefs[i];
+    const value = args[i];
+    if (value !== undefined) {
+      parsedArgs[def.name] = value;
+    } else if (def.required) {
+      throw new MissingArgumentError(def.name, "command");
+    } else if (def.default !== undefined) {
+      parsedArgs[def.name] = def.default;
+    }
+  }
+  for (const def of optionDefs) {
+    const value = flags[def.name] ?? flags[def.short ?? ""];
+    if (value !== undefined) {
+      if (def.type === "number" && typeof value === "string") {
+        const num = Number(value);
+        if (isNaN(num)) {
+          throw new InvalidOptionError(def.name, String(value), "number");
+        }
+        parsedFlags[def.name] = num;
+      } else if (def.type === "boolean") {
+        parsedFlags[def.name] = value === true || value === "true";
+      } else {
+        parsedFlags[def.name] = value;
+      }
+      if (def.choices && typeof parsedFlags[def.name] === "string") {
+        if (!def.choices.includes(parsedFlags[def.name])) {
+          throw new InvalidOptionError(def.name, String(parsedFlags[def.name]), `one of: ${def.choices.join(", ")}`);
+        }
+      }
+    } else if (def.required) {
+      throw new MissingArgumentError(`--${def.name}`, "command");
+    } else if (def.default !== undefined) {
+      parsedFlags[def.name] = def.default;
+    }
+  }
+  for (const [key, value] of Object.entries(flags)) {
+    if (!(key in parsedFlags)) {
+      parsedFlags[key] = value;
+    }
+  }
+  return { args: parsedArgs, flags: parsedFlags };
+}
+
+// src/core/registry.ts
+import * as path from "path";
+import * as fs from "fs";
+var BUILTIN_SERVICES_DIR = path.join(import.meta.dir, "../../service-*");
+var PLUGINS_DIR = path.join(process.env.HOME || "~", ".uni/plugins");
+
+class ServiceRegistry {
+  services = new Map;
+  loadedServices = new Map;
+  discovered = false;
+  async discover() {
+    if (this.discovered) {
+      return Array.from(this.services.values());
+    }
+    await this.discoverBuiltin();
+    await this.discoverPlugins();
+    this.discovered = true;
+    return Array.from(this.services.values());
+  }
+  async getMetadata(name) {
+    if (!this.discovered) {
+      await this.discover();
+    }
+    return this.services.get(name);
+  }
+  async load(name) {
+    const cached = this.loadedServices.get(name);
+    if (cached)
+      return cached;
+    const metadata = await this.getMetadata(name);
+    if (!metadata) {
+      throw new ServiceNotFoundError(name);
+    }
+    try {
+      const module = await import(metadata.path);
+      const service = module.default || module.service || module;
+      if (!service.name || !service.commands) {
+        throw new Error(`Invalid service module: ${metadata.path}`);
+      }
+      if (service.setup) {
+        await service.setup();
+      }
+      this.loadedServices.set(name, service);
+      return service;
+    } catch (error) {
+      throw new Error(`Failed to load service '${name}': ${error}`);
+    }
+  }
+  async list() {
+    return this.discover();
+  }
+  async has(name) {
+    if (!this.discovered) {
+      await this.discover();
+    }
+    return this.services.has(name);
+  }
+  async discoverBuiltin() {
+    const packagesDir = path.join(import.meta.dir, "../../../");
+    try {
+      const entries = fs.readdirSync(packagesDir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory() && entry.name.startsWith("service-")) {
+          const serviceName = entry.name.replace("service-", "");
+          const servicePath = path.join(packagesDir, entry.name, "src/index.ts");
+          if (fs.existsSync(servicePath)) {
+            try {
+              const pkgPath = path.join(packagesDir, entry.name, "package.json");
+              const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+              this.services.set(serviceName, {
+                name: serviceName,
+                version: pkg.version || "0.0.0",
+                description: pkg.description || `${serviceName} service`,
+                source: "builtin",
+                path: servicePath,
+                authRequired: false,
+                commands: []
+              });
+            } catch {
+              this.services.set(serviceName, {
+                name: serviceName,
+                version: "0.0.0",
+                description: `${serviceName} service`,
+                source: "builtin",
+                path: servicePath,
+                authRequired: false,
+                commands: []
+              });
+            }
+          }
+        }
+      }
+    } catch {}
+  }
+  async discoverPlugins() {
+    try {
+      if (!fs.existsSync(PLUGINS_DIR)) {
+        return;
+      }
+      const entries = fs.readdirSync(PLUGINS_DIR, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isFile() && entry.name.endsWith(".ts")) {
+          const serviceName = entry.name.replace(".ts", "");
+          const servicePath = path.join(PLUGINS_DIR, entry.name);
+          this.services.set(serviceName, {
+            name: serviceName,
+            version: "0.0.0",
+            description: `${serviceName} plugin`,
+            source: "plugin",
+            path: servicePath,
+            authRequired: false,
+            commands: []
+          });
+        }
+      }
+    } catch {}
+  }
+}
+var registry = new ServiceRegistry;
+
+// src/core/config.ts
+import * as path2 from "path";
+import * as fs2 from "fs";
+var GLOBAL_CONFIG_DIR = path2.join(process.env.HOME || "~", ".uni");
+var GLOBAL_CONFIG_PATH = path2.join(GLOBAL_CONFIG_DIR, "config.toml");
+var PROJECT_CONFIG_PATH = ".uni/config.toml";
+var DEFAULT_CONFIG = {
+  version: "1.0",
+  global: {
+    defaultOutput: "human",
+    color: true
+  },
+  services: {}
+};
+
+class ConfigManager {
+  config = null;
+  configPath = null;
+  async load(customPath) {
+    if (this.config && !customPath) {
+      return this.config;
+    }
+    let config = { ...DEFAULT_CONFIG };
+    const globalConfig = await this.loadFile(GLOBAL_CONFIG_PATH);
+    if (globalConfig) {
+      config = deepMerge(config, globalConfig);
+      this.configPath = GLOBAL_CONFIG_PATH;
+    }
+    const projectConfigPath = path2.join(process.cwd(), PROJECT_CONFIG_PATH);
+    const projectConfig = await this.loadFile(projectConfigPath);
+    if (projectConfig) {
+      config = deepMerge(config, projectConfig);
+      this.configPath = projectConfigPath;
+    }
+    if (customPath) {
+      const customConfig = await this.loadFile(customPath);
+      if (customConfig) {
+        config = deepMerge(config, customConfig);
+        this.configPath = customPath;
+      }
+    }
+    config = this.applyEnvOverrides(config);
+    this.config = config;
+    return config;
+  }
+  getGlobal() {
+    return this.config?.global ?? DEFAULT_CONFIG.global;
+  }
+  getService(serviceName) {
+    return this.config?.services?.[serviceName] ?? {};
+  }
+  getPath() {
+    return this.configPath;
+  }
+  async ensureConfigDir() {
+    if (!fs2.existsSync(GLOBAL_CONFIG_DIR)) {
+      fs2.mkdirSync(GLOBAL_CONFIG_DIR, { recursive: true });
+    }
+  }
+  async set(key, value) {
+    await this.ensureConfigDir();
+    const config = await this.loadFile(GLOBAL_CONFIG_PATH) || { ...DEFAULT_CONFIG };
+    const parts = key.split(".");
+    let obj = config;
+    for (let i = 0;i < parts.length - 1; i++) {
+      if (!obj[parts[i]]) {
+        obj[parts[i]] = {};
+      }
+      obj = obj[parts[i]];
+    }
+    obj[parts[parts.length - 1]] = value;
+    await this.saveFile(GLOBAL_CONFIG_PATH, config);
+    this.config = null;
+    await this.load();
+  }
+  async loadFile(filePath) {
+    try {
+      if (!fs2.existsSync(filePath)) {
+        return null;
+      }
+      const content = fs2.readFileSync(filePath, "utf-8");
+      return this.parseToml(content);
+    } catch {
+      return null;
+    }
+  }
+  async saveFile(filePath, config) {
+    const content = this.stringifyToml(config);
+    fs2.writeFileSync(filePath, content, "utf-8");
+  }
+  parseToml(content) {
+    const config = { ...DEFAULT_CONFIG };
+    let currentSection = "";
+    for (const line of content.split(`
+`)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#"))
+        continue;
+      const sectionMatch = trimmed.match(/^\[(.+)\]$/);
+      if (sectionMatch) {
+        currentSection = sectionMatch[1];
+        continue;
+      }
+      const kvMatch = trimmed.match(/^(\w+)\s*=\s*(.+)$/);
+      if (kvMatch) {
+        const [, key, rawValue] = kvMatch;
+        const value = this.parseTomlValue(rawValue);
+        if (currentSection === "global") {
+          config.global[key] = value;
+        } else if (currentSection.startsWith("services.")) {
+          const serviceName = currentSection.replace("services.", "");
+          if (!config.services[serviceName]) {
+            config.services[serviceName] = {};
+          }
+          config.services[serviceName][key] = value;
+        }
+      }
+    }
+    return config;
+  }
+  parseTomlValue(raw) {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+      return trimmed.slice(1, -1);
+    }
+    if (trimmed === "true")
+      return true;
+    if (trimmed === "false")
+      return false;
+    const num = Number(trimmed);
+    if (!isNaN(num))
+      return num;
+    return trimmed;
+  }
+  stringifyToml(config) {
+    const lines = [];
+    if (config.version) {
+      lines.push(`version = "${config.version}"`);
+      lines.push("");
+    }
+    if (config.global) {
+      lines.push("[global]");
+      for (const [key, value] of Object.entries(config.global)) {
+        lines.push(`${key} = ${this.tomlValue(value)}`);
+      }
+      lines.push("");
+    }
+    if (config.services) {
+      for (const [serviceName, serviceConfig] of Object.entries(config.services)) {
+        lines.push(`[services.${serviceName}]`);
+        for (const [key, value] of Object.entries(serviceConfig)) {
+          lines.push(`${key} = ${this.tomlValue(value)}`);
+        }
+        lines.push("");
+      }
+    }
+    return lines.join(`
+`);
+  }
+  tomlValue(value) {
+    if (typeof value === "string")
+      return `"${value}"`;
+    if (typeof value === "boolean")
+      return value.toString();
+    if (typeof value === "number")
+      return value.toString();
+    return String(value);
+  }
+  applyEnvOverrides(config) {
+    if (process.env.UNI_OUTPUT) {
+      config.global.defaultOutput = process.env.UNI_OUTPUT;
+    }
+    if (process.env.UNI_COLOR !== undefined) {
+      config.global.color = process.env.UNI_COLOR !== "false" && process.env.UNI_COLOR !== "0";
+    }
+    return config;
+  }
+}
+var config = new ConfigManager;
+
+// src/utils/colors.ts
+var enabled = supportsColor();
+var codes = {
+  reset: "\x1B[0m",
+  bold: "\x1B[1m",
+  dim: "\x1B[2m",
+  italic: "\x1B[3m",
+  underline: "\x1B[4m",
+  black: "\x1B[30m",
+  red: "\x1B[31m",
+  green: "\x1B[32m",
+  yellow: "\x1B[33m",
+  blue: "\x1B[34m",
+  magenta: "\x1B[35m",
+  cyan: "\x1B[36m",
+  white: "\x1B[37m",
+  gray: "\x1B[90m",
+  brightRed: "\x1B[91m",
+  brightGreen: "\x1B[92m",
+  brightYellow: "\x1B[93m",
+  brightBlue: "\x1B[94m",
+  brightMagenta: "\x1B[95m",
+  brightCyan: "\x1B[96m",
+  brightWhite: "\x1B[97m",
+  bgRed: "\x1B[41m",
+  bgGreen: "\x1B[42m",
+  bgYellow: "\x1B[43m",
+  bgBlue: "\x1B[44m"
+};
+function wrap(code, text) {
+  if (!enabled)
+    return text;
+  return `${code}${text}${codes.reset}`;
+}
+var bold = (text) => wrap(codes.bold, text);
+var dim = (text) => wrap(codes.dim, text);
+var cyan = (text) => wrap(codes.cyan, text);
+var success = (text) => wrap(codes.green, text);
+var error = (text) => wrap(codes.red, text);
+var warning = (text) => wrap(codes.yellow, text);
+var info = (text) => wrap(codes.cyan, text);
+var muted = (text) => wrap(codes.gray, text);
+var symbols = {
+  success: enabled ? "\u2714" : "[OK]",
+  error: enabled ? "\u2716" : "[ERROR]",
+  warning: enabled ? "\u26A0" : "[WARN]",
+  info: enabled ? "\u2139" : "[INFO]",
+  arrow: enabled ? "\u2192" : "->",
+  bullet: enabled ? "\u2022" : "-",
+  pointer: enabled ? "\u276F" : ">"
+};
+function stripAnsi(str) {
+  return str.replace(/\x1b\[[0-9;]*m/g, "");
+}
+function visibleLength(str) {
+  return stripAnsi(str).length;
+}
+
+// src/core/output.ts
+function createOutputFormatter(flags) {
+  const forceJson = flags.json || !isTTY();
+  const verbose = flags.verbose;
+  const quiet = flags.quiet;
+  return {
+    json(data) {
+      console.log(JSON.stringify(data, null, 2));
+    },
+    table(data, columns) {
+      if (forceJson) {
+        console.log(JSON.stringify(data, null, 2));
+        return;
+      }
+      if (data.length === 0) {
+        console.log(muted("No results"));
+        return;
+      }
+      const cols = columns || Object.keys(data[0]);
+      const widths = {};
+      for (const col of cols) {
+        widths[col] = col.length;
+        for (const row of data) {
+          const value = String(row[col] ?? "");
+          widths[col] = Math.max(widths[col], visibleLength(value));
+        }
+        widths[col] = Math.min(widths[col], 50);
+      }
+      const header = cols.map((col) => bold(padRight(col.toUpperCase(), widths[col]))).join("  ");
+      console.log(header);
+      console.log(muted("\u2500".repeat(visibleLength(header))));
+      for (const row of data) {
+        const line = cols.map((col) => {
+          const value = truncate(String(row[col] ?? ""), widths[col]);
+          return padRight(value, widths[col]);
+        }).join("  ");
+        console.log(line);
+      }
+    },
+    text(str) {
+      if (!quiet) {
+        console.log(str);
+      }
+    },
+    list(items) {
+      if (forceJson) {
+        console.log(JSON.stringify(items, null, 2));
+        return;
+      }
+      for (const item of items) {
+        console.log(`  ${symbols.bullet} ${item}`);
+      }
+    },
+    success(msg) {
+      if (forceJson) {
+        console.log(JSON.stringify({ status: "success", message: msg }));
+        return;
+      }
+      if (!quiet) {
+        console.log(`${success(symbols.success)} ${msg}`);
+      }
+    },
+    error(msg) {
+      if (forceJson) {
+        console.error(JSON.stringify({ status: "error", message: msg }));
+        return;
+      }
+      console.error(`${error(symbols.error)} ${error(msg)}`);
+    },
+    warn(msg) {
+      if (forceJson) {
+        console.log(JSON.stringify({ status: "warning", message: msg }));
+        return;
+      }
+      if (!quiet) {
+        console.log(`${warning(symbols.warning)} ${warning(msg)}`);
+      }
+    },
+    info(msg) {
+      if (forceJson) {
+        console.log(JSON.stringify({ status: "info", message: msg }));
+        return;
+      }
+      if (!quiet) {
+        console.log(`${info(symbols.info)} ${msg}`);
+      }
+    },
+    debug(msg) {
+      if (verbose && !quiet) {
+        console.log(`${muted("[debug]")} ${muted(msg)}`);
+      }
+    },
+    spinner(msg) {
+      if (!isTTY() || forceJson || quiet) {
+        return {
+          update: () => {},
+          success: () => {},
+          fail: () => {},
+          stop: () => {}
+        };
+      }
+      const frames = ["\u280B", "\u2819", "\u2839", "\u2838", "\u283C", "\u2834", "\u2826", "\u2827", "\u2807", "\u280F"];
+      let frameIndex = 0;
+      let currentMsg = msg;
+      const interval = setInterval(() => {
+        process.stdout.write(`\r${cyan(frames[frameIndex])} ${currentMsg}`);
+        frameIndex = (frameIndex + 1) % frames.length;
+      }, 80);
+      return {
+        update(newMsg) {
+          currentMsg = newMsg;
+        },
+        success(successMsg) {
+          clearInterval(interval);
+          process.stdout.write(`\r${success(symbols.success)} ${successMsg || currentMsg}
+`);
+        },
+        fail(failMsg) {
+          clearInterval(interval);
+          process.stdout.write(`\r${error(symbols.error)} ${failMsg || currentMsg}
+`);
+        },
+        stop() {
+          clearInterval(interval);
+          process.stdout.write("\r" + " ".repeat(currentMsg.length + 3) + "\r");
+        }
+      };
+    }
+  };
+}
+
+// src/utils/prompt.ts
+function createPromptHelper() {
+  return {
+    async text(message, options) {
+      if (!isTTY()) {
+        throw new Error("Cannot prompt in non-interactive mode");
+      }
+      const prompt = options?.default ? `${message} ${dim(`(${options.default})`)}: ` : `${message}: `;
+      process.stdout.write(prompt);
+      const response = await readLine();
+      const value = response.trim() || options?.default || "";
+      if (options?.validate) {
+        const result = options.validate(value);
+        if (result !== true) {
+          console.log(error(typeof result === "string" ? result : "Invalid input"));
+          return this.text(message, options);
+        }
+      }
+      return value;
+    },
+    async confirm(message, defaultValue = false) {
+      if (!isTTY()) {
+        return defaultValue;
+      }
+      const hint = defaultValue ? "Y/n" : "y/N";
+      process.stdout.write(`${message} ${dim(`(${hint})`)}: `);
+      const response = await readLine();
+      const trimmed = response.trim().toLowerCase();
+      if (!trimmed)
+        return defaultValue;
+      return trimmed === "y" || trimmed === "yes";
+    },
+    async select(message, options) {
+      if (!isTTY()) {
+        return options[0].value;
+      }
+      console.log(`
+${message}
+`);
+      for (let i = 0;i < options.length; i++) {
+        const opt = options[i];
+        console.log(`  ${cyan(`${i + 1})`)} ${opt.label}${opt.description ? dim(` - ${opt.description}`) : ""}`);
+      }
+      process.stdout.write(`
+${dim("Enter number")}: `);
+      const response = await readLine();
+      const index = parseInt(response.trim(), 10) - 1;
+      if (isNaN(index) || index < 0 || index >= options.length) {
+        console.log(error("Invalid selection"));
+        return this.select(message, options);
+      }
+      return options[index].value;
+    },
+    async multiselect(message, options) {
+      if (!isTTY()) {
+        return [];
+      }
+      console.log(`
+${message} ${dim("(comma-separated numbers)")}
+`);
+      for (let i = 0;i < options.length; i++) {
+        const opt = options[i];
+        console.log(`  ${cyan(`${i + 1})`)} ${opt.label}${opt.description ? dim(` - ${opt.description}`) : ""}`);
+      }
+      process.stdout.write(`
+${dim("Enter numbers")}: `);
+      const response = await readLine();
+      const indices = response.split(",").map((s) => parseInt(s.trim(), 10) - 1).filter((i) => !isNaN(i) && i >= 0 && i < options.length);
+      return indices.map((i) => options[i].value);
+    },
+    async password(message) {
+      if (!isTTY()) {
+        throw new Error("Cannot prompt for password in non-interactive mode");
+      }
+      process.stdout.write(`${message}: `);
+      const response = await readLine();
+      return response;
+    }
+  };
+}
+async function readLine() {
+  return new Promise((resolve) => {
+    const stdin = process.stdin;
+    const isRaw = stdin.isRaw;
+    stdin.setRawMode?.(false);
+    stdin.resume();
+    let data = "";
+    const onData = (chunk) => {
+      const str = chunk.toString();
+      if (str.includes(`
+`) || str.includes("\r")) {
+        stdin.removeListener("data", onData);
+        stdin.pause();
+        stdin.setRawMode?.(isRaw ?? false);
+        resolve(data + str.replace(/[\r\n]/g, ""));
+      } else {
+        data += str;
+      }
+    };
+    stdin.on("data", onData);
+  });
+}
+
+// src/core/cli.ts
+var VERSION = "0.1.0";
+
+class UniCLI {
+  async run(argv) {
+    const parsed = parseArgs(argv);
+    const output = createOutputFormatter(parsed.globalFlags);
+    try {
+      await config.load(parsed.globalFlags.config);
+      if (parsed.globalFlags.help && !parsed.service) {
+        this.showGlobalHelp(output);
+        return;
+      }
+      if (parsed.globalFlags.version) {
+        this.showVersion(output, parsed.globalFlags);
+        return;
+      }
+      if (!parsed.service) {
+        this.showGlobalHelp(output);
+        return;
+      }
+      if (parsed.service === "list") {
+        await this.listServices(output, parsed.globalFlags);
+        return;
+      }
+      if (parsed.service === "auth") {
+        await this.handleAuth(parsed, output);
+        return;
+      }
+      if (parsed.service === "config") {
+        await this.handleConfig(parsed, output);
+        return;
+      }
+      const exists = await registry.has(parsed.service);
+      if (!exists) {
+        throw new UniError(`Unknown service or command: '${parsed.service}'`, "UNKNOWN_SERVICE", `Run 'uni list' to see available services, or 'uni --help' for usage`);
+      }
+      const service = await registry.load(parsed.service);
+      if (parsed.globalFlags.help || !parsed.command) {
+        this.showServiceHelp(service, output);
+        return;
+      }
+      const baseCommand = service.commands.find((c) => c.name === parsed.command || c.aliases?.includes(parsed.command));
+      if (!baseCommand) {
+        const availableCommands = service.commands.map((c) => c.name);
+        throw new CommandNotFoundError(parsed.service, parsed.command, availableCommands);
+      }
+      let command = baseCommand;
+      let commandArgs = parsed.args;
+      if (parsed.subcommand) {
+        if (baseCommand.subcommands) {
+          const subcommand = baseCommand.subcommands.find((c) => c.name === parsed.subcommand || c.aliases?.includes(parsed.subcommand));
+          if (subcommand) {
+            command = subcommand;
+          } else {
+            commandArgs = [parsed.subcommand, ...parsed.args];
+          }
+        } else {
+          commandArgs = [parsed.subcommand, ...parsed.args];
+        }
+      }
+      const { args, flags } = parseCommandArgs(commandArgs, parsed.flags, command.args, command.options);
+      const ctx = {
+        args,
+        flags,
+        rawArgs: parsed.raw,
+        config: config.getService(parsed.service),
+        auth: null,
+        output,
+        prompt: createPromptHelper(),
+        globalFlags: parsed.globalFlags
+      };
+      await command.handler(ctx);
+    } catch (error2) {
+      if (error2 instanceof UniError) {
+        output.error(error2.message);
+        if (error2.suggestion) {
+          output.info(error2.suggestion);
+        }
+        process.exit(1);
+      }
+      output.error(error2 instanceof Error ? error2.message : String(error2));
+      if (parsed.globalFlags.verbose) {
+        console.error(error2);
+      }
+      process.exit(1);
+    }
+  }
+  findCommand(service, commandName, subcommandName) {
+    const command = service.commands.find((c) => c.name === commandName || c.aliases?.includes(commandName));
+    if (!command)
+      return null;
+    if (subcommandName && command.subcommands) {
+      const subcommand = command.subcommands.find((c) => c.name === subcommandName || c.aliases?.includes(subcommandName));
+      return subcommand || null;
+    }
+    return command;
+  }
+  showGlobalHelp(output) {
+    console.log(`
+${bold("uni")} - Universal CLI for everything
+
+${bold("USAGE")}
+  uni <service> <command> [options] [args]
+  uni <command> [options]
+
+${bold("GLOBAL OPTIONS")}
+  -h, --help      Show help
+  -v, --version   Show version
+  --json          Output as JSON
+  --verbose       Verbose output
+  -q, --quiet     Suppress output
+  -c, --config    Custom config path
+
+${bold("COMMANDS")}
+  list            List available services
+  auth            Manage authentication
+  config          Manage configuration
+
+${bold("EXAMPLES")}
+  uni exa search "React hooks"
+  uni gh pr list
+  uni gcal add "Meeting" --time 10am
+
+${muted(`Run 'uni <service> --help' for service-specific help`)}
+`);
+  }
+  showVersion(output, flags) {
+    if (flags.json) {
+      output.json({ version: VERSION });
+    } else {
+      console.log(`uni v${VERSION}`);
+    }
+  }
+  async listServices(output, flags) {
+    const services = await registry.list();
+    if (services.length === 0) {
+      if (flags.json) {
+        output.json({ services: [] });
+      } else {
+        output.info("No services installed");
+        console.log(`
+${muted("Install services with 'uni install <service>'")}`);
+      }
+      return;
+    }
+    if (flags.json) {
+      output.json({ services });
+    } else {
+      console.log(`
+${bold("Available Services")}
+`);
+      for (const service of services) {
+        console.log(`  ${cyan(service.name.padEnd(12))} ${muted(service.description)} ${dim(`[${service.source}]`)}`);
+      }
+      console.log(`
+${muted("Run 'uni <service> --help' for more info")}
+`);
+    }
+  }
+  showServiceHelp(service, output) {
+    console.log(`
+${bold(`uni ${service.name}`)} - ${service.description}
+
+${bold("COMMANDS")}`);
+    for (const cmd of service.commands) {
+      const aliases = cmd.aliases ? ` ${dim(`(${cmd.aliases.join(", ")})`)}` : "";
+      console.log(`  ${cyan(cmd.name.padEnd(16))}${aliases} ${cmd.description}`);
+      if (cmd.subcommands) {
+        for (const sub of cmd.subcommands) {
+          console.log(`    ${cyan(sub.name.padEnd(14))} ${sub.description}`);
+        }
+      }
+    }
+    const commandsWithExamples = service.commands.filter((c) => c.examples?.length);
+    if (commandsWithExamples.length > 0) {
+      console.log(`
+${bold("EXAMPLES")}`);
+      for (const cmd of commandsWithExamples) {
+        for (const example of cmd.examples || []) {
+          console.log(`  ${dim("$")} ${example}`);
+        }
+      }
+    }
+    console.log("");
+  }
+  async handleAuth(parsed, output) {
+    output.info("Auth commands coming soon");
+    console.log(`
+  uni auth login <service>   Login to a service
+  uni auth logout <service>  Logout from a service
+  uni auth status            Show auth status
+`);
+  }
+  async handleConfig(parsed, output) {
+    const configPath = config.getPath();
+    if (parsed.globalFlags.json) {
+      output.json({
+        path: configPath,
+        global: config.getGlobal()
+      });
+    } else {
+      console.log(`
+${bold("Configuration")}
+`);
+      console.log(`  ${cyan("Path:")} ${configPath || muted("(none)")}`);
+      console.log(`  ${cyan("Global:")}`);
+      console.log(`    ${JSON.stringify(config.getGlobal(), null, 2).replace(/\n/g, `
+    `)}`);
+      console.log("");
+    }
+  }
+}
+var cli = new UniCLI;
+
+// src/main.ts
+cli.run(process.argv.slice(2)).catch((error2) => {
+  console.error("Fatal error:", error2);
+  process.exit(1);
+});

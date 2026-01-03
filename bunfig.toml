@@ -1,0 +1,12 @@
+[install]
+# Use exact versions for reproducibility
+exact = true
+
+[run]
+# Enable hot reload during development
+bun = true
+
+[test]
+# Test configuration
+coverage = true
+coverageDir = "coverage"
