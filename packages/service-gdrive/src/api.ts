@@ -107,6 +107,9 @@ export class GDriveClient {
     return new Promise((resolve, reject) => {
       const port = 8087;
       const redirectUri = `http://localhost:${port}/callback`;
+      let timeoutId: ReturnType<typeof setTimeout>;
+
+      const cleanup = () => { clearTimeout(timeoutId); server.close(); };
 
       const server = http.createServer(async (req, res) => {
         const url = new URL(req.url || '', `http://localhost:${port}`);
@@ -117,12 +120,12 @@ export class GDriveClient {
               await this.exchangeCode(code, redirectUri);
               res.writeHead(200, { 'Content-Type': 'text/html' });
               res.end('<h1>Google Drive authenticated!</h1>');
-              server.close();
+              cleanup();
               resolve();
             } catch (err) {
               res.writeHead(500);
               res.end('Failed');
-              server.close();
+              cleanup();
               reject(err);
             }
             return;
@@ -146,7 +149,7 @@ export class GDriveClient {
         Bun.spawn([process.platform === 'darwin' ? 'open' : 'xdg-open', authUrl], { stdout: 'ignore' });
       });
 
-      setTimeout(() => { server.close(); reject(new Error('Timeout')); }, 120000);
+      timeoutId = setTimeout(() => { server.close(); reject(new Error('Timeout')); }, 120000);
     });
   }
 

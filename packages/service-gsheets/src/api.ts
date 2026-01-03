@@ -184,6 +184,9 @@ export class GoogleSheetsClient {
     return new Promise((resolve, reject) => {
       const port = 8086;
       const redirectUri = `http://localhost:${port}/callback`;
+      let timeoutId: ReturnType<typeof setTimeout>;
+
+      const cleanup = () => { clearTimeout(timeoutId); server.close(); };
 
       const server = http.createServer(async (req, res) => {
         const url = new URL(req.url || '', `http://localhost:${port}`);
@@ -195,7 +198,7 @@ export class GoogleSheetsClient {
           if (error) {
             res.writeHead(400, { 'Content-Type': 'text/html' });
             res.end(`<h1>Authentication failed</h1><p>${error}</p>`);
-            server.close();
+            cleanup();
             reject(new Error(error));
             return;
           }
@@ -205,12 +208,12 @@ export class GoogleSheetsClient {
               await this.exchangeCode(code, redirectUri);
               res.writeHead(200, { 'Content-Type': 'text/html' });
               res.end('<h1>Authentication successful!</h1><p>You can close this window.</p>');
-              server.close();
+              cleanup();
               resolve();
             } catch (err) {
               res.writeHead(500, { 'Content-Type': 'text/html' });
               res.end(`<h1>Authentication failed</h1><p>${err}</p>`);
-              server.close();
+              cleanup();
               reject(err);
             }
             return;
@@ -230,7 +233,7 @@ export class GoogleSheetsClient {
         Bun.spawn([cmd, authUrl], { stdout: 'ignore', stderr: 'ignore' });
       });
 
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         server.close();
         reject(new Error('Authentication timed out'));
       }, 120000);
