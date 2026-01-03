@@ -7,8 +7,7 @@ import * as path from 'node:path';
 import * as http from 'node:http';
 
 const SCOPES = [
-  'https://www.googleapis.com/auth/drive.readonly',
-  'https://www.googleapis.com/auth/drive.file',
+  'https://www.googleapis.com/auth/drive',  // Full access for delete
 ];
 const TOKEN_PATH = path.join(process.env.HOME || '~', '.uni/tokens/gdrive.json');
 const DRIVE_API = 'https://www.googleapis.com/drive/v3';
@@ -228,6 +227,17 @@ export class GDriveClient {
     if (mimeType.includes('pdf')) return '📕';
     if (mimeType.includes('video')) return '🎬';
     return '📄';
+  }
+
+  async deleteFile(fileId: string): Promise<void> {
+    const token = await this.getAccessToken();
+    const response = await fetch(`${DRIVE_API}/files/${fileId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok && response.status !== 204) {
+      throw new Error(`Failed to delete file: ${response.status}`);
+    }
   }
 }
 
