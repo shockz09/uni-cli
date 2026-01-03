@@ -867,7 +867,7 @@ uni gmail list --all
 
 ### `uni gmail read`
 
-Read an email
+Read an email by ID or search query
 
 **Aliases:** `view`, `show`
 
@@ -875,13 +875,21 @@ Read an email
 
 | Name | Required | Description |
 |------|----------|-------------|
-| `id` | Yes | Email ID |
+| `query` | Yes | Email ID or search query (subject, sender, etc.) |
 
 **Examples:**
 
 ```bash
-uni gmail read abc123
+uni gmail read 19b637d54e3f3c51
+uni gmail read "Your Booking is Ticketed"
+uni gmail read "from:amazon order confirmation"
 ```
+
+**Notes:**
+
+- If query looks like a hex ID (16+ chars), it's treated as an email ID
+- Otherwise, it searches for emails matching the query and reads the first result
+- Use Gmail search syntax for advanced queries (from:, subject:, has:attachment, etc.)
 
 ---
 

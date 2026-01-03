@@ -488,6 +488,10 @@ uni gmail list --unread
 
 # Search for important emails
 uni gmail list --query "from:boss@company.com"
+
+# Read a specific email by search
+uni gmail read "Your Booking is Ticketed"
+uni gmail read "from:amazon order confirmation"
 ```
 
 ---

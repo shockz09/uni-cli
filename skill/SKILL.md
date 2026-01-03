@@ -251,7 +251,7 @@ uni notion databases query <db-id>      # Query database
 uni gmail list                          # Recent emails
 uni gmail list --unread                 # Unread only
 uni gmail list --from "boss@company"    # Filter by sender
-uni gmail read <message-id>             # Read email
+uni gmail read <id-or-query>            # Read email by ID or search
 uni gmail send "to@email.com" --subject "Hi" --body "Hello"
 uni gmail auth                          # Authenticate
 ```
