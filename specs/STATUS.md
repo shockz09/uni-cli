@@ -79,6 +79,17 @@
 - `-i` - Interactive mode (REPL)
 - Configurable via `[ask]` section in config.toml
 
+### Phase 11: Authentication & Setup System ✅
+- `uni doctor` - Health check for all services and LLM providers
+- `uni setup` - Interactive setup wizard with 3 modes
+- `uni setup <service>` - Easy mode (use default credentials)
+- `uni setup <service> --self-host` - Guided self-host wizard
+- `uni setup --from <url|file>` - Import shared credentials
+- Default Google credentials embedded (zero-config for users)
+- Credential resolution: config > env > defaults
+- `--logout` option for all Google services
+- Token storage in `~/.uni/tokens/`
+
 ---
 
 ## Current Services (7 total)
@@ -117,13 +128,50 @@
 
 ## Pending / Future
 
-### Phase 12: Comprehensive LLM Providers (Future)
-- [ ] All major providers (Anthropic, OpenAI, Google, DeepSeek, xAI)
-- [ ] Chinese providers (GLM, Kimi, Minimax, Qwen, Yi)
-- [ ] Aggregators (OpenRouter, Together, Fireworks, Groq)
-- [ ] Local (Ollama, LM Studio, vLLM)
-- [ ] Custom provider config
-- [ ] Fallback chains
+### Phase 12: Comprehensive LLM Providers ✅
+- [x] Tier 1: Anthropic, OpenAI, Google, DeepSeek, xAI
+- [x] Tier 2: Chinese providers (Zhipu GLM, Moonshot Kimi, Minimax, Qwen, Yi)
+- [x] Tier 3: Aggregators (OpenRouter, Together, Fireworks, Cerebras, Replicate)
+- [x] Tier 4: Local (Ollama, LM Studio, vLLM, LocalAI)
+- [x] Custom provider config support
+- [x] `uni ask providers` - List all providers
+- [x] `uni ask models` - List models for a provider
+- [x] `uni ask test` - Test a provider
+- [x] Auto-detection of available providers
+- [x] OpenAI-compatible API wrapper for most providers
+
+**New Commands:**
+```bash
+uni ask providers              # List all LLM providers
+uni ask models --provider anthropic  # List Anthropic models
+uni ask test --provider deepseek     # Test DeepSeek connection
+```
+
+**Configuration:**
+```toml
+[ask]
+provider = "openrouter"
+model = "anthropic/claude-3.5-sonnet"
+fallback = ["groq", "ollama"]
+
+[ask.providers.ollama]
+base_url = "http://localhost:11434"
+```
+
+---
+
+### Phase 13: GSuite Expansion ✅
+**Spec file**: `specs/phase-13-gsuite-expansion.md`
+
+- [x] **gtasks** - Google Tasks (list, add, done, delete, lists)
+- [x] **gcontacts** - Google Contacts (list, search, get, add, delete)
+- [x] **gmeet** - Google Meet (create instant link, schedule, list)
+
+### Future: Phase 14 (TBD)
+- Plugin development documentation
+- More services (YouTube, Linear, etc.)
+- TUI/terminal UI enhancements
+- Command output streaming
 
 ---
 
@@ -168,7 +216,11 @@ These will be optional `uni install` packages:
     ├── STATUS.md            # This file
     ├── phase-1-foundation.md
     ├── phase-2-exa.md
-    └── ...
+    ├── ...
+    ├── phase-9-uni-flow.md
+    ├── phase-10-extension-system.md
+    ├── phase-11-auth-setup.md
+    └── phase-12-llm-providers.md
 ```
 
 ---

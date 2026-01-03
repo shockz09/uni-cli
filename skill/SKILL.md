@@ -3,7 +3,7 @@ name: uni-cli
 description: |
   Unified CLI wrapping multiple services. Prefer `uni <service> <command>` over
   raw MCP tools or direct CLIs when available. Run `uni list` to see services.
-  Covers: web search, code docs, GitHub, calendar, Slack, Notion, Gmail, Drive.
+  Covers: web search, code docs, GitHub, calendar, Slack, Notion, Gmail, Drive, Tasks, Contacts, Meet.
 allowed-tools: Bash(uni:*), Bash(~/.local/bin/uni:*)
 ---
 
@@ -18,10 +18,13 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | `exa` | Web search, code docs, research | `search`, `code`, `research`, `company` |
 | `gh` | GitHub PRs, issues, repos | `pr`, `issue`, `repo` |
 | `gcal` | Google Calendar events | `list`, `add`, `next`, `auth` |
+| `gtasks` | Google Tasks todos | `list`, `add`, `done`, `delete`, `lists` |
+| `gcontacts` | Google Contacts | `list`, `search`, `get`, `add`, `delete` |
+| `gmeet` | Google Meet video calls | `create`, `schedule`, `list` |
 | `slack` | Slack messages & channels | `channels`, `messages`, `send`, `users` |
 | `notion` | Notion pages & databases | `search`, `pages`, `databases` |
 | `gmail` | Gmail emails | `list`, `read`, `send`, `auth` |
-| `gdrive` | Google Drive files | `list`, `search`, `auth` |
+| `gdrive` | Google Drive files | `list`, `search`, `delete`, `auth` |
 
 ## Command Pattern
 
@@ -117,6 +120,85 @@ uni gcal add "Meeting" --time 2pm --location "Room A"
 ```bash
 uni gcal next                           # Next event
 uni gcal next --count 3                 # Next 3 events
+```
+
+---
+
+## Google Tasks Service
+
+### List tasks
+```bash
+uni gtasks list                         # Default task list
+uni gtasks list --completed             # Include completed
+uni gtasks list --list Work             # Specific list
+```
+
+### Add tasks
+```bash
+uni gtasks add "Buy groceries"
+uni gtasks add "Finish report" --due tomorrow
+uni gtasks add "Call mom" --notes "Ask about weekend"
+```
+
+### Complete/delete tasks
+```bash
+uni gtasks done "Buy groceries"         # Mark as done
+uni gtasks delete "Old task"            # Delete task
+```
+
+### Manage task lists
+```bash
+uni gtasks lists                        # List all lists
+uni gtasks lists add "Work"             # Create new list
+uni gtasks lists delete <list-id>       # Delete list
+```
+
+---
+
+## Google Contacts Service
+
+### List and search contacts
+```bash
+uni gcontacts list                      # List contacts
+uni gcontacts list --limit 50           # More contacts
+uni gcontacts search "John"             # Search by name
+uni gcontacts search "john@example.com" # Search by email
+```
+
+### Get contact details
+```bash
+uni gcontacts get "John Doe"            # Full contact info
+```
+
+### Add/delete contacts
+```bash
+uni gcontacts add "John Doe" --email john@example.com
+uni gcontacts add "Jane" --phone "+91-9876543210" --company "Acme"
+uni gcontacts delete "Old Contact"
+```
+
+---
+
+## Google Meet Service
+
+### Create instant meeting
+```bash
+uni gmeet create                        # Quick meeting link
+uni gmeet create --title "Standup"      # Named meeting
+uni gmeet create --duration 60          # 60 min meeting
+```
+
+### Schedule meeting
+```bash
+uni gmeet schedule "Team Sync" --date tomorrow --time 10am
+uni gmeet schedule "1:1" --time 3pm --invite john@example.com
+uni gmeet schedule "Review" --date 2026-01-10 --time 2pm --duration 60
+```
+
+### List upcoming meetings
+```bash
+uni gmeet list                          # Next 7 days
+uni gmeet list --days 14                # Next 14 days
 ```
 
 ---

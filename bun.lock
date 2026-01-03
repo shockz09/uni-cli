@@ -30,6 +30,99 @@
         "@uni/cli": "workspace:*",
       },
     },
+    "packages/service-gcal": {
+      "name": "@uni/service-gcal",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "peerDependencies": {
+        "@uni/cli": "workspace:*",
+      },
+    },
+    "packages/service-gcontacts": {
+      "name": "@uni/service-gcontacts",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.0.0",
+      },
+    },
+    "packages/service-gdrive": {
+      "name": "@uni/service-gdrive",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "peerDependencies": {
+        "@uni/cli": "workspace:*",
+      },
+    },
+    "packages/service-gh": {
+      "name": "@uni/service-gh",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "peerDependencies": {
+        "@uni/cli": "workspace:*",
+      },
+    },
+    "packages/service-gmail": {
+      "name": "@uni/service-gmail",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "peerDependencies": {
+        "@uni/cli": "workspace:*",
+      },
+    },
+    "packages/service-gmeet": {
+      "name": "@uni/service-gmeet",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.0.0",
+      },
+    },
+    "packages/service-gtasks": {
+      "name": "@uni/service-gtasks",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.0.0",
+      },
+    },
+    "packages/service-notion": {
+      "name": "@uni/service-notion",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "peerDependencies": {
+        "@uni/cli": "workspace:*",
+      },
+    },
+    "packages/service-slack": {
+      "name": "@uni/service-slack",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "peerDependencies": {
+        "@uni/cli": "workspace:*",
+      },
+    },
     "packages/shared": {
       "name": "@uni/shared",
       "version": "0.1.0",
@@ -61,6 +154,24 @@
     "@uni/cli": ["@uni/cli@workspace:packages/cli"],
 
     "@uni/service-exa": ["@uni/service-exa@workspace:packages/service-exa"],
+
+    "@uni/service-gcal": ["@uni/service-gcal@workspace:packages/service-gcal"],
+
+    "@uni/service-gcontacts": ["@uni/service-gcontacts@workspace:packages/service-gcontacts"],
+
+    "@uni/service-gdrive": ["@uni/service-gdrive@workspace:packages/service-gdrive"],
+
+    "@uni/service-gh": ["@uni/service-gh@workspace:packages/service-gh"],
+
+    "@uni/service-gmail": ["@uni/service-gmail@workspace:packages/service-gmail"],
+
+    "@uni/service-gmeet": ["@uni/service-gmeet@workspace:packages/service-gmeet"],
+
+    "@uni/service-gtasks": ["@uni/service-gtasks@workspace:packages/service-gtasks"],
+
+    "@uni/service-notion": ["@uni/service-notion@workspace:packages/service-notion"],
+
+    "@uni/service-slack": ["@uni/service-slack@workspace:packages/service-slack"],
 
     "@uni/shared": ["@uni/shared@workspace:packages/shared"],
 

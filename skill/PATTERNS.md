@@ -20,10 +20,13 @@ uni setup notion --self-host
 ### Authenticating Services
 
 ```bash
-# Google services (gcal, gmail, gdrive)
+# Google services (gcal, gmail, gdrive, gtasks, gcontacts, gmeet)
 uni gcal auth               # Opens browser for OAuth
 uni gmail auth
 uni gdrive auth
+uni gtasks auth
+uni gcontacts auth
+uni gmeet auth
 
 # Check auth status
 uni gcal auth --status
@@ -175,6 +178,137 @@ uni gcal list --date 2025-01-15
 
 # View next 3 events
 uni gcal next --count 3
+```
+
+---
+
+## Task Management Workflows
+
+### Daily Task Routine
+
+```bash
+# Check what's on your plate
+uni gtasks list
+
+# Add tasks as they come up
+uni gtasks add "Review PR #123"
+uni gtasks add "Call client" --due today
+uni gtasks add "Write docs" --due tomorrow --notes "Focus on API section"
+
+# Mark complete as you go
+uni gtasks done "Review PR #123"
+```
+
+### Organizing with Task Lists
+
+```bash
+# Create separate lists for different projects
+uni gtasks lists add "Work"
+uni gtasks lists add "Personal"
+uni gtasks lists add "Side Project"
+
+# Add to specific list
+uni gtasks add "Deploy v2" --list Work
+uni gtasks add "Grocery shopping" --list Personal
+
+# View list-specific tasks
+uni gtasks list --list Work
+```
+
+### Task + Calendar Integration
+
+```bash
+# Create a flow for morning planning
+uni flow add morning "gcal list" "gtasks list"
+
+# Or check both at once
+uni run "gcal list" "gtasks list"
+```
+
+---
+
+## Contact Management Workflows
+
+### Finding Contact Info
+
+```bash
+# Quick lookup by name
+uni gcontacts search "John"
+
+# Get full details
+uni gcontacts get "John Doe"
+
+# Find by email domain
+uni gcontacts search "@company.com"
+```
+
+### Building Your Network
+
+```bash
+# Add after meeting someone
+uni gcontacts add "Jane Smith" --email jane@startup.io --company "Cool Startup"
+
+# Add with phone
+uni gcontacts add "Client Bob" --phone "+1-555-0123" --company "BigCorp"
+```
+
+### Contact + Email Integration
+
+```bash
+# Find contact then email them
+uni gcontacts get "John Doe"  # Get their email
+uni gmail send john@example.com --subject "Follow up" --body "Great meeting!"
+```
+
+---
+
+## Meeting Workflows
+
+### Quick Meeting Link
+
+```bash
+# Instant meeting for ad-hoc discussions
+uni gmeet create
+# Returns: https://meet.google.com/abc-defg-hij
+
+# Named meeting
+uni gmeet create --title "Quick sync"
+```
+
+### Scheduling Meetings
+
+```bash
+# Schedule for tomorrow
+uni gmeet schedule "Team standup" --date tomorrow --time 10am
+
+# With attendees
+uni gmeet schedule "1:1 with John" --time 3pm --invite john@example.com
+
+# Longer meeting
+uni gmeet schedule "Sprint planning" --date 2026-01-10 --time 2pm --duration 90
+```
+
+### Meeting Prep Flow
+
+```bash
+# Create a flow to prep for meetings
+uni flow add meetprep "gmeet list --days 1" "gtasks list"
+
+# Before your next meeting
+uni meetprep
+```
+
+### Full Meeting Workflow
+
+```bash
+# 1. Find the person's contact
+uni gcontacts get "John Doe"
+
+# 2. Schedule meeting with them
+uni gmeet schedule "Sync with John" --time 3pm --invite john@example.com
+
+# 3. Add follow-up task
+uni gtasks add "Prepare agenda for John sync" --due today
 ```
 
 ---
@@ -421,11 +555,14 @@ uni standup <TAB>  # Shows flow arguments
 
 | Flow Name | Commands | Use Case |
 |-----------|----------|----------|
-| `standup` | gcal + gh pr + gmail | Morning check |
+| `standup` | gcal + gtasks + gh pr | Morning check |
 | `prcheck` | gh pr view + checks | Review a PR |
 | `eod` | gh pr list + gcal tomorrow | End of day |
 | `research` | exa search + code + research | Deep dive on topic |
 | `deploy` | gh pr merge + slack notify | Deploy and announce |
+| `morning` | gcal list + gtasks list | Daily planning |
+| `meetprep` | gmeet list + gtasks list | Before meetings |
+| `network` | gcontacts search + gmail list | CRM-style lookup |
 
 ### Managing Flows
 
