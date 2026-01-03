@@ -219,17 +219,17 @@ Unified duplicated OAuth code across 11 Google services into `@uni/shared`.
 
 ---
 
-### Phase 17: Shared Command Patterns 🚧
+### Phase 17: Shared Command Patterns ✅
 **Spec file**: `specs/phase-17-shared-commands.md`
 
-Unify duplicated command patterns into shared factories and helpers.
+Unified duplicated command patterns into shared factories and helpers.
 
-- [ ] Add color helpers to shared (`c.cyan()`, `c.dim()`, etc.)
-- [ ] Add auth command factory (`createGoogleAuthCommand()`)
-- [ ] Refactor all 11 Google auth commands
-- [ ] Build and test
+- [x] Added color helpers to shared (`c.cyan()`, `c.dim()`, etc.)
+- [x] Added auth command factory (`createGoogleAuthCommand()`)
+- [x] Refactored all 11 Google auth commands
+- [x] Build and tested
 
-**Impact:** 960 → ~120 lines for auth commands, cleaner ANSI usage.
+**Result:** 960 → 208 lines (-78%), auth fixes in 1 place.
 
 ---
 
