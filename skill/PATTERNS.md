@@ -20,13 +20,18 @@ uni setup notion --self-host
 ### Authenticating Services
 
 ```bash
-# Google services (gcal, gmail, gdrive, gtasks, gcontacts, gmeet)
+# Google services (gcal, gmail, gdrive, gtasks, gcontacts, gmeet, gsheets, gdocs, gslides, gforms)
 uni gcal auth               # Opens browser for OAuth
 uni gmail auth
 uni gdrive auth
 uni gtasks auth
 uni gcontacts auth
 uni gmeet auth
+uni gsheets auth
+uni gdocs auth
+uni gslides auth
+uni gforms auth
+# uni gkeep auth            # Workspace accounts only
 
 # Check auth status
 uni gcal auth --status
@@ -626,6 +631,9 @@ uni standup <TAB>  # Shows flow arguments
 | `network` | gcontacts search + gmail list | CRM-style lookup |
 | `travel` | weather + currency | Trip preparation |
 | `share` | shorturl + qrcode | Share links easily |
+| `docreport` | gdocs create + append | Create reports |
+| `surveyme` | gforms create + add-question | Quick surveys |
+| `deckexport` | gslides export pdf | Export presentations |
 
 ### Managing Flows
 
@@ -638,6 +646,130 @@ uni flow remove oldflow
 
 # Flows are stored in ~/.uni/config.toml
 uni config edit
+```
+
+---
+
+## GSuite Document Workflows
+
+### Creating a Report
+
+```bash
+# 1. Create a new document
+uni gdocs create "Weekly Report"
+
+# 2. Add content
+uni gdocs append <id> "## Summary\n\nThis week we accomplished..."
+
+# 3. Export as PDF for sharing
+uni gdocs export <id> pdf -o weekly-report.pdf
+
+# 4. Share with team
+uni gdocs share <id> team@company.com --role reader
+```
+
+### Managing Spreadsheet Data
+
+```bash
+# 1. Create a budget spreadsheet
+uni gsheets create "Q1 Budget"
+
+# 2. Set headers
+uni gsheets set <id> A1 "Category"
+uni gsheets set <id> B1 "Amount"
+uni gsheets set <id> C1 "Notes"
+
+# 3. Add data rows
+uni gsheets append <id> "A:C" "Marketing,5000,Ad campaigns"
+uni gsheets append <id> "A:C" "Engineering,15000,Tools and infra"
+
+# 4. Read back data
+uni gsheets get <id> --range "A1:C10"
+```
+
+### Presentation Workflow
+
+```bash
+# 1. Create presentation
+uni gslides create "Product Launch"
+
+# 2. Add slides with content
+uni gslides add-slide <id>
+uni gslides add-text <id> "Welcome to Product X" --slide 1
+
+uni gslides add-slide <id>
+uni gslides add-text <id> "Key Features" --slide 2
+
+# 3. Export for offline viewing
+uni gslides export <id> pptx -o launch-deck.pptx
+
+# 4. Share with stakeholders
+uni gslides share <id> ceo@company.com --role reader
+```
+
+### Survey/Form Workflow
+
+```bash
+# 1. Create a feedback form
+uni gforms create "Product Feedback"
+
+# 2. Add questions
+uni gforms add-question <id> "Your name" text -r
+uni gforms add-question <id> "How satisfied are you?" scale --low 1 --high 10
+uni gforms add-question <id> "What could we improve?" paragraph
+uni gforms add-question <id> "Would you recommend us?" choice --choices "Yes,No,Maybe"
+
+# 3. Get the form URL to share
+uni gforms get <id>
+# → Response URL: https://docs.google.com/forms/d/e/.../viewform
+
+# 4. Check responses later
+uni gforms responses <id>
+```
+
+### Cross-Service Document Flow
+
+```bash
+# Create a flow for weekly reporting
+uni flow add weekly-report \
+  "gdocs create 'Week $1 Report'" \
+  "gsheets get <budget-id> --range 'A1:D10'"
+
+# Use it
+uni weekly-report 42
+```
+
+### Document Search and Export
+
+```bash
+# 1. Find a document by name
+uni gdocs list | grep -i "meeting"
+
+# 2. Get the content
+uni gdocs get <id> --text
+
+# 3. Export in multiple formats
+uni gdocs export <id> pdf -o meeting-notes.pdf
+uni gdocs export <id> md -o meeting-notes.md
+```
+
+### Spreadsheet Formula Example
+
+```bash
+# Create a spreadsheet with formulas
+uni gsheets create "Sales Calculator"
+
+# Set up data
+uni gsheets set <id> A1 "Price"
+uni gsheets set <id> B1 "Quantity"
+uni gsheets set <id> C1 "Total"
+uni gsheets set <id> A2 "100"
+uni gsheets set <id> B2 "5"
+uni gsheets set <id> C2 "=A2*B2"  # Formula!
+
+# Check the calculated value
+uni gsheets get <id> --range "C2"
+# → 500
 ```
 
 ---

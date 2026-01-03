@@ -26,6 +26,11 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | `notion` | Notion pages & databases | `search`, `pages`, `databases` |
 | `gmail` | Gmail emails | `list`, `read`, `send`, `auth` |
 | `gdrive` | Google Drive files | `list`, `search`, `delete`, `auth` |
+| `gsheets` | Google Sheets | `list`, `get`, `create`, `set`, `append`, `share` |
+| `gdocs` | Google Docs | `list`, `get`, `create`, `append`, `replace`, `export` |
+| `gslides` | Google Slides | `list`, `get`, `create`, `add-slide`, `add-text`, `export` |
+| `gforms` | Google Forms | `list`, `get`, `create`, `add-question`, `responses` |
+| `gkeep` | Google Keep (Workspace only) | `list`, `get`, `add`, `delete` |
 | `weather` | Weather forecasts | (default), `--forecast` |
 | `currency` | Currency converter | (default), `--list` |
 | `qrcode` | QR code generator | (default), `--terminal`, `--output` |
@@ -253,6 +258,181 @@ uni gdrive list                         # List files
 uni gdrive list --folder <id>           # Files in folder
 uni gdrive search "report"              # Search files
 uni gdrive auth                         # Authenticate
+```
+
+---
+
+## Google Sheets Service
+
+### List spreadsheets
+```bash
+uni gsheets list                        # Recent spreadsheets
+uni gsheets list -n 20                  # More results
+```
+
+### Get spreadsheet data
+```bash
+uni gsheets get <id>                    # Spreadsheet info
+uni gsheets get <id> --range "A1:C10"   # Specific range
+uni gsheets get <id> --sheet "Sheet2"   # Specific sheet
+```
+
+### Create and modify
+```bash
+uni gsheets create "Budget 2025"        # New spreadsheet
+uni gsheets set <id> A1 "Hello"         # Set single cell
+uni gsheets set <id> A1:B2 "1,2;3,4"    # Set range (rows separated by ;)
+uni gsheets append <id> "A:A" "New row" # Append row
+```
+
+### Share spreadsheet
+```bash
+uni gsheets share <id> user@email.com
+uni gsheets share <id> user@email.com --role reader
+```
+
+---
+
+## Google Docs Service
+
+### List documents
+```bash
+uni gdocs list                          # Recent documents
+uni gdocs list -n 20                    # More results
+```
+
+### Get document content
+```bash
+uni gdocs get <id>                      # Document info
+uni gdocs get <id> --text               # Extract plain text
+```
+
+### Create and edit
+```bash
+uni gdocs create "Meeting Notes"        # New document
+uni gdocs append <id> "New paragraph"   # Append text
+uni gdocs replace <id> "old" "new"      # Find and replace
+```
+
+### Export document
+```bash
+uni gdocs export <id> pdf               # Export as PDF
+uni gdocs export <id> docx              # Export as Word
+uni gdocs export <id> txt               # Plain text
+uni gdocs export <id> md                # Markdown
+uni gdocs export <id> pdf -o report.pdf # Custom filename
+```
+
+### Share document
+```bash
+uni gdocs share <id> user@email.com
+uni gdocs share <id> user@email.com --role reader
+```
+
+---
+
+## Google Slides Service
+
+### List presentations
+```bash
+uni gslides list                        # Recent presentations
+uni gslides list -n 20                  # More results
+```
+
+### Get presentation
+```bash
+uni gslides get <id>                    # Presentation info
+uni gslides get <id> --text             # Extract text from slides
+```
+
+### Create and edit
+```bash
+uni gslides create "Q1 Review"          # New presentation
+uni gslides add-slide <id>              # Add new slide
+uni gslides add-text <id> "Hello"       # Add text to last slide
+uni gslides add-text <id> "Title" --slide 1  # Add to specific slide
+```
+
+### Export presentation
+```bash
+uni gslides export <id> pdf             # Export as PDF
+uni gslides export <id> pptx            # Export as PowerPoint
+uni gslides export <id> pdf -o deck.pdf # Custom filename
+```
+
+### Share presentation
+```bash
+uni gslides share <id> user@email.com
+uni gslides share <id> user@email.com --role reader
+```
+
+---
+
+## Google Forms Service
+
+### List forms
+```bash
+uni gforms list                         # Recent forms
+uni gforms list -n 20                   # More results
+```
+
+### Get form details
+```bash
+uni gforms get <id>                     # Form info and questions
+```
+
+### Create form and add questions
+```bash
+uni gforms create "Customer Survey"     # New form
+uni gforms add-question <id> "Name" text                    # Text question
+uni gforms add-question <id> "Comments" paragraph           # Long text
+uni gforms add-question <id> "Rating" scale --low 1 --high 5  # Scale 1-5
+uni gforms add-question <id> "Color" choice --choices "Red,Blue,Green"
+uni gforms add-question <id> "Email" text -r                # Required
+```
+
+### View responses
+```bash
+uni gforms responses <id>               # View all responses
+uni gforms responses <id> --json        # JSON format
+```
+
+### Share form
+```bash
+uni gforms share <id> user@email.com
+uni gforms share <id> user@email.com --role reader
+```
+
+---
+
+## Google Keep Service (Workspace Only)
+
+> **Note:** Google Keep API requires Google Workspace Enterprise/Education Plus account.
+> Regular Gmail accounts cannot access the Keep API.
+
+### List notes
+```bash
+uni gkeep list                          # All notes
+uni gkeep list --archived               # Archived notes
+uni gkeep list --trashed                # Trashed notes
+```
+
+### Get note
+```bash
+uni gkeep get <id>                      # Note content
+```
+
+### Create notes
+```bash
+uni gkeep add "Remember to call mom"    # Simple note
+uni gkeep add "My note" -t "Title"      # With title
+uni gkeep add "Milk,Eggs,Bread" -l      # Checklist
+uni gkeep add "Items" -l -t "Shopping"  # Checklist with title
+```
+
+### Delete note
+```bash
+uni gkeep delete <id>                   # Move to trash
 ```
 
 ---
@@ -511,6 +691,11 @@ uni gdrive auth --logout
 | Convert currency | `uni currency 100 usd to eur` |
 | Generate QR code | `uni qrcode "https://..."` |
 | Shorten URL | `uni shorturl "https://..."` |
+| Edit spreadsheet | `uni gsheets set <id> A1 "value"` |
+| Export document | `uni gdocs export <id> pdf` |
+| Create presentation | `uni gslides create "Title"` |
+| Create survey | `uni gforms create "Survey"` |
+| Quick note | `uni gkeep add "Note"` (Workspace) |
 | Natural language | `uni ask "your request"` |
 | Multiple commands | `uni run "cmd1" "cmd2"` |
 | Saved workflow | `uni flow run myflow` |

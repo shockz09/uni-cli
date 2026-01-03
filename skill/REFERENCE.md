@@ -1292,3 +1292,707 @@ uni gcal auth --logout
 
 ---
 
+## uni gsheets
+
+Google Sheets - spreadsheets
+
+### `uni gsheets list`
+
+List recent spreadsheets
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | string | `10` | Number of spreadsheets to show |
+
+**Examples:**
+
+```bash
+uni gsheets list
+uni gsheets list -n 20
+```
+
+---
+
+### `uni gsheets get`
+
+Get spreadsheet data
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--range` | -r | string | Cell range (e.g., A1:C10) |
+| `--sheet` | -s | string | Sheet name |
+
+**Examples:**
+
+```bash
+uni gsheets get <spreadsheet-id>
+uni gsheets get <id> --range "A1:C10"
+uni gsheets get <id> --sheet "Sheet2"
+```
+
+---
+
+### `uni gsheets create`
+
+Create a new spreadsheet
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Spreadsheet title |
+
+**Examples:**
+
+```bash
+uni gsheets create "Budget 2025"
+uni gsheets create "Inventory"
+```
+
+---
+
+### `uni gsheets set`
+
+Set cell values
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Cell range (e.g., A1, A1:B2) |
+| `value` | Yes | Value(s) to set |
+
+**Examples:**
+
+```bash
+uni gsheets set <id> A1 "Hello"
+uni gsheets set <id> A1:B2 "1,2;3,4"
+```
+
+---
+
+### `uni gsheets append`
+
+Append rows to a sheet
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Range to append to (e.g., A:A) |
+| `values` | Yes | Values to append |
+
+**Examples:**
+
+```bash
+uni gsheets append <id> "A:A" "New,Row,Data"
+```
+
+---
+
+### `uni gsheets share`
+
+Share a spreadsheet
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `email` | Yes | Email address to share with |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--role` | -r | string | `writer` | Permission: reader or writer |
+
+**Examples:**
+
+```bash
+uni gsheets share <id> user@email.com
+uni gsheets share <id> user@email.com --role reader
+```
+
+---
+
+## uni gdocs
+
+Google Docs - documents
+
+### `uni gdocs list`
+
+List recent documents
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | string | `10` | Number of documents to show |
+
+**Examples:**
+
+```bash
+uni gdocs list
+uni gdocs list -n 20
+```
+
+---
+
+### `uni gdocs get`
+
+Get document content
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--text` | -t | boolean | Extract plain text |
+
+**Examples:**
+
+```bash
+uni gdocs get <document-id>
+uni gdocs get <id> --text
+```
+
+---
+
+### `uni gdocs create`
+
+Create a new document
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Document title |
+
+**Examples:**
+
+```bash
+uni gdocs create "Meeting Notes"
+uni gdocs create "Project Plan"
+```
+
+---
+
+### `uni gdocs append`
+
+Append text to document
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `text` | Yes | Text to append |
+
+**Examples:**
+
+```bash
+uni gdocs append <id> "New paragraph"
+```
+
+---
+
+### `uni gdocs replace`
+
+Find and replace text
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `old` | Yes | Text to find |
+| `new` | Yes | Replacement text |
+
+**Examples:**
+
+```bash
+uni gdocs replace <id> "old text" "new text"
+```
+
+---
+
+### `uni gdocs export`
+
+Export document to file
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `format` | Yes | Export format: pdf, docx, txt, html, md |
+
+**Options:**
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--output` | -o | string | Output file path |
+
+**Examples:**
+
+```bash
+uni gdocs export <id> pdf
+uni gdocs export <id> docx -o report.docx
+uni gdocs export <id> txt
+```
+
+---
+
+### `uni gdocs share`
+
+Share a document
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `email` | Yes | Email address to share with |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--role` | -r | string | `writer` | Permission: reader or writer |
+
+**Examples:**
+
+```bash
+uni gdocs share <id> user@email.com
+uni gdocs share <id> user@email.com --role reader
+```
+
+---
+
+## uni gslides
+
+Google Slides - presentations
+
+### `uni gslides list`
+
+List recent presentations
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | string | `10` | Number of presentations to show |
+
+**Examples:**
+
+```bash
+uni gslides list
+uni gslides list -n 20
+```
+
+---
+
+### `uni gslides get`
+
+Get presentation details
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--text` | -t | boolean | Extract text from slides |
+
+**Examples:**
+
+```bash
+uni gslides get <presentation-id>
+uni gslides get <id> --text
+```
+
+---
+
+### `uni gslides create`
+
+Create a new presentation
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Presentation title |
+
+**Examples:**
+
+```bash
+uni gslides create "Q1 Review"
+uni gslides create "Product Launch"
+```
+
+---
+
+### `uni gslides add-slide`
+
+Add a new slide
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Examples:**
+
+```bash
+uni gslides add-slide <id>
+```
+
+---
+
+### `uni gslides add-text`
+
+Add text to a slide
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `text` | Yes | Text to add |
+
+**Options:**
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--slide` | -s | string | Slide number (default: last) |
+
+**Examples:**
+
+```bash
+uni gslides add-text <id> "Hello World"
+uni gslides add-text <id> "Title" --slide 1
+```
+
+---
+
+### `uni gslides export`
+
+Export presentation to file
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `format` | Yes | Export format: pdf, pptx, odp, txt |
+
+**Options:**
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--output` | -o | string | Output file path |
+
+**Examples:**
+
+```bash
+uni gslides export <id> pdf
+uni gslides export <id> pptx -o presentation.pptx
+```
+
+---
+
+### `uni gslides share`
+
+Share a presentation
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `email` | Yes | Email address to share with |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--role` | -r | string | `writer` | Permission: reader or writer |
+
+**Examples:**
+
+```bash
+uni gslides share <id> user@email.com
+uni gslides share <id> user@email.com --role reader
+```
+
+---
+
+## uni gforms
+
+Google Forms - surveys and forms
+
+### `uni gforms list`
+
+List recent forms
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | string | `10` | Number of forms to show |
+
+**Examples:**
+
+```bash
+uni gforms list
+uni gforms list -n 20
+```
+
+---
+
+### `uni gforms get`
+
+Get form details
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Form ID or URL |
+
+**Examples:**
+
+```bash
+uni gforms get <form-id>
+```
+
+---
+
+### `uni gforms create`
+
+Create a new form
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Form title |
+
+**Examples:**
+
+```bash
+uni gforms create "Customer Feedback"
+uni gforms create "Event Registration"
+```
+
+---
+
+### `uni gforms add-question`
+
+Add a question to a form
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Form ID or URL |
+| `title` | Yes | Question title |
+| `type` | No | Question type: text, paragraph, scale, choice (default: text) |
+
+**Options:**
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--required` | -r | boolean | Make question required |
+| `--choices` |  | string | Comma-separated choices (for choice type) |
+| `--low` |  | string | Low value for scale (default: 1) |
+| `--high` |  | string | High value for scale (default: 5) |
+
+**Examples:**
+
+```bash
+uni gforms add-question <id> "Your name" text
+uni gforms add-question <id> "Comments" paragraph
+uni gforms add-question <id> "Rating" scale --low 1 --high 10
+uni gforms add-question <id> "Color" choice --choices "Red,Blue,Green"
+uni gforms add-question <id> "Email" text -r
+```
+
+---
+
+### `uni gforms responses`
+
+View form responses
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Form ID or URL |
+
+**Examples:**
+
+```bash
+uni gforms responses <form-id>
+uni gforms responses <id> --json
+```
+
+---
+
+### `uni gforms share`
+
+Share a form
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Form ID or URL |
+| `email` | Yes | Email address to share with |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--role` | -r | string | `writer` | Permission: reader or writer |
+
+**Examples:**
+
+```bash
+uni gforms share <id> user@email.com
+uni gforms share <id> user@email.com --role reader
+```
+
+---
+
+### `uni gforms delete`
+
+Delete a form
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Form ID or URL |
+
+**Examples:**
+
+```bash
+uni gforms delete <form-id>
+```
+
+---
+
+## uni gkeep
+
+Google Keep - notes (Workspace Only)
+
+> **Note:** Google Keep API requires Google Workspace Enterprise/Education Plus account.
+
+### `uni gkeep list`
+
+List notes
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--archived` | -a | boolean | `false` | Show archived notes |
+| `--trashed` | -t | boolean | `false` | Show trashed notes |
+
+**Examples:**
+
+```bash
+uni gkeep list
+uni gkeep list --archived
+uni gkeep list --trashed
+```
+
+---
+
+### `uni gkeep get`
+
+Get note details
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Note ID |
+
+**Examples:**
+
+```bash
+uni gkeep get <note-id>
+```
+
+---
+
+### `uni gkeep add`
+
+Create a new note
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `content` | Yes | Note content |
+
+**Options:**
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--title` | -t | string | Note title |
+| `--list` | -l | boolean | Create as checklist |
+
+**Examples:**
+
+```bash
+uni gkeep add "Remember to call mom"
+uni gkeep add "Shopping list" --title "Groceries" --list
+uni gkeep add "Milk,Eggs,Bread" -l -t "Shopping"
+```
+
+---
+
+### `uni gkeep delete`
+
+Delete a note (moves to trash)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Note ID |
+
+**Examples:**
+
+```bash
+uni gkeep delete <note-id>
+```
+
+---
+
