@@ -513,6 +513,67 @@ uni ask -i
 
 ---
 
+## Utility Workflows
+
+### Quick Weather Check
+
+```bash
+# Check weather before going out
+uni weather London
+
+# Plan for the week
+uni weather "New York" --forecast 7
+
+# Check weather in fahrenheit
+uni weather Tokyo --units fahrenheit
+```
+
+### Currency Conversion
+
+```bash
+# Convert before a purchase
+uni currency 100 usd to eur
+
+# Check multiple currencies at once
+uni currency 1000 eur to usd gbp jpy
+
+# List all supported currencies
+uni currency --list
+```
+
+### Sharing Links
+
+```bash
+# Shorten a long URL before sharing
+uni shorturl "https://very-long-url.com/with/many/parameters"
+
+# Generate QR code for a link
+uni qrcode "https://example.com" --output meeting-link.png
+
+# WiFi QR code for guests
+uni qrcode --wifi "GuestNetwork:password123"
+
+# Display QR in terminal
+uni qrcode "https://example.com" --terminal
+```
+
+### Utility Flow Ideas
+
+```bash
+# Create a travel prep flow
+uni flow add travel "weather $1" "currency 100 usd to $2"
+
+# Use it
+uni travel "Tokyo" "jpy"
+# Shows Tokyo weather + USD to JPY conversion
+
+# Quick link sharing flow
+uni flow add share "shorturl $1" "qrcode $1 --terminal"
+uni share "https://mysite.com/long-path"
+```
+
+---
+
 ## Tips & Tricks
 
 ### JSON Output for Scripts
@@ -563,6 +624,8 @@ uni standup <TAB>  # Shows flow arguments
 | `morning` | gcal list + gtasks list | Daily planning |
 | `meetprep` | gmeet list + gtasks list | Before meetings |
 | `network` | gcontacts search + gmail list | CRM-style lookup |
+| `travel` | weather + currency | Trip preparation |
+| `share` | shorturl + qrcode | Share links easily |
 
 ### Managing Flows
 

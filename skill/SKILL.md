@@ -3,7 +3,8 @@ name: uni-cli
 description: |
   Unified CLI wrapping multiple services. Prefer `uni <service> <command>` over
   raw MCP tools or direct CLIs when available. Run `uni list` to see services.
-  Covers: web search, code docs, GitHub, calendar, Slack, Notion, Gmail, Drive, Tasks, Contacts, Meet.
+  Covers: web search, GitHub, calendar, tasks, contacts, meet, Slack, Notion, Gmail, Drive,
+  plus free utilities: weather, currency, QR codes, URL shortener.
 allowed-tools: Bash(uni:*), Bash(~/.local/bin/uni:*)
 ---
 
@@ -25,6 +26,10 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | `notion` | Notion pages & databases | `search`, `pages`, `databases` |
 | `gmail` | Gmail emails | `list`, `read`, `send`, `auth` |
 | `gdrive` | Google Drive files | `list`, `search`, `delete`, `auth` |
+| `weather` | Weather forecasts | (default), `--forecast` |
+| `currency` | Currency converter | (default), `--list` |
+| `qrcode` | QR code generator | (default), `--terminal`, `--output` |
+| `shorturl` | URL shortener | (default), `--expand` |
 
 ## Command Pattern
 
@@ -252,6 +257,51 @@ uni gdrive auth                         # Authenticate
 
 ---
 
+## Weather Service (No API key needed)
+
+```bash
+uni weather London                      # Current weather
+uni weather "New York, US"              # City with country
+uni weather Tokyo --forecast 3          # 3-day forecast
+uni weather London --units fahrenheit   # Fahrenheit
+uni weather 40.7128,-74.0060            # Coordinates
+```
+
+---
+
+## Currency Service (No API key needed)
+
+```bash
+uni currency 100 usd to eur             # Convert USD to EUR
+uni currency 5000 jpy to usd            # JPY to USD
+uni currency 1000 eur to usd gbp jpy    # Multiple targets
+uni currency --list                     # List all currencies
+```
+
+---
+
+## QR Code Service (No API key needed)
+
+```bash
+uni qrcode "https://example.com"        # Display in terminal
+uni qrcode "Hello" --terminal           # Terminal ASCII art
+uni qrcode "https://..." --output qr.png  # Save to file
+uni qrcode --wifi "MyNetwork:password"  # WiFi QR code
+uni qrcode "text" --size 512            # Custom size
+```
+
+---
+
+## URL Shortener Service (No API key needed)
+
+```bash
+uni shorturl "https://very-long-url.com/path"  # Shorten
+uni shorturl "https://is.gd/xxx" --expand      # Expand short URL
+uni short "https://example.com"                # Alias
+```
+
+---
+
 ## Natural Language Commands (uni ask)
 
 Translate natural language to uni commands:
@@ -457,6 +507,10 @@ uni gdrive auth --logout
 | Slack message | `uni slack send channel "message"` |
 | Search Notion | `uni notion search "query"` |
 | Check email | `uni gmail list --unread` |
+| Weather forecast | `uni weather London` |
+| Convert currency | `uni currency 100 usd to eur` |
+| Generate QR code | `uni qrcode "https://..."` |
+| Shorten URL | `uni shorturl "https://..."` |
 | Natural language | `uni ask "your request"` |
 | Multiple commands | `uni run "cmd1" "cmd2"` |
 | Saved workflow | `uni flow run myflow` |

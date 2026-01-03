@@ -168,16 +168,32 @@ export class UniCLI {
       // Load service
       const service = await registry.load(parsed.service);
 
-      // Show service help
-      if (parsed.globalFlags.help || !parsed.command) {
+      // Check for default command (empty name) - for single-command services like weather, currency
+      const defaultCommand = service.commands.find(c => c.name === '');
+
+      // Show service help only if no command given AND no default command exists
+      if (parsed.globalFlags.help || (!parsed.command && !defaultCommand)) {
         this.showServiceHelp(service, output);
         return;
       }
 
       // Find the base command first
-      const baseCommand = service.commands.find(
-        c => c.name === parsed.command || c.aliases?.includes(parsed.command!)
-      );
+      // If no command given but default exists, use the default command
+      // and treat what would have been the command as the first arg
+      let baseCommand = defaultCommand && !parsed.command
+        ? defaultCommand
+        : service.commands.find(
+            c => c.name === parsed.command || c.aliases?.includes(parsed.command!)
+          );
+
+      // If still no match and default exists, use default and prepend command as arg
+      if (!baseCommand && defaultCommand) {
+        baseCommand = defaultCommand;
+        if (parsed.command) {
+          parsed.args = [parsed.command, ...(parsed.subcommand ? [parsed.subcommand] : []), ...parsed.args];
+          parsed.subcommand = undefined;
+        }
+      }
 
       if (!baseCommand) {
         const availableCommands = service.commands.map(c => c.name);

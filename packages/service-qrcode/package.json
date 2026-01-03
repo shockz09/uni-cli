@@ -1,0 +1,20 @@
+{
+  "name": "@uni/service-qrcode",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "dev": "bun run --watch src/index.ts"
+  },
+  "dependencies": {
+    "@uni/shared": "workspace:*",
+    "qrcode": "^1.5.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/qrcode": "^1.5.5",
+    "typescript": "^5.0.0"
+  }
+}

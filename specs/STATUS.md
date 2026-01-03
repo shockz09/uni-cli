@@ -92,17 +92,24 @@
 
 ---
 
-## Current Services (7 total)
+## Current Services (14 total)
 
 | Service | Status | Auth Method |
 |---------|--------|-------------|
 | exa | ✅ Working | MCP (free) or EXA_API_KEY |
 | gh | ✅ Working | `gh auth login` |
 | gcal | ✅ Working | Google OAuth |
+| gtasks | ✅ Working | Google OAuth |
+| gcontacts | ✅ Working | Google OAuth |
+| gmeet | ✅ Working | Google OAuth |
 | slack | ✅ Built | SLACK_BOT_TOKEN |
 | notion | ✅ Built | NOTION_TOKEN |
 | gmail | ✅ Built | Google OAuth |
 | gdrive | ✅ Built | Google OAuth |
+| weather | ✅ Built | None (free API) |
+| currency | ✅ Built | None (free API) |
+| qrcode | ✅ Built | None (local) |
+| shorturl | ✅ Built | None (free API) |
 
 ---
 
@@ -167,7 +174,20 @@ base_url = "http://localhost:11434"
 - [x] **gcontacts** - Google Contacts (list, search, get, add, delete)
 - [x] **gmeet** - Google Meet (create instant link, schedule, list)
 
-### Future: Phase 14 (TBD)
+### Phase 14: Universal Utilities ✅
+**Spec file**: `specs/phase-14-universal-utilities.md`
+
+- [x] **weather** - Current weather and forecasts (Open-Meteo, no key)
+- [x] **currency** - Currency conversion (frankfurter.app, no key)
+- [x] **qrcode** - Generate QR codes from text/URLs
+- [x] **shorturl** - Shorten long URLs (is.gd, no key)
+
+**Design Principles:**
+- Zero configuration required
+- No API keys or auth needed
+- Fast responses (< 500ms)
+
+### Future: Phase 15 (TBD)
 - Plugin development documentation
 - More services (YouTube, Linear, etc.)
 - TUI/terminal UI enhancements
@@ -202,10 +222,17 @@ These will be optional `uni install` packages:
 │   ├── service-exa/         # Exa (search)
 │   ├── service-gh/          # GitHub
 │   ├── service-gcal/        # Google Calendar
+│   ├── service-gtasks/      # Google Tasks
+│   ├── service-gcontacts/   # Google Contacts
+│   ├── service-gmeet/       # Google Meet
 │   ├── service-slack/       # Slack
 │   ├── service-notion/      # Notion
 │   ├── service-gmail/       # Gmail
-│   └── service-gdrive/      # Google Drive
+│   ├── service-gdrive/      # Google Drive
+│   ├── service-weather/     # Weather (Open-Meteo)
+│   ├── service-currency/    # Currency (Frankfurter)
+│   ├── service-qrcode/      # QR code generator
+│   └── service-shorturl/    # URL shortener (is.gd)
 ├── skill/
 │   ├── SKILL.md             # Main skill file
 │   ├── REFERENCE.md         # Auto-generated command reference
