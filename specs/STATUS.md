@@ -224,14 +224,15 @@ Unified duplicated OAuth code across 11 Google services into `@uni/shared`.
 
 Unified duplicated command patterns into shared factories and helpers.
 
-- [x] Added color helpers to shared (`c.cyan()`, `c.dim()`, etc.)
+- [x] Added color helpers to shared (`c.cyan()`, `c.dim()`, `c.strikethrough()`, etc.)
 - [x] Added auth command factory (`createGoogleAuthCommand()`)
 - [x] Added setup factory (`createGoogleServiceSetup()`)
 - [x] Refactored all 11 Google auth commands
 - [x] Refactored all 11 Google service setup functions
+- [x] Replaced 197 raw ANSI codes with `c.color()` helpers across 55 files
 - [x] Build and tested
 
-**Result:** Auth: 960 → 208 lines (-78%), Setup: 78 → 61 lines, all fixes in 1 place.
+**Result:** Auth: 960 → 208 lines (-78%), Setup: 78 → 61 lines, ANSI codes centralized.
 
 ---
 
