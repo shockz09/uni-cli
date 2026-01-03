@@ -97,6 +97,10 @@ export class GTasksClient extends GoogleAuthClient {
     return this.updateTask(listId, taskId, { status: 'completed' });
   }
 
+  async uncompleteTask(listId: string, taskId: string): Promise<Task> {
+    return this.updateTask(listId, taskId, { status: 'needsAction' });
+  }
+
   async deleteTask(listId: string, taskId: string): Promise<void> {
     await this.request(`/lists/${listId}/tasks/${taskId}`, { method: 'DELETE' });
   }

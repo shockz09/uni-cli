@@ -8,6 +8,7 @@ import { listCommand } from './commands/list';
 import { addCommand } from './commands/add';
 import { updateCommand } from './commands/update';
 import { doneCommand } from './commands/done';
+import { undoneCommand } from './commands/undone';
 import { deleteCommand } from './commands/delete';
 import { listsCommand } from './commands/lists';
 import { authCommand } from './commands/auth';
@@ -18,7 +19,7 @@ const gtasksService: UniService = {
   description: 'Google Tasks - manage todos',
   version: '0.1.0',
 
-  commands: [listCommand, addCommand, updateCommand, doneCommand, deleteCommand, listsCommand, authCommand],
+  commands: [listCommand, addCommand, updateCommand, doneCommand, undoneCommand, deleteCommand, listsCommand, authCommand],
 
   auth: {
     type: 'oauth',
