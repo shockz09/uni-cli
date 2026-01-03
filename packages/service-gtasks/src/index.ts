@@ -5,6 +5,7 @@
 import type { UniService } from '@uni/shared';
 import { listCommand } from './commands/list';
 import { addCommand } from './commands/add';
+import { updateCommand } from './commands/update';
 import { doneCommand } from './commands/done';
 import { deleteCommand } from './commands/delete';
 import { listsCommand } from './commands/lists';
@@ -16,7 +17,7 @@ const gtasksService: UniService = {
   description: 'Google Tasks - manage todos',
   version: '0.1.0',
 
-  commands: [listCommand, addCommand, doneCommand, deleteCommand, listsCommand, authCommand],
+  commands: [listCommand, addCommand, updateCommand, doneCommand, deleteCommand, listsCommand, authCommand],
 
   auth: {
     type: 'oauth',

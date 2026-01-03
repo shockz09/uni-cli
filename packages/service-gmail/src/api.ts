@@ -314,6 +314,27 @@ export class GmailClient {
 
     return email.snippet || '';
   }
+
+  /**
+   * Delete email (move to trash)
+   */
+  async trashEmail(id: string): Promise<void> {
+    await this.request(`/users/me/messages/${id}/trash`, { method: 'POST' });
+  }
+
+  /**
+   * Permanently delete email
+   */
+  async deleteEmail(id: string): Promise<void> {
+    const token = await this.getAccessToken();
+    const response = await fetch(`${GMAIL_API}/users/me/messages/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok && response.status !== 204) {
+      throw new Error(`Failed to delete email: ${response.status}`);
+    }
+  }
 }
 
 export const gmail = new GmailClient();

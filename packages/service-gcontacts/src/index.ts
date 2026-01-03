@@ -7,6 +7,7 @@ import { listCommand } from './commands/list';
 import { searchCommand } from './commands/search';
 import { getCommand } from './commands/get';
 import { addCommand } from './commands/add';
+import { updateCommand } from './commands/update';
 import { deleteCommand } from './commands/delete';
 import { authCommand } from './commands/auth';
 import { gcontacts } from './api';
@@ -16,7 +17,7 @@ const gcontactsService: UniService = {
   description: 'Google Contacts - manage contacts',
   version: '0.1.0',
 
-  commands: [listCommand, searchCommand, getCommand, addCommand, deleteCommand, authCommand],
+  commands: [listCommand, searchCommand, getCommand, addCommand, updateCommand, deleteCommand, authCommand],
 
   auth: {
     type: 'oauth',

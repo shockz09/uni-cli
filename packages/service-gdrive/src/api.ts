@@ -239,6 +239,109 @@ export class GDriveClient {
       throw new Error(`Failed to delete file: ${response.status}`);
     }
   }
+
+  async uploadFile(filePath: string, options: { name?: string; folderId?: string } = {}): Promise<DriveFile> {
+    const token = await this.getAccessToken();
+    const fileName = options.name || path.basename(filePath);
+    const fileContent = fs.readFileSync(filePath);
+
+    // Create metadata
+    const metadata: Record<string, unknown> = { name: fileName };
+    if (options.folderId) {
+      metadata.parents = [options.folderId];
+    }
+
+    // Use multipart upload
+    const boundary = '-------314159265358979323846';
+    const delimiter = `\r\n--${boundary}\r\n`;
+    const closeDelimiter = `\r\n--${boundary}--`;
+
+    const body = Buffer.concat([
+      Buffer.from(
+        delimiter +
+        'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+        JSON.stringify(metadata) +
+        delimiter +
+        'Content-Type: application/octet-stream\r\n\r\n'
+      ),
+      fileContent,
+      Buffer.from(closeDelimiter),
+    ]);
+
+    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,size,webViewLink', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': `multipart/related; boundary=${boundary}`,
+      },
+      body,
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Upload failed: ${error}`);
+    }
+
+    return response.json() as Promise<DriveFile>;
+  }
+
+  async downloadFile(fileId: string, destPath: string): Promise<void> {
+    const token = await this.getAccessToken();
+
+    // First get file metadata to check if it's a Google Doc
+    const file = await this.getFile(fileId);
+
+    let downloadUrl: string;
+    if (file.mimeType.startsWith('application/vnd.google-apps.')) {
+      // Export Google Docs format
+      const exportMime = this.getExportMime(file.mimeType);
+      downloadUrl = `${DRIVE_API}/files/${fileId}/export?mimeType=${encodeURIComponent(exportMime)}`;
+    } else {
+      downloadUrl = `${DRIVE_API}/files/${fileId}?alt=media`;
+    }
+
+    const response = await fetch(downloadUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Download failed: ${response.status}`);
+    }
+
+    const buffer = await response.arrayBuffer();
+    fs.writeFileSync(destPath, Buffer.from(buffer));
+  }
+
+  private getExportMime(googleMime: string): string {
+    const mimeMap: Record<string, string> = {
+      'application/vnd.google-apps.document': 'application/pdf',
+      'application/vnd.google-apps.spreadsheet': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.google-apps.presentation': 'application/pdf',
+      'application/vnd.google-apps.drawing': 'image/png',
+    };
+    return mimeMap[googleMime] || 'application/pdf';
+  }
+
+  async shareFile(fileId: string, email: string, role: 'reader' | 'writer' | 'commenter' = 'reader'): Promise<void> {
+    const token = await this.getAccessToken();
+    const response = await fetch(`${DRIVE_API}/files/${fileId}/permissions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'user',
+        role,
+        emailAddress: email,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Share failed: ${error}`);
+    }
+  }
 }
 
 export const gdrive = new GDriveClient();

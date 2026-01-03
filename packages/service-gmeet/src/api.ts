@@ -296,6 +296,23 @@ export class GMeetClient {
     const videoEntry = event.conferenceData?.entryPoints?.find(ep => ep.entryPointType === 'video');
     return videoEntry?.uri;
   }
+
+  /**
+   * Delete/cancel a meeting
+   */
+  async deleteMeeting(eventId: string): Promise<void> {
+    const token = await this.getAccessToken();
+    const response = await fetch(
+      `${CALENDAR_API}/calendars/primary/events/${encodeURIComponent(eventId)}`,
+      {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (!response.ok && response.status !== 204) {
+      throw new Error(`Failed to delete meeting: ${response.status}`);
+    }
+  }
 }
 
 export const gmeet = new GMeetClient();

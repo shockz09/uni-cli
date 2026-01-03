@@ -264,6 +264,48 @@ export class GContactsClient {
     await this.request(`/${resourceName}:deleteContact`, { method: 'DELETE' });
   }
 
+  async updateContact(resourceName: string, updates: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    company?: string;
+  }): Promise<Contact> {
+    // Get current contact first
+    const current = await this.getContact(resourceName);
+
+    const body: Record<string, unknown> = {};
+    const updateMask: string[] = [];
+
+    if (updates.name) {
+      const nameParts = updates.name.split(' ');
+      body.names = [{ givenName: nameParts[0], familyName: nameParts.slice(1).join(' ') || undefined }];
+      updateMask.push('names');
+    }
+    if (updates.email) {
+      body.emailAddresses = [{ value: updates.email }];
+      updateMask.push('emailAddresses');
+    }
+    if (updates.phone) {
+      body.phoneNumbers = [{ value: updates.phone }];
+      updateMask.push('phoneNumbers');
+    }
+    if (updates.company) {
+      body.organizations = [{ name: updates.company }];
+      updateMask.push('organizations');
+    }
+
+    body.etag = current.etag;
+
+    const params = new URLSearchParams({
+      updatePersonFields: updateMask.join(','),
+    });
+
+    return this.request<Contact>(`/${resourceName}:updateContact?${params}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    });
+  }
+
   // Helper to get display info
   getDisplayName(contact: Contact): string {
     return contact.names?.[0]?.displayName || 'Unknown';
