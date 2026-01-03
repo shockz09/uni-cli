@@ -55,7 +55,6 @@ export function parseArgs(argv: string[]): ParsedArgs {
   };
 
   let i = 0;
-  let parsingGlobal = true;
 
   while (i < argv.length) {
     const arg = argv[i];
@@ -67,10 +66,10 @@ export function parseArgs(argv: string[]): ParsedArgs {
         ? flagName.split('=', 2)
         : [flagName, undefined];
 
-      // Check if it's a global flag
+      // Check if it's a global flag (global flags work anywhere in command)
       const globalOpt = GLOBAL_OPTIONS.find(o => o.name === name);
 
-      if (globalOpt && parsingGlobal) {
+      if (globalOpt) {
         if (globalOpt.type === 'boolean') {
           (result.globalFlags as Record<string, unknown>)[name] = true;
         } else {
@@ -96,7 +95,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
       const shortFlag = arg.slice(1);
       const globalOpt = GLOBAL_OPTIONS.find(o => o.short === shortFlag);
 
-      if (globalOpt && parsingGlobal) {
+      if (globalOpt) {
         if (globalOpt.type === 'boolean') {
           (result.globalFlags as Record<string, unknown>)[globalOpt.name] = true;
         } else {
@@ -107,8 +106,6 @@ export function parseArgs(argv: string[]): ParsedArgs {
       }
     } else {
       // Positional argument
-      parsingGlobal = false;
-
       if (!result.service) {
         result.service = arg;
       } else if (!result.command) {
