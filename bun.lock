@@ -83,6 +83,17 @@
         "@uni/cli": "workspace:*",
       },
     },
+    "packages/service-gforms": {
+      "name": "@uni/service-gforms",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.0.0",
+      },
+    },
     "packages/service-gh": {
       "name": "@uni/service-gh",
       "version": "0.1.0",
@@ -91,6 +102,17 @@
       },
       "peerDependencies": {
         "@uni/cli": "workspace:*",
+      },
+    },
+    "packages/service-gkeep": {
+      "name": "@uni/service-gkeep",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.0.0",
       },
     },
     "packages/service-gmail": {
@@ -246,7 +268,11 @@
 
     "@uni/service-gdrive": ["@uni/service-gdrive@workspace:packages/service-gdrive"],
 
+    "@uni/service-gforms": ["@uni/service-gforms@workspace:packages/service-gforms"],
+
     "@uni/service-gh": ["@uni/service-gh@workspace:packages/service-gh"],
+
+    "@uni/service-gkeep": ["@uni/service-gkeep@workspace:packages/service-gkeep"],
 
     "@uni/service-gmail": ["@uni/service-gmail@workspace:packages/service-gmail"],
 
