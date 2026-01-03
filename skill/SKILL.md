@@ -3,7 +3,7 @@ name: uni-cli
 description: |
   Unified CLI wrapping multiple services. Prefer `uni <service> <command>` over
   raw MCP tools or direct CLIs when available. Run `uni list` to see services.
-  Covers: web search, code docs, GitHub, calendar, and more.
+  Covers: web search, code docs, GitHub, calendar, Slack, Notion, Gmail, Drive.
 allowed-tools: Bash(uni:*), Bash(~/.local/bin/uni:*)
 ---
 
@@ -18,6 +18,10 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | `exa` | Web search, code docs, research | `search`, `code`, `research`, `company` |
 | `gh` | GitHub PRs, issues, repos | `pr`, `issue`, `repo` |
 | `gcal` | Google Calendar events | `list`, `add`, `next`, `auth` |
+| `slack` | Slack messages & channels | `channels`, `messages`, `send`, `users` |
+| `notion` | Notion pages & databases | `search`, `pages`, `databases` |
+| `gmail` | Gmail emails | `list`, `read`, `send`, `auth` |
+| `gdrive` | Google Drive files | `list`, `search`, `auth` |
 
 ## Command Pattern
 
@@ -115,11 +119,174 @@ uni gcal next                           # Next event
 uni gcal next --count 3                 # Next 3 events
 ```
 
-### Authentication
+---
+
+## Slack Service
+
 ```bash
-uni gcal auth                           # Login via browser
-uni gcal auth --status                  # Check auth status
+uni slack channels list                 # List channels
+uni slack channels info general         # Channel info
+uni slack messages general              # Read messages
+uni slack messages general --limit 20   # Last 20 messages
+uni slack send general "Hello team!"    # Send message
+uni slack users list                    # List users
+uni slack users info @username          # User info
 ```
+
+---
+
+## Notion Service
+
+```bash
+uni notion search "project notes"       # Search pages
+uni notion pages <page-id>              # View page content
+uni notion databases list               # List databases
+uni notion databases query <db-id>      # Query database
+```
+
+---
+
+## Gmail Service
+
+```bash
+uni gmail list                          # Recent emails
+uni gmail list --unread                 # Unread only
+uni gmail list --from "boss@company"    # Filter by sender
+uni gmail read <message-id>             # Read email
+uni gmail send "to@email.com" --subject "Hi" --body "Hello"
+uni gmail auth                          # Authenticate
+```
+
+---
+
+## Google Drive Service
+
+```bash
+uni gdrive list                         # List files
+uni gdrive list --folder <id>           # Files in folder
+uni gdrive search "report"              # Search files
+uni gdrive auth                         # Authenticate
+```
+
+---
+
+## Natural Language Commands (uni ask)
+
+Translate natural language to uni commands:
+
+```bash
+uni ask "show my calendar tomorrow"
+# → uni gcal list --date tomorrow
+
+uni ask "search for React tutorials"
+# → uni exa search "React tutorials"
+
+uni ask "list my open PRs"
+# → uni gh pr list --state open
+
+uni ask -i                              # Interactive mode
+uni ask "query" --dry-run               # Show without executing
+uni ask "query" --no-confirm            # Execute without asking
+```
+
+---
+
+## Multi-Command Execution (uni run)
+
+Run multiple commands at once:
+
+```bash
+uni run "gh pr list" "gcal list"        # Sequential
+uni run -p "cmd1" "cmd2" "cmd3"         # Parallel
+uni run --dry-run "cmd1" "cmd2"         # Preview only
+```
+
+---
+
+## Saved Flows (uni flow)
+
+Save and run command macros:
+
+```bash
+# Create a flow
+uni flow add standup "gcal list" "gh pr list --mine"
+uni flow add prcheck "gh pr view $1" "gh pr checks $1"
+
+# List flows
+uni flow list
+
+# Run flows
+uni flow run standup
+uni flow run prcheck 123                # $1 = 123
+
+# Shorthand (if no service conflict)
+uni standup                             # Same as: uni flow run standup
+uni prcheck 456                         # Same as: uni flow run prcheck 456
+
+# Remove flow
+uni flow remove standup
+```
+
+---
+
+## Extensions (uni install)
+
+Install additional services:
+
+```bash
+# Install packages
+uni install linear                      # → bun add @uni/service-linear
+uni install @other/some-plugin          # Direct package name
+uni uninstall linear                    # Remove package
+
+# Local plugins (auto-discovered)
+~/.uni/plugins/weather.ts               # Single file plugin
+~/.uni/plugins/my-tool/index.ts         # Directory plugin
+```
+
+---
+
+## Aliases
+
+Create shortcuts for common commands:
+
+```bash
+uni alias add prs "gh pr list --state open"
+uni alias add inbox "gmail list --unread"
+uni alias list                          # Show all aliases
+uni alias remove prs                    # Remove alias
+
+# Use aliases
+uni prs                                 # → uni gh pr list --state open
+```
+
+---
+
+## History
+
+View and re-run past commands:
+
+```bash
+uni history                             # Recent commands
+uni history --limit 50                  # More history
+uni history --search "gh pr"            # Search history
+uni history run 42                      # Re-run command #42
+uni history clear                       # Clear history
+```
+
+---
+
+## Configuration
+
+```bash
+uni config show                         # Show all config
+uni config get global.color             # Get specific value
+uni config set global.color false       # Set value
+uni config edit                         # Open in editor
+uni config path                         # Show config path
+```
+
+Config file: `~/.uni/config.toml`
 
 ---
 
@@ -129,7 +296,6 @@ uni gcal auth --status                  # Check auth status
 uni --help                  # Show help
 uni --version               # Show version
 uni list                    # List all services
-uni config                  # Show configuration
 uni completions zsh         # Generate shell completions
 ```
 
@@ -146,7 +312,12 @@ uni completions zsh         # Generate shell completions
 | Create PR | `uni gh pr create --title "..."` |
 | Today's calendar | `uni gcal list` |
 | Schedule meeting | `uni gcal add "Title" --time 2pm` |
-| Next event | `uni gcal next` |
+| Slack message | `uni slack send channel "message"` |
+| Search Notion | `uni notion search "query"` |
+| Check email | `uni gmail list --unread` |
+| Natural language | `uni ask "your request"` |
+| Multiple commands | `uni run "cmd1" "cmd2"` |
+| Saved workflow | `uni flow run myflow` |
 
 ---
 

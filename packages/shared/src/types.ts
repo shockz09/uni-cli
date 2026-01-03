@@ -276,6 +276,15 @@ export interface UniConfig {
 
   /** Per-service settings */
   services: Record<string, ServiceConfig>;
+
+  /** User-defined command aliases */
+  aliases?: Record<string, string>;
+
+  /** uni ask settings */
+  ask?: AskConfig;
+
+  /** uni flow macros */
+  flows?: Record<string, string[]>;
 }
 
 export interface GlobalConfig {
@@ -290,6 +299,43 @@ export interface GlobalConfig {
 
   /** Pager for long output */
   pager?: string;
+}
+
+export interface AskConfig {
+  /** LLM provider */
+  provider?: 'anthropic' | 'openai' | 'ollama' | 'groq';
+
+  /** Model to use */
+  model?: string;
+
+  /** Ask for confirmation before executing */
+  confirm?: boolean;
+
+  /** Ollama base URL */
+  ollamaUrl?: string;
+}
+
+// ============================================================
+// History
+// ============================================================
+
+export interface HistoryEntry {
+  /** Unique command ID */
+  id: number;
+
+  /** Full command string */
+  cmd: string;
+
+  /** Execution timestamp (ISO 8601) */
+  time: string;
+
+  /** Exit code (0 = success) */
+  exit: number;
+}
+
+export interface HistoryStore {
+  /** Command history entries */
+  commands: HistoryEntry[];
 }
 
 // ============================================================

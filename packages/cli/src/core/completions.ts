@@ -3,12 +3,15 @@
  */
 
 import { registry } from './registry';
+import { config } from './config';
 
 /**
  * Generate Zsh completions
  */
 export async function generateZshCompletions(): Promise<string> {
   const services = await registry.list();
+  const aliases = config.getAliases();
+  const flows = config.getFlows();
 
   let completions = `#compdef uni
 
@@ -35,10 +38,29 @@ _uni() {
     completions += `        '${svc.name}:${svc.description.replace(/'/g, "\\'")}'\n`;
   }
 
+  // Add aliases
+  for (const [name, cmd] of Object.entries(aliases)) {
+    completions += `        '${name}:alias → ${cmd.replace(/'/g, "\\'")}'\n`;
+  }
+
+  // Add flows
+  for (const [name, cmds] of Object.entries(flows)) {
+    const preview = cmds.slice(0, 2).join(' → ');
+    completions += `        '${name}:flow → ${preview.replace(/'/g, "\\'")}'\n`;
+  }
+
   // Add built-in commands
   completions += `        'list:List available services'
+        'ask:Natural language commands'
+        'run:Run multiple commands'
+        'flow:Manage saved command macros'
+        'install:Install a service package'
+        'uninstall:Uninstall a service package'
         'auth:Manage authentication'
         'config:Manage configuration'
+        'alias:Manage command aliases'
+        'history:View command history'
+        'completions:Generate shell completions'
       )
       _describe 'service' services
       ;;
@@ -100,6 +122,10 @@ _uni "$@"
  */
 export async function generateBashCompletions(): Promise<string> {
   const services = await registry.list();
+  const aliases = config.getAliases();
+  const flows = config.getFlows();
+  const aliasNames = Object.keys(aliases).join(' ');
+  const flowNames = Object.keys(flows).join(' ');
   const serviceNames = services.map(s => s.name).join(' ');
 
   let completions = `# uni CLI completions for Bash
@@ -111,7 +137,7 @@ _uni_completions() {
   cur="\${COMP_WORDS[COMP_CWORD]}"
   prev="\${COMP_WORDS[COMP_CWORD-1]}"
 
-  services="${serviceNames} list auth config"
+  services="${serviceNames} ${aliasNames} ${flowNames} list ask run flow install uninstall auth config alias history completions"
 
   if [[ \${COMP_CWORD} -eq 1 ]]; then
     COMPREPLY=( $(compgen -W "\${services}" -- "\${cur}") )
@@ -147,6 +173,8 @@ complete -F _uni_completions uni
  */
 export async function generateFishCompletions(): Promise<string> {
   const services = await registry.list();
+  const aliases = config.getAliases();
+  const flows = config.getFlows();
 
   let completions = `# uni CLI completions for Fish
 # Add to ~/.config/fish/completions/uni.fish
@@ -162,10 +190,29 @@ complete -c uni -f
     completions += `complete -c uni -n "__fish_use_subcommand" -a "${svc.name}" -d "${svc.description}"\n`;
   }
 
+  // Add aliases
+  for (const [name, cmd] of Object.entries(aliases)) {
+    completions += `complete -c uni -n "__fish_use_subcommand" -a "${name}" -d "alias → ${cmd}"\n`;
+  }
+
+  // Add flows
+  for (const [name, cmds] of Object.entries(flows)) {
+    const preview = cmds.slice(0, 2).join(' → ');
+    completions += `complete -c uni -n "__fish_use_subcommand" -a "${name}" -d "flow → ${preview}"\n`;
+  }
+
   // Built-in commands
   completions += `complete -c uni -n "__fish_use_subcommand" -a "list" -d "List available services"
+complete -c uni -n "__fish_use_subcommand" -a "ask" -d "Natural language commands"
+complete -c uni -n "__fish_use_subcommand" -a "run" -d "Run multiple commands"
+complete -c uni -n "__fish_use_subcommand" -a "flow" -d "Manage saved command macros"
+complete -c uni -n "__fish_use_subcommand" -a "install" -d "Install a service package"
+complete -c uni -n "__fish_use_subcommand" -a "uninstall" -d "Uninstall a service package"
 complete -c uni -n "__fish_use_subcommand" -a "auth" -d "Manage authentication"
 complete -c uni -n "__fish_use_subcommand" -a "config" -d "Manage configuration"
+complete -c uni -n "__fish_use_subcommand" -a "alias" -d "Manage command aliases"
+complete -c uni -n "__fish_use_subcommand" -a "history" -d "View command history"
+complete -c uni -n "__fish_use_subcommand" -a "completions" -d "Generate shell completions"
 
 # Commands per service
 `;

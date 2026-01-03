@@ -9,7 +9,7 @@
  * 5. Defaults
  */
 
-import type { UniConfig, GlobalConfig, ServiceConfig } from '@uni/shared';
+import type { UniConfig, GlobalConfig, ServiceConfig, AskConfig } from '@uni/shared';
 import { deepMerge } from '@uni/shared';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
@@ -25,6 +25,11 @@ const DEFAULT_CONFIG: UniConfig = {
     color: true,
   },
   services: {},
+  aliases: {},
+  ask: {
+    confirm: true,
+  },
+  flows: {},
 };
 
 export class ConfigManager {
@@ -94,6 +99,152 @@ export class ConfigManager {
   }
 
   /**
+   * Get global config directory path
+   */
+  getConfigDir(): string {
+    return GLOBAL_CONFIG_DIR;
+  }
+
+  /**
+   * Get global config file path (for display)
+   */
+  getGlobalConfigPath(): string {
+    return GLOBAL_CONFIG_PATH;
+  }
+
+  /**
+   * Get a value by dot notation (e.g., "global.color", "services.exa.default_num_results")
+   */
+  get(key: string): unknown {
+    if (!this.config) return undefined;
+
+    const parts = key.split('.');
+    let obj: unknown = this.config;
+
+    for (const part of parts) {
+      if (obj && typeof obj === 'object' && part in obj) {
+        obj = (obj as Record<string, unknown>)[part];
+      } else {
+        return undefined;
+      }
+    }
+
+    return obj;
+  }
+
+  /**
+   * Get all aliases
+   */
+  getAliases(): Record<string, string> {
+    return this.config?.aliases ?? {};
+  }
+
+  /**
+   * Get a specific alias
+   */
+  getAlias(name: string): string | undefined {
+    return this.config?.aliases?.[name];
+  }
+
+  /**
+   * Set an alias
+   */
+  async setAlias(name: string, command: string): Promise<void> {
+    await this.ensureConfigDir();
+
+    const configData = await this.loadFile(GLOBAL_CONFIG_PATH) || { ...DEFAULT_CONFIG };
+    if (!configData.aliases) {
+      configData.aliases = {};
+    }
+    configData.aliases[name] = command;
+
+    await this.saveFile(GLOBAL_CONFIG_PATH, configData);
+    this.config = null;
+    await this.load();
+  }
+
+  /**
+   * Remove an alias
+   */
+  async removeAlias(name: string): Promise<boolean> {
+    await this.ensureConfigDir();
+
+    const configData = await this.loadFile(GLOBAL_CONFIG_PATH) || { ...DEFAULT_CONFIG };
+    if (!configData.aliases || !(name in configData.aliases)) {
+      return false;
+    }
+
+    delete configData.aliases[name];
+    await this.saveFile(GLOBAL_CONFIG_PATH, configData);
+    this.config = null;
+    await this.load();
+    return true;
+  }
+
+  /**
+   * Get all flows
+   */
+  getFlows(): Record<string, string[]> {
+    return this.config?.flows ?? {};
+  }
+
+  /**
+   * Get a specific flow
+   */
+  getFlow(name: string): string[] | undefined {
+    return this.config?.flows?.[name];
+  }
+
+  /**
+   * Set a flow
+   */
+  async setFlow(name: string, commands: string[]): Promise<void> {
+    await this.ensureConfigDir();
+
+    const configData = await this.loadFile(GLOBAL_CONFIG_PATH) || { ...DEFAULT_CONFIG };
+    if (!configData.flows) {
+      configData.flows = {};
+    }
+    configData.flows[name] = commands;
+
+    await this.saveFile(GLOBAL_CONFIG_PATH, configData);
+    this.config = null;
+    await this.load();
+  }
+
+  /**
+   * Remove a flow
+   */
+  async removeFlow(name: string): Promise<boolean> {
+    await this.ensureConfigDir();
+
+    const configData = await this.loadFile(GLOBAL_CONFIG_PATH) || { ...DEFAULT_CONFIG };
+    if (!configData.flows || !(name in configData.flows)) {
+      return false;
+    }
+
+    delete configData.flows[name];
+    await this.saveFile(GLOBAL_CONFIG_PATH, configData);
+    this.config = null;
+    await this.load();
+    return true;
+  }
+
+  /**
+   * Get full config object
+   */
+  getFullConfig(): UniConfig | null {
+    return this.config;
+  }
+
+  /**
+   * Get ask configuration
+   */
+  getAsk(): AskConfig {
+    return this.config?.ask ?? { confirm: true };
+  }
+
+  /**
    * Ensure config directory exists
    */
   async ensureConfigDir(): Promise<void> {
@@ -160,7 +311,7 @@ export class ConfigManager {
    * Simple TOML parser (basic support)
    */
   private parseToml(content: string): UniConfig {
-    const config: UniConfig = { ...DEFAULT_CONFIG };
+    const config: UniConfig = { ...DEFAULT_CONFIG, aliases: {}, ask: { confirm: true }, flows: {} };
     let currentSection = '';
 
     for (const line of content.split('\n')) {
@@ -176,14 +327,23 @@ export class ConfigManager {
         continue;
       }
 
-      // Key-value pair
-      const kvMatch = trimmed.match(/^(\w+)\s*=\s*(.+)$/);
+      // Key-value pair (support keys with hyphens and underscores)
+      const kvMatch = trimmed.match(/^([\w-]+)\s*=\s*(.+)$/);
       if (kvMatch) {
         const [, key, rawValue] = kvMatch;
         const value = this.parseTomlValue(rawValue);
 
         if (currentSection === 'global') {
           (config.global as Record<string, unknown>)[key] = value;
+        } else if (currentSection === 'aliases') {
+          // Aliases section - value should always be string
+          config.aliases![key] = String(value);
+        } else if (currentSection === 'ask') {
+          // Ask section
+          (config.ask as Record<string, unknown>)[key] = value;
+        } else if (currentSection === 'flows') {
+          // Flows section - value should always be string array
+          config.flows![key] = Array.isArray(value) ? value : [String(value)];
         } else if (currentSection.startsWith('services.')) {
           const serviceName = currentSection.replace('services.', '');
           if (!config.services[serviceName]) {
@@ -202,6 +362,40 @@ export class ConfigManager {
    */
   private parseTomlValue(raw: string): unknown {
     const trimmed = raw.trim();
+
+    // Array (e.g., ["cmd1", "cmd2"])
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      const inner = trimmed.slice(1, -1);
+      if (!inner.trim()) return [];
+
+      // Parse array elements (handle quoted strings)
+      const elements: string[] = [];
+      let current = '';
+      let inQuotes = false;
+      let quoteChar = '';
+
+      for (const char of inner) {
+        if ((char === '"' || char === "'") && !inQuotes) {
+          inQuotes = true;
+          quoteChar = char;
+        } else if (char === quoteChar && inQuotes) {
+          inQuotes = false;
+          quoteChar = '';
+        } else if (char === ',' && !inQuotes) {
+          if (current.trim()) {
+            elements.push(current.trim());
+          }
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      if (current.trim()) {
+        elements.push(current.trim());
+      }
+
+      return elements;
+    }
 
     // String
     if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
@@ -241,12 +435,38 @@ export class ConfigManager {
 
     if (config.services) {
       for (const [serviceName, serviceConfig] of Object.entries(config.services)) {
-        lines.push(`[services.${serviceName}]`);
-        for (const [key, value] of Object.entries(serviceConfig)) {
-          lines.push(`${key} = ${this.tomlValue(value)}`);
+        if (Object.keys(serviceConfig).length > 0) {
+          lines.push(`[services.${serviceName}]`);
+          for (const [key, value] of Object.entries(serviceConfig)) {
+            lines.push(`${key} = ${this.tomlValue(value)}`);
+          }
+          lines.push('');
         }
-        lines.push('');
       }
+    }
+
+    if (config.aliases && Object.keys(config.aliases).length > 0) {
+      lines.push('[aliases]');
+      for (const [name, command] of Object.entries(config.aliases)) {
+        lines.push(`${name} = ${this.tomlValue(command)}`);
+      }
+      lines.push('');
+    }
+
+    if (config.ask && Object.keys(config.ask).length > 0) {
+      lines.push('[ask]');
+      for (const [key, value] of Object.entries(config.ask)) {
+        lines.push(`${key} = ${this.tomlValue(value)}`);
+      }
+      lines.push('');
+    }
+
+    if (config.flows && Object.keys(config.flows).length > 0) {
+      lines.push('[flows]');
+      for (const [name, commands] of Object.entries(config.flows)) {
+        lines.push(`${name} = ${this.tomlValue(commands)}`);
+      }
+      lines.push('');
     }
 
     return lines.join('\n');
@@ -256,6 +476,10 @@ export class ConfigManager {
    * Convert value to TOML format
    */
   private tomlValue(value: unknown): string {
+    if (Array.isArray(value)) {
+      const items = value.map(v => `"${v}"`).join(', ');
+      return `[${items}]`;
+    }
     if (typeof value === 'string') return `"${value}"`;
     if (typeof value === 'boolean') return value.toString();
     if (typeof value === 'number') return value.toString();

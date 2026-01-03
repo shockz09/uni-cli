@@ -1,6 +1,6 @@
 # uni-cli Project Status
 
-> Last updated: 2025-01-03
+> Last updated: 2026-01-03
 
 ## Completed Phases
 
@@ -64,6 +64,21 @@
 - `uni gdrive search` - search files
 - `uni gdrive auth` - OAuth (uses same Google creds as gcal)
 
+### Phase 7: Config, Aliases & History ✅
+- `uni config show/get/set/edit/path` - Configuration management
+- `uni alias add/list/remove` - User-defined command shortcuts
+- `uni history` - View, search, and re-run past commands
+- Shell completions include aliases
+- Commands logged to history automatically
+
+### Phase 8: uni ask (Natural Language) ✅
+- `uni ask "query"` - Translate natural language to commands
+- LLM providers: Anthropic, OpenAI, Ollama, Groq
+- `--dry-run` - Show command without executing
+- `--no-confirm` - Skip confirmation prompt
+- `-i` - Interactive mode (REPL)
+- Configurable via `[ask]` section in config.toml
+
 ---
 
 ## Current Services (7 total)
@@ -80,16 +95,47 @@
 
 ---
 
+### Phase 9: uni flow ✅
+- `uni run "cmd1" "cmd2"` - Quick multi-command execution
+- `uni run -p` - Parallel execution
+- `uni flow add/list/remove/run` - Saved macros
+- Arguments ($1, $2) support
+- Shorthand execution (`uni standup`)
+
+---
+
+### Phase 10: Extension System ✅
+- Auto-discover npm packages (`@uni/service-*` and keyword-based)
+- Auto-discover local plugins (`~/.uni/plugins/`)
+- Directory plugins (`~/.uni/plugins/name/index.ts`)
+- Auto-init `~/.uni` as package with `@uni/shared` for types
+- `uni install/uninstall` convenience commands
+- `uni list` shows source for each service [builtin/npm/plugin]
+- Priority: local > npm > builtin (user overrides)
+
+---
+
 ## Pending / Future
 
-### Phase 6: Extension System
-- [ ] Plugin loader for `~/.uni/plugins/`
-- [ ] npm package discovery (`@uni/service-*`)
-- [ ] Plugin scaffolding command: `uni create-service`
-- [ ] Contributing guide
+### Phase 12: Comprehensive LLM Providers (Future)
+- [ ] All major providers (Anthropic, OpenAI, Google, DeepSeek, xAI)
+- [ ] Chinese providers (GLM, Kimi, Minimax, Qwen, Yi)
+- [ ] Aggregators (OpenRouter, Together, Fireworks, Groq)
+- [ ] Local (Ollama, LM Studio, vLLM)
+- [ ] Custom provider config
+- [ ] Fallback chains
 
-### Future Services (Ideas)
-- YouTube (search, info)
+---
+
+## Extension Services (Post Phase 10)
+
+These will be optional `uni install` packages:
+
+### @uni/service-yt (YouTube)
+- Search, download, transcripts via yt-dlp
+- Requires: yt-dlp, ffmpeg (optional)
+
+### Future Extension Ideas
 - Trello (boards, cards)
 - Linear (issues, projects)
 - Spotify (playback, search)
@@ -159,4 +205,10 @@ export NOTION_TOKEN="secret_..."
 
 # Exa (optional - MCP works without it)
 export EXA_API_KEY="..."
+
+# uni ask - LLM provider (pick one)
+export ANTHROPIC_API_KEY="..."   # Claude
+export OPENAI_API_KEY="..."      # GPT
+export GROQ_API_KEY="..."        # Groq (free tier)
+# Or run Ollama locally (no key needed)
 ```

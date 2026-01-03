@@ -18,9 +18,276 @@
 | Command | Description |
 |---------|-------------|
 | `uni list` | List available services |
+| `uni ask <query>` | Natural language commands |
+| `uni run "cmd1" "cmd2"` | Run multiple commands |
+| `uni flow` | Manage saved command macros |
+| `uni install <name>` | Install a service package |
+| `uni uninstall <name>` | Uninstall a service package |
 | `uni auth` | Manage authentication |
 | `uni config` | Manage configuration |
+| `uni alias` | Manage command aliases |
+| `uni history` | View command history |
 | `uni completions <shell>` | Generate shell completions (zsh/bash/fish) |
+
+---
+
+## uni ask
+
+Natural language interface - translate plain English to uni commands.
+
+### Usage
+
+```bash
+uni ask "show my calendar tomorrow"
+# → uni gcal list --date tomorrow
+
+uni ask "list my open PRs"
+# → uni gh pr list --state open
+```
+
+### Options
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--dry-run` | `-n` | Show command without executing |
+| `--no-confirm` | | Execute without asking |
+| `--provider` | | Override LLM provider |
+| `--interactive` | `-i` | Interactive mode (REPL) |
+
+### Examples
+
+```bash
+uni ask "search for React tutorials"
+uni ask "send hello to slack general"
+uni ask "what's on my calendar this week"
+uni ask -i                              # Interactive mode
+uni ask "create a PR" --dry-run         # Preview only
+```
+
+---
+
+## uni run
+
+Run multiple commands sequentially or in parallel.
+
+### Usage
+
+```bash
+uni run "cmd1" "cmd2" "cmd3"
+```
+
+### Options
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--parallel` | `-p` | Run commands in parallel |
+| `--dry-run` | `-n` | Show commands without executing |
+| `--json` | | Output results as JSON |
+
+### Examples
+
+```bash
+uni run "gh pr list" "gcal list"
+uni run -p "gh pr list" "gcal list" "exa search 'news'"
+uni run --dry-run "gh pr create" "slack send general 'PR ready'"
+```
+
+---
+
+## uni flow
+
+Manage saved command macros (flows).
+
+### `uni flow list`
+
+List all saved flows.
+
+```bash
+uni flow list
+```
+
+### `uni flow add <name> <commands...>`
+
+Create a new flow.
+
+```bash
+uni flow add standup "gcal list" "gh pr list --mine"
+uni flow add prcheck "gh pr view $1" "gh pr checks $1"
+```
+
+### `uni flow remove <name>`
+
+Remove a flow.
+
+```bash
+uni flow remove standup
+```
+
+### `uni flow run <name> [args...]`
+
+Run a saved flow.
+
+```bash
+uni flow run standup
+uni flow run prcheck 123    # $1 = 123
+```
+
+### Shorthand
+
+Flows can be run directly if no service name conflict:
+
+```bash
+uni standup                 # Same as: uni flow run standup
+uni prcheck 456             # Same as: uni flow run prcheck 456
+```
+
+---
+
+## uni install
+
+Install a service package. Convenience wrapper around `bun add`.
+
+### Usage
+
+```bash
+uni install <name>
+```
+
+### Resolution Order
+
+1. Tries `@uni/service-<name>` (official)
+2. Tries `uni-service-<name>` (community)
+3. Shows error if not found
+
+### Examples
+
+```bash
+uni install linear              # → bun add @uni/service-linear
+uni install @other/some-plugin  # → bun add @other/some-plugin
+uni install uni-service-weather # → bun add uni-service-weather
+```
+
+---
+
+## uni uninstall
+
+Uninstall a service package. Convenience wrapper around `bun remove`.
+
+### Usage
+
+```bash
+uni uninstall <name>
+```
+
+### Examples
+
+```bash
+uni uninstall linear            # → bun remove @uni/service-linear
+uni uninstall @other/plugin     # → bun remove @other/plugin
+```
+
+---
+
+## uni alias
+
+Manage command aliases.
+
+### `uni alias list`
+
+List all aliases.
+
+### `uni alias add <name> <command>`
+
+Create an alias.
+
+```bash
+uni alias add prs "gh pr list --state open"
+uni alias add inbox "gmail list --unread"
+```
+
+### `uni alias remove <name>`
+
+Remove an alias.
+
+```bash
+uni alias remove prs
+```
+
+### Usage
+
+```bash
+uni prs                         # → uni gh pr list --state open
+```
+
+---
+
+## uni history
+
+View and manage command history.
+
+### `uni history`
+
+Show recent commands.
+
+### Options
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--limit` | `-l` | Number of entries to show |
+| `--search` | `-s` | Search history |
+
+### `uni history run <id>`
+
+Re-run a command from history.
+
+### `uni history clear`
+
+Clear command history.
+
+### Examples
+
+```bash
+uni history
+uni history --limit 50
+uni history --search "gh pr"
+uni history run 42
+uni history clear
+```
+
+---
+
+## uni config
+
+Manage configuration.
+
+### `uni config show`
+
+Show all configuration.
+
+### `uni config get <key>`
+
+Get a specific config value.
+
+```bash
+uni config get global.color
+```
+
+### `uni config set <key> <value>`
+
+Set a config value.
+
+```bash
+uni config set global.color false
+uni config set ask.provider anthropic
+```
+
+### `uni config edit`
+
+Open config file in editor.
+
+### `uni config path`
+
+Show config file path.
 
 ---
 
