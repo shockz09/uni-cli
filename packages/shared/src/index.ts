@@ -10,3 +10,6 @@ export * from './errors';
 
 // Helpers
 export * from './helpers';
+
+// Google Auth
+export * from './google-auth';
