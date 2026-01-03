@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Plan/spec files
+specs/
+
+# OS files
+.DS_Store
+
+# Logs
+*.log
+
+# Tokens (sensitive)
+.uni/
