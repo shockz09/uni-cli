@@ -23,10 +23,18 @@ export const listCommand: Command = {
       type: 'string',
       description: 'Folder ID to list',
     },
+    {
+      name: 'all',
+      short: 'a',
+      type: 'boolean',
+      description: 'Include shared files (default: owned only)',
+      default: false,
+    },
   ],
   examples: [
     'uni gdrive list',
     'uni gdrive list --limit 50',
+    'uni gdrive list --all',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
@@ -40,9 +48,13 @@ export const listCommand: Command = {
     const spinner = output.spinner('Fetching files...');
 
     try {
+      // Default: only show files I own
+      const ownerFilter = flags.all ? undefined : "'me' in owners";
+
       const files = await gdrive.listFiles({
         pageSize: flags.limit as number,
         folderId: flags.folder as string | undefined,
+        query: ownerFilter,
       });
 
       spinner.success(`Found ${files.length} files`);
