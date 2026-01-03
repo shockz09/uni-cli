@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { timestamp } from '@uni/shared';
 import { gmeet } from '../api';
 
 export const scheduleCommand: Command = {
@@ -130,6 +131,7 @@ export const scheduleCommand: Command = {
         console.log(`  \x1b[90mInvited: ${event.attendees.map(a => a.email).join(', ')}\x1b[0m`);
       }
       console.log('');
+      console.log(`\x1b[90m${timestamp()}\x1b[0m`);
     } catch (error) {
       spinner.fail('Failed to schedule meeting');
       throw error;

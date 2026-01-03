@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { timestamp } from '@uni/shared';
 import { gmeet } from '../api';
 
 export const listCommand: Command = {
@@ -92,6 +93,7 @@ export const listCommand: Command = {
         }
         console.log('');
       }
+      console.log(`\x1b[90m${timestamp()}\x1b[0m`);
     } catch (error) {
       spinner.fail('Failed to fetch meetings');
       throw error;

@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { timestamp } from '@uni/shared';
 import { gcal } from '../api';
 
 export const nextCommand: Command = {
@@ -117,6 +118,7 @@ export const nextCommand: Command = {
         }
         console.log('');
       }
+      console.log(`\x1b[90m${timestamp()}\x1b[0m`);
     } catch (error) {
       spinner.fail('Failed to fetch events');
       throw error;

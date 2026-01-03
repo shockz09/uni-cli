@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { timestamp } from '@uni/shared';
 import { gmeet } from '../api';
 
 export const deleteCommand: Command = {
@@ -65,5 +66,6 @@ export const deleteCommand: Command = {
     }
 
     output.success(`Cancelled meeting: ${meeting.summary}`);
+    console.log(`\x1b[90m${timestamp()}\x1b[0m`);
   },
 };
