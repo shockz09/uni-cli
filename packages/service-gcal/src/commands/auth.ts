@@ -4,6 +4,10 @@
 
 import type { Command, CommandContext } from '@uni/shared';
 import { gcal } from '../api';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+const TOKEN_PATH = path.join(process.env.HOME || '~', '.uni/tokens/gcal.json');
 
 export const authCommand: Command = {
   name: 'auth',
@@ -17,14 +21,36 @@ export const authCommand: Command = {
       description: 'Check authentication status',
       default: false,
     },
+    {
+      name: 'logout',
+      type: 'boolean',
+      description: 'Remove authentication token',
+      default: false,
+    },
   ],
   examples: [
     'uni gcal auth',
     'uni gcal auth --status',
+    'uni gcal auth --logout',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
     const { output, flags, globalFlags } = ctx;
+
+    // Handle logout
+    if (flags.logout) {
+      try {
+        if (fs.existsSync(TOKEN_PATH)) {
+          fs.unlinkSync(TOKEN_PATH);
+          output.success('Logged out from Google Calendar');
+        } else {
+          output.info('No authentication token found');
+        }
+      } catch (error) {
+        output.error('Failed to remove token');
+      }
+      return;
+    }
 
     if (flags.status) {
       if (globalFlags.json) {
@@ -37,8 +63,7 @@ export const authCommand: Command = {
 
       if (!gcal.hasCredentials()) {
         output.warn('Credentials not configured');
-        output.info('Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.');
-        output.info('Create credentials at: https://console.cloud.google.com/apis/credentials');
+        output.info('Run "uni setup gcal" to configure, or set environment variables.');
         return;
       }
 
@@ -53,14 +78,11 @@ export const authCommand: Command = {
     if (!gcal.hasCredentials()) {
       output.error('Google Calendar credentials not configured.');
       console.log('');
-      console.log('To set up Google Calendar:');
+      console.log('Quick setup (use default credentials):');
+      console.log('  uni gcal auth');
       console.log('');
-      console.log('1. Go to https://console.cloud.google.com/apis/credentials');
-      console.log('2. Create an OAuth 2.0 Client ID (Desktop app)');
-      console.log('3. Enable the Google Calendar API');
-      console.log('4. Set environment variables:');
-      console.log('   export GOOGLE_CLIENT_ID="your-client-id"');
-      console.log('   export GOOGLE_CLIENT_SECRET="your-client-secret"');
+      console.log('Or self-host your own credentials:');
+      console.log('  uni setup gcal --self-host');
       console.log('');
       return;
     }

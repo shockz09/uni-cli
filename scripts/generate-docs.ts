@@ -28,6 +28,8 @@ async function generateReference(): Promise<string> {
 | Command | Description |
 |---------|-------------|
 | \`uni list\` | List available services |
+| \`uni doctor\` | Check service health & configuration |
+| \`uni setup\` | Interactive setup wizard |
 | \`uni ask <query>\` | Natural language commands |
 | \`uni run "cmd1" "cmd2"\` | Run multiple commands |
 | \`uni flow\` | Manage saved command macros |
@@ -38,6 +40,79 @@ async function generateReference(): Promise<string> {
 | \`uni alias\` | Manage command aliases |
 | \`uni history\` | View command history |
 | \`uni completions <shell>\` | Generate shell completions (zsh/bash/fish) |
+
+---
+
+## uni doctor
+
+Health check - shows the status of all services, credentials, and LLM providers.
+
+### Usage
+
+\`\`\`bash
+uni doctor
+uni doctor --json
+\`\`\`
+
+### Output
+
+Shows:
+- Service status (ready, not authenticated, missing credentials)
+- LLM provider availability (ollama, anthropic, openai, groq)
+- Credential sources (config, env, default)
+
+---
+
+## uni setup
+
+Interactive setup wizard for configuring services.
+
+### Usage
+
+\`\`\`bash
+uni setup                         # Interactive wizard
+uni setup <service>               # Easy mode for specific service
+uni setup <service> --self-host   # Self-host wizard
+uni setup --from <source>         # Import shared credentials
+\`\`\`
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| \`--self-host\` | Run guided self-host wizard |
+| \`--from\` | Import credentials from URL/file/gist |
+
+### Services
+
+| Service | What it configures |
+|---------|-------------------|
+| \`google\` | gcal, gmail, gdrive (shared OAuth) |
+| \`gcal\` | Google Calendar (same as google) |
+| \`gmail\` | Gmail (same as google) |
+| \`gdrive\` | Google Drive (same as google) |
+| \`slack\` | Slack bot token |
+| \`notion\` | Notion integration token |
+
+### Examples
+
+\`\`\`bash
+# Interactive mode
+uni setup
+
+# Easy mode (use default credentials)
+uni setup gcal
+
+# Self-host (create your own credentials)
+uni setup google --self-host
+uni setup slack --self-host
+uni setup notion --self-host
+
+# Import shared credentials
+uni setup --from https://example.com/creds.json
+uni setup --from ./team-creds.json
+uni setup --from gist:abc123
+\`\`\`
 
 ---
 

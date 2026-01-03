@@ -12,6 +12,10 @@
  */
 
 import { cli } from './core/cli';
+import { initializeCredentials } from './core/credentials';
+
+// Initialize credentials (sets env vars from config/defaults if not already set)
+initializeCredentials();
 
 // Run the CLI
 cli.run(process.argv.slice(2)).catch((error) => {

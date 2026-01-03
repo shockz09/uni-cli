@@ -296,7 +296,42 @@ Config file: `~/.uni/config.toml`
 uni --help                  # Show help
 uni --version               # Show version
 uni list                    # List all services
+uni doctor                  # Check service health & auth status
+uni setup                   # Interactive setup wizard
 uni completions zsh         # Generate shell completions
+```
+
+---
+
+## Health Check & Setup
+
+```bash
+# Check status of all services and LLM providers
+uni doctor
+uni doctor --json           # JSON output
+
+# Interactive setup wizard
+uni setup                   # Choose mode: easy, self-host, or import
+
+# Easy mode (use default credentials)
+uni setup gcal              # Shows how to authenticate
+uni setup google            # Same for gcal/gmail/gdrive
+
+# Self-host mode (create your own credentials)
+uni setup gcal --self-host  # Guided wizard with exact steps
+uni setup google --self-host
+uni setup slack --self-host
+uni setup notion --self-host
+
+# Import shared credentials
+uni setup --from https://example.com/creds.json
+uni setup --from ./team-creds.json
+uni setup --from gist:abc123
+
+# Auth logout
+uni gcal auth --logout      # Remove saved token
+uni gmail auth --logout
+uni gdrive auth --logout
 ```
 
 ---

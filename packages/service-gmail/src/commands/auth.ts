@@ -4,6 +4,10 @@
 
 import type { Command, CommandContext } from '@uni/shared';
 import { gmail } from '../api';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+const TOKEN_PATH = path.join(process.env.HOME || '~', '.uni/tokens/gmail.json');
 
 export const authCommand: Command = {
   name: 'auth',
@@ -17,14 +21,36 @@ export const authCommand: Command = {
       description: 'Check authentication status',
       default: false,
     },
+    {
+      name: 'logout',
+      type: 'boolean',
+      description: 'Remove authentication token',
+      default: false,
+    },
   ],
   examples: [
     'uni gmail auth',
     'uni gmail auth --status',
+    'uni gmail auth --logout',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
     const { output, flags, globalFlags } = ctx;
+
+    // Handle logout
+    if (flags.logout) {
+      try {
+        if (fs.existsSync(TOKEN_PATH)) {
+          fs.unlinkSync(TOKEN_PATH);
+          output.success('Logged out from Gmail');
+        } else {
+          output.info('No authentication token found');
+        }
+      } catch (error) {
+        output.error('Failed to remove token');
+      }
+      return;
+    }
 
     if (flags.status) {
       if (globalFlags.json) {
@@ -37,6 +63,7 @@ export const authCommand: Command = {
 
       if (!gmail.hasCredentials()) {
         output.warn('Credentials not configured');
+        output.info('Run "uni setup google" to configure');
         return;
       }
 
@@ -50,7 +77,13 @@ export const authCommand: Command = {
 
     if (!gmail.hasCredentials()) {
       output.error('Google credentials not configured.');
-      output.info('Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET');
+      console.log('');
+      console.log('Quick setup (use default credentials):');
+      console.log('  uni gmail auth');
+      console.log('');
+      console.log('Or self-host your own credentials:');
+      console.log('  uni setup google --self-host');
+      console.log('');
       return;
     }
 

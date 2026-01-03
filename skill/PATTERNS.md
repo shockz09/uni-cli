@@ -1,5 +1,53 @@
 # uni CLI - Common Workflow Patterns
 
+## Getting Started
+
+### First Time Setup
+
+```bash
+# Check what's configured and what's missing
+uni doctor
+
+# Interactive setup wizard
+uni setup
+
+# Or setup specific services
+uni setup gcal              # Uses default credentials
+uni setup slack --self-host # Create your own Slack app
+uni setup notion --self-host
+```
+
+### Authenticating Services
+
+```bash
+# Google services (gcal, gmail, gdrive)
+uni gcal auth               # Opens browser for OAuth
+uni gmail auth
+uni gdrive auth
+
+# Check auth status
+uni gcal auth --status
+uni gmail auth --status
+
+# Logout when needed
+uni gcal auth --logout
+```
+
+### Importing Team Credentials
+
+```bash
+# Import from URL
+uni setup --from https://company.com/uni-creds.json
+
+# Import from local file
+uni setup --from ./team-credentials.json
+
+# Import from GitHub Gist
+uni setup --from gist:abc123def456
+```
+
+---
+
 ## Research & Development Workflows
 
 ### Learning a New Library
@@ -390,4 +438,42 @@ uni flow remove oldflow
 
 # Flows are stored in ~/.uni/config.toml
 uni config edit
+```
+
+---
+
+## Troubleshooting
+
+### Check Service Status
+
+```bash
+# Full health check
+uni doctor
+
+# JSON output for scripting
+uni doctor --json | jq '.services[] | select(.status != "ready")'
+```
+
+### Re-authenticate a Service
+
+```bash
+# Logout and re-login
+uni gcal auth --logout
+uni gcal auth
+
+# Check if it worked
+uni gcal auth --status
+```
+
+### Reset Configuration
+
+```bash
+# View config path
+uni config path
+
+# Edit config manually
+uni config edit
+
+# Or view current config
+uni config show
 ```

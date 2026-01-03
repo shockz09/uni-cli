@@ -51,6 +51,8 @@ _uni() {
 
   // Add built-in commands
   completions += `        'list:List available services'
+        'doctor:Check service health & configuration'
+        'setup:Interactive setup wizard'
         'ask:Natural language commands'
         'run:Run multiple commands'
         'flow:Manage saved command macros'
@@ -137,7 +139,7 @@ _uni_completions() {
   cur="\${COMP_WORDS[COMP_CWORD]}"
   prev="\${COMP_WORDS[COMP_CWORD-1]}"
 
-  services="${serviceNames} ${aliasNames} ${flowNames} list ask run flow install uninstall auth config alias history completions"
+  services="${serviceNames} ${aliasNames} ${flowNames} list doctor setup ask run flow install uninstall auth config alias history completions"
 
   if [[ \${COMP_CWORD} -eq 1 ]]; then
     COMPREPLY=( $(compgen -W "\${services}" -- "\${cur}") )
@@ -203,6 +205,8 @@ complete -c uni -f
 
   // Built-in commands
   completions += `complete -c uni -n "__fish_use_subcommand" -a "list" -d "List available services"
+complete -c uni -n "__fish_use_subcommand" -a "doctor" -d "Check service health & configuration"
+complete -c uni -n "__fish_use_subcommand" -a "setup" -d "Interactive setup wizard"
 complete -c uni -n "__fish_use_subcommand" -a "ask" -d "Natural language commands"
 complete -c uni -n "__fish_use_subcommand" -a "run" -d "Run multiple commands"
 complete -c uni -n "__fish_use_subcommand" -a "flow" -d "Manage saved command macros"

@@ -13,6 +13,8 @@ import { createLLMClient, type LLMProvider } from './llm';
 import { createOutputFormatter } from './output';
 import { createPromptHelper } from '../utils/prompt';
 import { generateZshCompletions, generateBashCompletions, generateFishCompletions } from './completions';
+import { runDoctor, printDoctorReport } from './doctor';
+import { runSetupWizard, setupService, type ServiceType } from './setup';
 import * as c from '../utils/colors';
 import * as readline from 'node:readline';
 
@@ -101,6 +103,16 @@ export class UniCLI {
 
       if (parsed.service === 'uninstall') {
         await this.handleUninstall(parsed, output);
+        return;
+      }
+
+      if (parsed.service === 'doctor') {
+        await this.handleDoctor(parsed, output);
+        return;
+      }
+
+      if (parsed.service === 'setup') {
+        await this.handleSetup(parsed, output);
         return;
       }
 
@@ -396,6 +408,8 @@ ${c.bold('GLOBAL OPTIONS')}
 
 ${c.bold('COMMANDS')}
   list            List available services
+  doctor          Check service health & configuration
+  setup           Interactive setup wizard
   ask             Natural language commands
   run             Run multiple commands at once
   flow            Manage saved command macros
@@ -1568,6 +1582,86 @@ ${c.bold('Examples:')}
         process.exit(1);
       });
     });
+  }
+
+  /**
+   * Handle doctor command
+   */
+  private async handleDoctor(
+    parsed: ReturnType<typeof parseArgs>,
+    output: ReturnType<typeof createOutputFormatter>
+  ): Promise<void> {
+    const report = await runDoctor();
+
+    if (parsed.globalFlags.json) {
+      output.json(report);
+    } else {
+      printDoctorReport(report);
+    }
+  }
+
+  /**
+   * Handle setup command
+   *
+   * Usage:
+   *   uni setup                    # Interactive wizard
+   *   uni setup <service>          # Setup specific service (easy mode)
+   *   uni setup <service> --self-host  # Self-host wizard
+   *   uni setup --from <source>    # Import shared credentials
+   */
+  private async handleSetup(
+    parsed: ReturnType<typeof parseArgs>,
+    output: ReturnType<typeof createOutputFormatter>
+  ): Promise<void> {
+    const service = parsed.command as ServiceType | undefined;
+    const fromSource = parsed.flags.from as string | undefined;
+    const selfHost = Boolean(parsed.flags['self-host']);
+
+    // Import mode: uni setup --from <source>
+    if (fromSource) {
+      const { importSharedCredentials, saveSharedCredentials } = await import('./credentials');
+
+      console.log(`\n${c.dim('Fetching credentials...')}`);
+
+      try {
+        const creds = await importSharedCredentials(fromSource);
+
+        console.log(`\n${c.bold('Importing credentials')}${creds.name ? ` from: ${creds.name}` : ''}\n`);
+
+        console.log('This will configure:');
+        if (creds.google) console.log(`  • Google (gcal, gmail, gdrive)`);
+        if (creds.slack) console.log(`  • Slack`);
+        if (creds.notion) console.log(`  • Notion`);
+        console.log('');
+
+        await saveSharedCredentials(creds);
+
+        output.success('Credentials saved');
+        console.log('');
+        console.log('Now authenticate each service:');
+        if (creds.google) {
+          console.log(`  ${c.cyan('uni gcal auth')}`);
+          console.log(`  ${c.cyan('uni gmail auth')}`);
+          console.log(`  ${c.cyan('uni gdrive auth')}`);
+        }
+        if (creds.slack) console.log(`  ${c.cyan('uni slack auth')}`);
+        if (creds.notion) console.log(`  ${c.cyan('uni notion auth')}`);
+        console.log('');
+      } catch (error) {
+        output.error(error instanceof Error ? error.message : String(error));
+        process.exit(1);
+      }
+      return;
+    }
+
+    // Service-specific setup
+    if (service) {
+      await setupService(service, { selfHost });
+      return;
+    }
+
+    // Interactive wizard
+    await runSetupWizard();
   }
 }
 
