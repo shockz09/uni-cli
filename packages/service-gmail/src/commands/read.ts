@@ -5,19 +5,28 @@
 import type { Command, CommandContext } from '@uni/shared';
 import { gmail } from '../api';
 
+/**
+ * Check if string looks like a Gmail message ID (hex string, 16+ chars)
+ */
+function looksLikeId(str: string): boolean {
+  return /^[a-f0-9]{16,}$/i.test(str);
+}
+
 export const readCommand: Command = {
   name: 'read',
-  description: 'Read an email',
+  description: 'Read an email by ID or search query',
   aliases: ['view', 'show'],
   args: [
     {
-      name: 'id',
-      description: 'Email ID',
+      name: 'query',
+      description: 'Email ID or search query (subject, sender, etc.)',
       required: true,
     },
   ],
   examples: [
-    'uni gmail read abc123',
+    'uni gmail read 19b637d54e3f3c51',
+    'uni gmail read "Your Booking is Ticketed"',
+    'uni gmail read "from:amazon order"',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
@@ -28,16 +37,35 @@ export const readCommand: Command = {
       return;
     }
 
-    const id = args.id;
-    if (!id) {
-      output.error('Please provide an email ID');
+    const query = args.query as string;
+    if (!query) {
+      output.error('Please provide an email ID or search query');
       return;
     }
 
     const spinner = output.spinner('Fetching email...');
 
     try {
-      const email = await gmail.getEmail(id);
+      let emailId: string;
+
+      // Check if it looks like an ID or a search query
+      if (looksLikeId(query)) {
+        emailId = query;
+      } else {
+        // Search for matching emails
+        spinner.update('Searching for email...');
+        const results = await gmail.listEmails({ q: query, maxResults: 1 });
+
+        if (!results.length) {
+          spinner.fail('No emails found matching your query');
+          return;
+        }
+
+        emailId = results[0].id;
+      }
+
+      spinner.update('Loading email...');
+      const email = await gmail.getEmail(emailId);
       spinner.success('Email loaded');
 
       if (globalFlags.json) {
