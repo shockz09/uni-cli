@@ -18,6 +18,7 @@ import type { UniService } from '@uni/shared';
 import { listCommand } from './commands/list';
 import { addCommand } from './commands/add';
 import { nextCommand } from './commands/next';
+import { updateCommand } from './commands/update';
 import { authCommand } from './commands/auth';
 import { gcal } from './api';
 
@@ -26,7 +27,7 @@ const gcalService: UniService = {
   description: 'Google Calendar - events and scheduling',
   version: '0.1.0',
 
-  commands: [listCommand, addCommand, nextCommand, authCommand],
+  commands: [listCommand, addCommand, nextCommand, updateCommand, authCommand],
 
   auth: {
     type: 'oauth',

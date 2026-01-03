@@ -343,6 +343,38 @@ export class GoogleCalendarClient {
       { method: 'DELETE' }
     );
   }
+
+  /**
+   * Update an event
+   */
+  async updateEvent(
+    eventId: string,
+    updates: {
+      summary?: string;
+      description?: string;
+      location?: string;
+      start?: { dateTime: string; timeZone?: string };
+      end?: { dateTime: string; timeZone?: string };
+    },
+    calendarId = 'primary'
+  ): Promise<CalendarEvent> {
+    // Get existing event first
+    const existing = await this.getEvent(eventId, calendarId);
+
+    // Merge updates
+    const updated = {
+      ...existing,
+      ...updates,
+    };
+
+    return this.request<CalendarEvent>(
+      `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(updated),
+      }
+    );
+  }
 }
 
 // Singleton instance
