@@ -137,6 +137,13 @@ uni gcal next --count 3                 # Next 3 events
 uni gcal update "Meeting" --title "Team Sync"
 uni gcal update "Call" --location "Zoom"
 uni gcal update "Event" -t "New Name" -l "Room A"
+uni gcal update "Meeting" --time 3pm --date tomorrow  # Reschedule
+```
+
+### Delete events
+```bash
+uni gcal delete "Cancelled Meeting"
+uni gcal delete "Old Event"
 ```
 
 ---
@@ -155,6 +162,13 @@ uni gtasks list --list Work             # Specific list
 uni gtasks add "Buy groceries"
 uni gtasks add "Finish report" --due tomorrow
 uni gtasks add "Call mom" --notes "Ask about weekend"
+```
+
+### Update tasks
+```bash
+uni gtasks update "Buy milk" --title "Buy groceries"
+uni gtasks update "Report" --due tomorrow
+uni gtasks update "Task" --notes "Added details"
 ```
 
 ### Complete/delete tasks
@@ -187,10 +201,12 @@ uni gcontacts search "john@example.com" # Search by email
 uni gcontacts get "John Doe"            # Full contact info
 ```
 
-### Add/delete contacts
+### Add/update/delete contacts
 ```bash
 uni gcontacts add "John Doe" --email john@example.com
 uni gcontacts add "Jane" --phone "+91-9876543210" --company "Acme"
+uni gcontacts update "John" --email newemail@example.com
+uni gcontacts update "Jane" --company "New Corp" --phone "+1-555-1234"
 uni gcontacts delete "Old Contact"
 ```
 
@@ -216,6 +232,12 @@ uni gmeet schedule "Review" --date 2026-01-10 --time 2pm --duration 60
 ```bash
 uni gmeet list                          # Next 7 days
 uni gmeet list --days 14                # Next 14 days
+```
+
+### Cancel meetings
+```bash
+uni gmeet delete "Team Sync"            # Cancel by name
+uni gmeet cancel "1:1 with John"
 ```
 
 ---
@@ -253,6 +275,8 @@ uni gmail list --unread                 # Unread only
 uni gmail list --from "boss@company"    # Filter by sender
 uni gmail read <id-or-query>            # Read email by ID or search
 uni gmail send "to@email.com" --subject "Hi" --body "Hello"
+uni gmail delete "Newsletter spam"      # Move to trash
+uni gmail delete <id> --permanent       # Permanently delete
 uni gmail auth                          # Authenticate
 ```
 
@@ -264,6 +288,14 @@ uni gmail auth                          # Authenticate
 uni gdrive list                         # List files
 uni gdrive list --folder <id>           # Files in folder
 uni gdrive search "report"              # Search files
+uni gdrive get <id-or-name>             # View file details
+uni gdrive upload ./file.pdf            # Upload file
+uni gdrive upload ./doc.txt --name "My Doc"  # Upload with name
+uni gdrive download <id-or-name>        # Download file
+uni gdrive download "report" -o ./downloads/
+uni gdrive share <id> user@email.com    # Share as reader
+uni gdrive share <id> user@email.com --role writer
+uni gdrive delete <id>                  # Delete file
 uni gdrive auth                         # Authenticate
 ```
 
