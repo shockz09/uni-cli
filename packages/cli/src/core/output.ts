@@ -14,6 +14,10 @@ export function createOutputFormatter(flags: GlobalFlags): OutputFormatter {
   const quiet = flags.quiet;
 
   return {
+    isJsonMode(): boolean {
+      return forceJson;
+    },
+
     json(data: unknown): void {
       console.log(JSON.stringify(data, null, 2));
     },

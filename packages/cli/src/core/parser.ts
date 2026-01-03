@@ -102,7 +102,14 @@ export function parseArgs(argv: string[]): ParsedArgs {
           (result.globalFlags as Record<string, unknown>)[globalOpt.name] = argv[++i];
         }
       } else {
-        result.flags[shortFlag] = true;
+        // Check if next arg is the value (not a flag)
+        const nextArg = argv[i + 1];
+        if (nextArg && !nextArg.startsWith('-')) {
+          result.flags[shortFlag] = nextArg;
+          i++;
+        } else {
+          result.flags[shortFlag] = true;
+        }
       }
     } else {
       // Positional argument

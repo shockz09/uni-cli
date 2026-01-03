@@ -125,6 +125,17 @@
         "typescript": "^5.0.0",
       },
     },
+    "packages/service-gslides": {
+      "name": "@uni/service-gslides",
+      "version": "0.1.0",
+      "dependencies": {
+        "@uni/shared": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.0.0",
+      },
+    },
     "packages/service-gtasks": {
       "name": "@uni/service-gtasks",
       "version": "0.1.0",
@@ -242,6 +253,8 @@
     "@uni/service-gmeet": ["@uni/service-gmeet@workspace:packages/service-gmeet"],
 
     "@uni/service-gsheets": ["@uni/service-gsheets@workspace:packages/service-gsheets"],
+
+    "@uni/service-gslides": ["@uni/service-gslides@workspace:packages/service-gslides"],
 
     "@uni/service-gtasks": ["@uni/service-gtasks@workspace:packages/service-gtasks"],
 
