@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gmail } from '../api';
 
 export const listCommand: Command = {
@@ -104,15 +105,15 @@ export const listCommand: Command = {
           : '';
 
         const isUnread = email.labelIds?.includes('UNREAD');
-        const marker = isUnread ? '\x1b[1m●\x1b[0m ' : '  ';
+        const marker = isUnread ? `${c.bold('●')} ` : '  ';
 
         // Parse sender name
         const fromMatch = from.match(/^(.+?)\s*<.+>$/);
         const fromName = fromMatch ? fromMatch[1].replace(/"/g, '') : from;
 
-        console.log(`${marker}\x1b[1m${subject}\x1b[0m`);
-        console.log(`   \x1b[36m${fromName}\x1b[0m  \x1b[90m${date}\x1b[0m`);
-        console.log(`   \x1b[90m${email.snippet?.slice(0, 80)}...\x1b[0m`);
+        console.log(`${marker}${c.bold(subject)}`);
+        console.log(`   ${c.cyan(fromName)}  ${c.dim(date)}`);
+        console.log(`   ${c.dim(`${email.snippet?.slice(0, 80)}...`)}`);
         console.log('');
       }
     } catch (error) {

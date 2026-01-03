@@ -3,7 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
-import { timestamp } from '@uni/shared';
+import { timestamp, c } from '@uni/shared';
 import { gcal } from '../api';
 
 export const listCommand: Command = {
@@ -114,7 +114,7 @@ export const listCommand: Command = {
           month: 'short',
           day: 'numeric',
         });
-        console.log(`\x1b[1m📅 ${dateLabel}\x1b[0m`);
+        console.log(c.bold(`📅 ${dateLabel}`));
 
         for (const event of dayEvents) {
           const isAllDay = !event.start.dateTime;
@@ -139,16 +139,16 @@ export const listCommand: Command = {
             }
           }
 
-          const status = event.status === 'cancelled' ? ' \x1b[31m[cancelled]\x1b[0m' : '';
-          console.log(`  \x1b[36m${timeStr}\x1b[0m ${event.summary}${status}`);
+          const status = event.status === 'cancelled' ? ` ${c.red('[cancelled]')}` : '';
+          console.log(`  ${c.cyan(timeStr)} ${event.summary}${status}`);
 
           if (event.location) {
-            console.log(`    \x1b[90m📍 ${event.location}\x1b[0m`);
+            console.log(`    ${c.dim(`📍 ${event.location}`)}`);
           }
         }
         console.log('');
       }
-      console.log(`\x1b[90m${timestamp()}\x1b[0m`);
+      console.log(c.dim(timestamp()));
     } catch (error) {
       spinner.fail('Failed to fetch events');
       throw error;

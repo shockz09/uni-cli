@@ -3,7 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
-import { timestamp } from '@uni/shared';
+import { timestamp, c } from '@uni/shared';
 import { gcal } from '../api';
 
 export const nextCommand: Command = {
@@ -110,15 +110,15 @@ export const nextCommand: Command = {
           untilStr = 'now';
         }
 
-        console.log(`\x1b[1m📅 ${event.summary}\x1b[0m \x1b[33m(${untilStr})\x1b[0m`);
+        console.log(`${c.bold(`📅 ${event.summary}`)} ${c.yellow(`(${untilStr})`)}`);
         console.log(`   ${dateLabel}`);
-        console.log(`   \x1b[36m${timeStr}\x1b[0m`);
+        console.log(`   ${c.cyan(timeStr)}`);
         if (event.location) {
-          console.log(`   \x1b[90m📍 ${event.location}\x1b[0m`);
+          console.log(`   ${c.dim(`📍 ${event.location}`)}`);
         }
         console.log('');
       }
-      console.log(`\x1b[90m${timestamp()}\x1b[0m`);
+      console.log(c.dim(timestamp()));
     } catch (error) {
       spinner.fail('Failed to fetch events');
       throw error;

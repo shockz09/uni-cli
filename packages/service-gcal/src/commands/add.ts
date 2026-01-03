@@ -3,7 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
-import { timestamp } from '@uni/shared';
+import { timestamp, c } from '@uni/shared';
 import { gcal } from '../api';
 
 /**
@@ -202,15 +202,15 @@ export const addCommand: Command = {
       });
 
       console.log('');
-      console.log(`\x1b[1m📅 ${event.summary}\x1b[0m`);
+      console.log(c.bold(`📅 ${event.summary}`));
       console.log(`   ${dateLabel}`);
-      console.log(`   \x1b[36m${startStr} - ${endStr}\x1b[0m`);
+      console.log(`   ${c.cyan(`${startStr} - ${endStr}`)}`);
       if (event.location) {
-        console.log(`   \x1b[90m📍 ${event.location}\x1b[0m`);
+        console.log(`   ${c.dim(`📍 ${event.location}`)}`);
       }
-      console.log(`   \x1b[90m${event.htmlLink}\x1b[0m`);
+      console.log(`   ${c.dim(event.htmlLink)}`);
       console.log('');
-      console.log(`\x1b[90m${timestamp()}\x1b[0m`);
+      console.log(c.dim(timestamp()));
     } catch (error) {
       spinner.fail('Failed to create event');
       throw error;

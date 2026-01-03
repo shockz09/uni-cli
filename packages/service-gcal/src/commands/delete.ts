@@ -3,7 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
-import { timestamp } from '@uni/shared';
+import { timestamp, c } from '@uni/shared';
 import { gcal } from '../api';
 
 export const deleteCommand: Command = {
@@ -59,6 +59,6 @@ export const deleteCommand: Command = {
     }
 
     output.success(`Deleted event: ${event.summary}`);
-    console.log(`\x1b[90m${timestamp()}\x1b[0m`);
+    console.log(c.dim(timestamp()));
   },
 };
