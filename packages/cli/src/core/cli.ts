@@ -9,7 +9,8 @@ import { registry } from './registry';
 import { config } from './config';
 import { history } from './history';
 import { flow, runCommands, substituteArgs } from './flow';
-import { createLLMClient, type LLMProvider } from './llm';
+import { createLLMClient, type LLMProvider, detectProvider, getSupportedProviders, getProviderName, isConfigured, getModelForProvider, testProvider } from './llm';
+import { getModels, getProvider, listProviders, type ProviderInfo } from './llm-providers';
 import { createOutputFormatter } from './output';
 import { createPromptHelper } from '../utils/prompt';
 import { generateZshCompletions, generateBashCompletions, generateFishCompletions } from './completions';
@@ -888,9 +889,29 @@ ${c.bold('Usage:')}
     const noConfirm = parsed.flags['no-confirm'];
     const providerOverride = parsed.flags.provider as LLMProvider | undefined;
 
-    // Get query from args
-    const query = parsed.command
-      ? [parsed.command, parsed.subcommand, ...parsed.args].filter(Boolean).join(' ')
+    // Check for subcommands
+    const subcommand = parsed.command;
+    const args = parsed.subcommand ? [parsed.subcommand, ...parsed.args] : parsed.args;
+
+    // Handle subcommands
+    if (subcommand === 'providers') {
+      await this.handleAskProviders(output);
+      return;
+    }
+
+    if (subcommand === 'models') {
+      await this.handleAskModels(parsed, output);
+      return;
+    }
+
+    if (subcommand === 'test') {
+      await this.handleAskTest(parsed, output);
+      return;
+    }
+
+    // Get query from args (everything after 'ask')
+    const query = subcommand
+      ? [subcommand, ...args].filter(Boolean).join(' ')
       : '';
 
     if (isInteractive) {
@@ -903,32 +924,206 @@ ${c.bold('Usage:')}
 ${c.bold('uni ask')} - Natural language commands
 
 ${c.bold('Usage:')}
-  uni ask "your query here"
-  uni ask -i                    # Interactive mode
+  uni ask "your query here"       # Execute a query
+  uni ask -i                      # Interactive mode (REPL)
+  uni ask providers               # List all providers
+  uni ask models                  # List models for current/default provider
+  uni ask models --provider <name>  # List models for a specific provider
+  uni ask test                    # Test current/default provider
+  uni ask test --provider <name>  # Test a specific provider
 
 ${c.bold('Options:')}
   -n, --dry-run      Show command without executing
   --no-confirm       Execute without confirmation
-  --provider <name>  Override LLM provider (anthropic|openai|ollama|groq)
+  --provider <name>  Override LLM provider
   -i, --interactive  Start interactive mode
 
 ${c.bold('Examples:')}
   uni ask "show my calendar for tomorrow"
   uni ask "search for React tutorials"
   uni ask "list my open pull requests"
+  uni ask -i
+  uni ask --provider openrouter "help me write a script"
+
+${c.bold('Providers:')}
+  Tier 1: anthropic, openai, google, deepseek, xai
+  Tier 2: zhipu, moonshot, minimax, qwen, yi
+  Tier 3: openrouter, groq, together, cerebras, fireworks
+  Tier 4: ollama, lmstudio, vllm, localai
 
 ${c.bold('Configuration:')}
   Set provider in ~/.uni/config.toml:
 
   [ask]
   provider = "anthropic"
-  model = "claude-3-haiku-20240307"
+  model = "claude-3-5-sonnet-20241022"
   confirm = true
 `);
       return;
     }
 
     await this.processAskQuery(query, output, providerOverride, isDryRun, noConfirm);
+  }
+
+  /**
+   * Handle 'uni ask providers' subcommand
+   */
+  private async handleAskProviders(
+    output: ReturnType<typeof createOutputFormatter>
+  ): Promise<void> {
+    const providers = listProviders();
+    const currentProvider = detectProvider();
+
+    console.log(`\n${c.bold('LLM Providers')}\n`);
+
+    // Group by tier
+    const tiers: Record<number, ProviderInfo[]> = { 1: [], 2: [], 3: [], 4: [] };
+    for (const provider of providers) {
+      tiers[provider.tier].push(provider);
+    }
+
+    for (const tier of [1, 2, 3, 4] as const) {
+      const tierProviders = tiers[tier];
+      if (tierProviders.length === 0) continue;
+
+      const tierName = tier === 1 ? 'Tier 1: Major Providers' :
+        tier === 2 ? 'Tier 2: Chinese Providers' :
+        tier === 3 ? 'Tier 3: Aggregators & Inference' :
+        'Tier 4: Local & Self-Hosted';
+
+      console.log(`${c.bold(tierName)}\n`);
+
+      for (const provider of tierProviders) {
+        const isCurrent = provider.id === currentProvider;
+        const hasConfig = provider.requiresApiKey ? isConfigured(provider.id) : true;
+        const status = hasConfig ? c.green('●') : c.dim('○');
+        const name = isCurrent ? c.cyan(`${provider.name} *`) : provider.name;
+        const desc = c.dim(`(${provider.description})`);
+
+        console.log(`  ${status} ${name.padEnd(14)} ${desc}`);
+
+        if (provider.apiKeyEnv) {
+          console.log(`      ${c.muted(`Env: ${provider.apiKeyEnv}`)}`);
+        }
+      }
+      console.log('');
+    }
+
+    console.log(`${c.muted('* = auto-detected (highest priority available)')}\n`);
+  }
+
+  /**
+   * Handle 'uni ask models' subcommand
+   */
+  private async handleAskModels(
+    parsed: ReturnType<typeof parseArgs>,
+    output: ReturnType<typeof createOutputFormatter>
+  ): Promise<void> {
+    // Get provider from flags first, then args, then config/detection
+    const providerArg = parsed.flags.provider as LLMProvider | undefined;
+    const args = parsed.subcommand ? [parsed.subcommand, ...parsed.args] : parsed.args;
+
+    // Determine which provider to show models for
+    let providerId = providerArg;
+    if (!providerId && args[0] && !args[0].startsWith('-')) {
+      providerId = args[0] as LLMProvider;
+    }
+
+    if (!providerId) {
+      const askConfig = config.getAsk();
+      providerId = askConfig.provider || detectProvider();
+    }
+
+    if (!providerId) {
+      output.error('No provider specified or configured');
+      console.log(`\n${c.muted('Use: uni ask models --provider <name>')}`);
+      console.log(`${c.muted('Or configure a default provider in ~/.uni/config.toml:')}`);
+      console.log(`  [ask]`);
+      console.log(`  provider = "anthropic"`);
+      return;
+    }
+
+    const provider = getProvider(providerId);
+    if (!provider) {
+      output.error(`Unknown provider: ${providerId}`);
+      return;
+    }
+
+    const models = getModels(providerId);
+    const defaultModel = getModelForProvider(providerId);
+
+    console.log(`\n${c.bold(`${provider.name} Models`)}\n`);
+    console.log(`${c.muted(`Provider: ${provider.id}`)}`);
+    console.log(`${c.muted(`API: ${provider.openaiCompatible ? 'OpenAI-compatible' : 'Custom'}`)}\n`);
+
+    if (models.length === 0) {
+      console.log(`${c.muted('No models listed. This provider may require fetching models from the API.')}`);
+      console.log(`${c.muted('Try: uni ask test --provider ${provider.id}')}`);
+      return;
+    }
+
+    console.log(c.bold('Available Models:\n'));
+
+    for (const model of models) {
+      const isDefault = model.id === defaultModel;
+      const marker = isDefault ? c.cyan('★') : ' ';
+      const name = isDefault ? c.cyan(model.name) : model.name;
+      const id = c.dim(`(${model.id})`);
+      const context = c.muted(`Ctx: ${(model.contextLength / 1000).toFixed(0)}K`);
+
+      console.log(`  ${marker} ${name.padEnd(24)} ${id}`);
+      console.log(`      ${context}`);
+    }
+
+    console.log('');
+  }
+
+  /**
+   * Handle 'uni ask test' subcommand
+   */
+  private async handleAskTest(
+    parsed: ReturnType<typeof parseArgs>,
+    output: ReturnType<typeof createOutputFormatter>
+  ): Promise<void> {
+    // Get provider from flags first, then args, then config/detection
+    const providerArg = parsed.flags.provider as LLMProvider | undefined;
+    const args = parsed.subcommand ? [parsed.subcommand, ...parsed.args] : parsed.args;
+
+    // Determine which provider to test
+    let providerId = providerArg;
+    if (!providerId && args[0] && !args[0].startsWith('-')) {
+      providerId = args[0] as LLMProvider;
+    }
+
+    if (!providerId) {
+      const askConfig = config.getAsk();
+      providerId = askConfig.provider || detectProvider();
+    }
+
+    if (!providerId) {
+      output.error('No provider specified or configured');
+      console.log(`\n${c.muted('Use: uni ask test --provider <name>')}`);
+      console.log(`${c.muted('Or set ANTHROPIC_API_KEY, OPENAI_API_KEY, etc.')}`);
+      return;
+    }
+
+    const provider = getProvider(providerId);
+    if (!provider) {
+      output.error(`Unknown provider: ${providerId}`);
+      return;
+    }
+
+    console.log(`\n${c.dim('Testing:')} ${c.cyan(provider.name)}...\n`);
+
+    const result = await testProvider(providerId);
+
+    if (result.success) {
+      output.success('Provider is working!');
+    } else {
+      output.error(`Provider test failed: ${result.error}`);
+    }
+
+    console.log('');
   }
 
   /**

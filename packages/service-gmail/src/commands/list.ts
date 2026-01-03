@@ -30,12 +30,20 @@ export const listCommand: Command = {
       description: 'Only unread emails',
       default: false,
     },
+    {
+      name: 'all',
+      short: 'a',
+      type: 'boolean',
+      description: 'Show all emails (including promotions, social)',
+      default: false,
+    },
   ],
   examples: [
     'uni gmail list',
     'uni gmail list --limit 20',
     'uni gmail list --query "from:github.com"',
     'uni gmail list --unread',
+    'uni gmail list --all',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
@@ -55,6 +63,12 @@ export const listCommand: Command = {
 
     try {
       let query = flags.query as string | undefined;
+
+      // Default to primary inbox only (exclude promotions, social, updates)
+      if (!flags.all) {
+        query = query ? `${query} category:primary` : 'category:primary';
+      }
+
       if (flags.unread) {
         query = query ? `${query} is:unread` : 'is:unread';
       }

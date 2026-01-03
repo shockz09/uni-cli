@@ -189,6 +189,31 @@ uni ask "query" --dry-run               # Show without executing
 uni ask "query" --no-confirm            # Execute without asking
 ```
 
+### LLM Provider Management
+
+```bash
+# List all supported LLM providers
+uni ask providers
+
+# List models for a provider
+uni ask models --provider anthropic
+uni ask models --provider openrouter
+
+# Test a provider connection
+uni ask test --provider deepseek
+uni ask test --provider ollama
+
+# Use specific provider/model
+uni ask "query" --provider openrouter --model "anthropic/claude-3.5-sonnet"
+uni ask "query" --provider deepseek --model deepseek-chat
+```
+
+**Supported Providers:**
+- **Tier 1:** Anthropic, OpenAI, Google, DeepSeek, xAI
+- **Tier 2:** Zhipu (GLM), Moonshot (Kimi), Minimax, Qwen, Yi
+- **Tier 3:** OpenRouter, Together, Fireworks, Groq, Cerebras
+- **Tier 4:** Ollama, LM Studio, vLLM, LocalAI
+
 ---
 
 ## Multi-Command Execution (uni run)

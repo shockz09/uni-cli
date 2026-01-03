@@ -12,6 +12,8 @@ import {
   hasToken,
 } from './credentials';
 import { config } from './config';
+import { PROVIDERS } from './llm-providers';
+import type { LLMProvider } from '@uni/shared';
 
 // ============================================================
 // Service Status Types
@@ -321,90 +323,98 @@ async function checkNotion(): Promise<ServiceStatus> {
 // ============================================================
 
 /**
- * Check Ollama availability
+ * Check a provider by ID
  */
-async function checkOllama(): Promise<LLMProviderStatus> {
-  try {
-    const askConfig = config.getAsk();
-    const ollamaUrl = askConfig.ollamaUrl || 'http://localhost:11434';
+async function checkProvider(providerId: LLMProvider): Promise<LLMProviderStatus> {
+  const info = PROVIDERS[providerId];
 
-    const response = await fetch(`${ollamaUrl}/api/tags`, {
-      signal: AbortSignal.timeout(2000),
-    });
+  if (!info) {
+    return {
+      name: providerId,
+      status: 'missing',
+      message: 'Unknown provider',
+    };
+  }
 
-    if (response.ok) {
+  // Local providers (no API key needed)
+  if (!info.requiresApiKey) {
+    if (providerId === 'ollama') {
+      try {
+        const askConfig = config.getAsk();
+        const ollamaUrl = askConfig.ollamaUrl || 'http://localhost:11434';
+
+        const response = await fetch(`${ollamaUrl}/api/tags`, {
+          signal: AbortSignal.timeout(2000),
+        });
+
+        if (response.ok) {
+          return {
+            name: providerId,
+            status: 'available',
+            message: `Available (${ollamaUrl})`,
+          };
+        }
+      } catch {
+        // Not available
+      }
+
       return {
-        name: 'ollama',
-        status: 'available',
-        message: `Available (${ollamaUrl})`,
+        name: providerId,
+        status: 'missing',
+        message: 'Not running',
       };
     }
-  } catch {
-    // Not available
+
+    // Other local providers - just check base URL is configured
+    return {
+      name: providerId,
+      status: 'available',
+      message: `Available (${info.baseUrl})`,
+    };
   }
 
+  // Cloud providers - check for API key
+  if (info.apiKeyEnv && process.env[info.apiKeyEnv]) {
+    return {
+      name: providerId,
+      status: 'available',
+      message: `Available (${info.apiKeyEnv})`,
+    };
+  }
+
+  const envHint = info.apiKeyEnv ? `Missing ${info.apiKeyEnv}` : 'Not configured';
   return {
-    name: 'ollama',
+    name: providerId,
     status: 'missing',
-    message: 'Not running',
+    message: envHint,
   };
 }
 
 /**
- * Check Anthropic API key
+ * Get all LLM providers to check
  */
-function checkAnthropic(): LLMProviderStatus {
-  if (process.env.ANTHROPIC_API_KEY) {
-    return {
-      name: 'anthropic',
-      status: 'available',
-      message: 'Available (ANTHROPIC_API_KEY)',
-    };
-  }
-
-  return {
-    name: 'anthropic',
-    status: 'missing',
-    message: 'Missing ANTHROPIC_API_KEY',
-  };
-}
-
-/**
- * Check OpenAI API key
- */
-function checkOpenai(): LLMProviderStatus {
-  if (process.env.OPENAI_API_KEY) {
-    return {
-      name: 'openai',
-      status: 'available',
-      message: 'Available (OPENAI_API_KEY)',
-    };
-  }
-
-  return {
-    name: 'openai',
-    status: 'missing',
-    message: 'Missing OPENAI_API_KEY',
-  };
-}
-
-/**
- * Check Groq API key
- */
-function checkGroq(): LLMProviderStatus {
-  if (process.env.GROQ_API_KEY) {
-    return {
-      name: 'groq',
-      status: 'available',
-      message: 'Available (GROQ_API_KEY)',
-    };
-  }
-
-  return {
-    name: 'groq',
-    status: 'missing',
-    message: 'Missing GROQ_API_KEY',
-  };
+function getLLMProvidersToCheck(): LLMProvider[] {
+  return [
+    // Tier 1: Major Providers
+    'anthropic',
+    'openai',
+    'google',
+    'deepseek',
+    'xai',
+    // Tier 2: Chinese Providers
+    'zhipu',
+    'moonshot',
+    'minimax',
+    'qwen',
+    // Tier 3: Aggregators
+    'openrouter',
+    'groq',
+    'together',
+    'cerebras',
+    // Tier 4: Local
+    'ollama',
+    'lmstudio',
+  ];
 }
 
 // ============================================================
@@ -428,17 +438,11 @@ export async function runDoctor(): Promise<DoctorReport> {
 
   const services = [exa, gh, gcal, gmail, gdrive, slack, notion];
 
-  // Check LLM providers
-  const [ollama] = await Promise.all([
-    checkOllama(),
-  ]);
-
-  const llmProviders = [
-    ollama,
-    checkAnthropic(),
-    checkOpenai(),
-    checkGroq(),
-  ];
+  // Check all LLM providers in parallel
+  const providersToCheck = getLLMProvidersToCheck();
+  const llmProviders = await Promise.all(
+    providersToCheck.map(providerId => checkProvider(providerId))
+  );
 
   // Credential sources
   const googleCreds = getGoogleCredentials();

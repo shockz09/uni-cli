@@ -313,6 +313,7 @@ export class ConfigManager {
   private parseToml(content: string): UniConfig {
     const config: UniConfig = { ...DEFAULT_CONFIG, aliases: {}, ask: { confirm: true }, flows: {} };
     let currentSection = '';
+    let currentSubsection = '';
 
     for (const line of content.split('\n')) {
       const trimmed = line.trim();
@@ -323,7 +324,14 @@ export class ConfigManager {
       // Section header
       const sectionMatch = trimmed.match(/^\[(.+)\]$/);
       if (sectionMatch) {
-        currentSection = sectionMatch[1];
+        const fullSection = sectionMatch[1];
+        if (fullSection.startsWith('ask.providers.')) {
+          currentSection = 'ask';
+          currentSubsection = fullSection.replace('ask.providers.', '');
+        } else {
+          currentSection = fullSection;
+          currentSubsection = '';
+        }
         continue;
       }
 
@@ -339,8 +347,18 @@ export class ConfigManager {
           // Aliases section - value should always be string
           config.aliases![key] = String(value);
         } else if (currentSection === 'ask') {
-          // Ask section
-          (config.ask as Record<string, unknown>)[key] = value;
+          if (currentSubsection) {
+            // Nested provider config: [ask.providers.<name>]
+            if (!config.ask) config.ask = {};
+            if (!config.ask.providers) config.ask.providers = {};
+            if (!config.ask.providers[currentSubsection]) {
+              config.ask.providers[currentSubsection] = {};
+            }
+            (config.ask.providers[currentSubsection] as Record<string, unknown>)[key] = value;
+          } else {
+            // Top-level ask config
+            (config.ask as Record<string, unknown>)[key] = value;
+          }
         } else if (currentSection === 'flows') {
           // Flows section - value should always be string array
           config.flows![key] = Array.isArray(value) ? value : [String(value)];

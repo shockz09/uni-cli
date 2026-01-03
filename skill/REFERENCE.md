@@ -851,6 +851,7 @@ List emails
 | `--limit` | -l | number | `10` | Number of emails |
 | `--query` | -q | string |  | Search query (Gmail search syntax) |
 | `--unread` | -u | boolean | `false` | Only unread emails |
+| `--all` | -a | boolean | `false` | Show all emails (including promotions, social) |
 
 **Examples:**
 
@@ -859,6 +860,7 @@ uni gmail list
 uni gmail list --limit 20
 uni gmail list --query "from:github.com"
 uni gmail list --unread
+uni gmail list --all
 ```
 
 ---

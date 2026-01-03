@@ -301,9 +301,42 @@ export interface GlobalConfig {
   pager?: string;
 }
 
+// ============================================================
+// LLM Providers & Ask Config
+// ============================================================
+
+export type LLMProvider =
+  // Tier 1: Major Providers
+  | 'anthropic'
+  | 'openai'
+  | 'google'
+  | 'deepseek'
+  | 'xai'
+  // Tier 2: Chinese Providers
+  | 'zhipu'
+  | 'moonshot'
+  | 'minimax'
+  | 'baidu'
+  | 'qwen'
+  | 'yi'
+  // Tier 3: Aggregators & Inference
+  | 'openrouter'
+  | 'together'
+  | 'fireworks'
+  | 'replicate'
+  | 'groq'
+  | 'cerebras'
+  // Tier 4: Local & Self-Hosted
+  | 'ollama'
+  | 'lmstudio'
+  | 'vllm'
+  | 'localai'
+  // Custom
+  | 'custom';
+
 export interface AskConfig {
   /** LLM provider */
-  provider?: 'anthropic' | 'openai' | 'ollama' | 'groq';
+  provider?: LLMProvider;
 
   /** Model to use */
   model?: string;
@@ -313,6 +346,78 @@ export interface AskConfig {
 
   /** Ollama base URL */
   ollamaUrl?: string;
+
+  /** Timeout in seconds */
+  timeout?: number;
+
+  /** Max tokens */
+  maxTokens?: number;
+
+  /** Fallback providers */
+  fallback?: LLMProvider[];
+
+  /** Provider-specific settings */
+  providers?: Record<string, ProviderConfig>;
+}
+
+export interface ProviderConfig {
+  /** API key environment variable name */
+  apiKeyEnv?: string;
+
+  /** Base URL for the API */
+  baseUrl?: string;
+
+  /** Custom headers */
+  headers?: Record<string, string>;
+
+  /** Provider type for custom providers */
+  type?: 'openai-compatible' | 'anthropic-compatible' | 'custom';
+}
+
+export interface ModelInfo {
+  /** Model ID (used in API calls) */
+  id: string;
+
+  /** Human-readable name */
+  name: string;
+
+  /** Context window size */
+  contextLength: number;
+
+  /** Pricing (per 1M tokens) */
+  pricing?: {
+    input: number;
+    output: number;
+  };
+}
+
+export interface ProviderInfo {
+  /** Provider ID */
+  id: LLMProvider;
+
+  /** Display name */
+  name: string;
+
+  /** Description */
+  description: string;
+
+  /** Tier (1-4) */
+  tier: 1 | 2 | 3 | 4;
+
+  /** Available models */
+  models: ModelInfo[];
+
+  /** API key environment variable */
+  apiKeyEnv?: string;
+
+  /** Default base URL */
+  baseUrl: string;
+
+  /** Whether this provider needs API key */
+  requiresApiKey: boolean;
+
+  /** Whether it's OpenAI-compatible */
+  openaiCompatible: boolean;
 }
 
 // ============================================================

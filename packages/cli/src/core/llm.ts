@@ -1,118 +1,170 @@
 /**
  * LLM client abstraction for uni ask
+ *
+ * Supports multiple providers with a unified interface.
+ * Uses provider registry for configuration and model management.
  */
 
-export type LLMProvider = 'anthropic' | 'openai' | 'ollama' | 'groq';
+import type { LLMProvider, AskConfig, ProviderConfig } from '@uni/shared';
+import {
+  PROVIDERS,
+  DEFAULT_MODEL,
+  PROVIDER_DETECTION_ORDER,
+  getProvider,
+  isProviderAvailable,
+  getDefaultModel,
+  type ProviderInfo,
+} from './llm-providers';
 
-export interface LLMConfig {
-  provider: LLMProvider;
+// ============================================================
+// Configuration
+// ============================================================
+
+export interface LLMClientConfig {
+  /** Provider to use */
+  provider?: LLMProvider;
+
+  /** Model to use (overrides default) */
   model?: string;
+
+  /** API key (overrides env var) */
   apiKey?: string;
-  baseUrl?: string; // For Ollama
+
+  /** Base URL (for local/custom providers) */
+  baseUrl?: string;
+
+  /** Provider-specific config */
+  providerConfig?: ProviderConfig;
+
+  /** Timeout in seconds */
+  timeout?: number;
+
+  /** Max tokens */
+  maxTokens?: number;
 }
+
+// ============================================================
+// Client Interface
+// ============================================================
 
 export interface LLMClient {
   complete(prompt: string, systemPrompt?: string): Promise<string>;
 }
 
-/**
- * Default models per provider
- */
-const DEFAULT_MODELS: Record<LLMProvider, string> = {
-  anthropic: 'claude-3-haiku-20240307',
-  openai: 'gpt-4o-mini',
-  ollama: 'llama3.2',
-  groq: 'llama-3.1-8b-instant',
-};
+// ============================================================
+// Factory Function
+// ============================================================
 
 /**
  * Create an LLM client based on config
  */
-export function createLLMClient(config: Partial<LLMConfig> = {}): LLMClient {
+export function createLLMClient(config: LLMClientConfig = {}): LLMClient {
   const provider = config.provider || detectProvider();
 
   if (!provider) {
     throw new Error(
       'No LLM provider configured. Set one of:\n' +
-      '  - ANTHROPIC_API_KEY\n' +
-      '  - OPENAI_API_KEY\n' +
-      '  - GROQ_API_KEY\n' +
-      '  - Or run Ollama locally'
+      '  - ANTHROPIC_API_KEY (Anthropic Claude)\n' +
+      '  - OPENAI_API_KEY (OpenAI GPT)\n' +
+      '  - GOOGLE_AI_API_KEY (Google Gemini)\n' +
+      '  - DEEPSEEK_API_KEY (DeepSeek)\n' +
+      '  - XAI_API_KEY (xAI Grok)\n' +
+      '  - OPENROUTER_API_KEY (OpenRouter)\n' +
+      '  - GROQ_API_KEY (Groq)\n' +
+      '  - Or run Ollama locally\n\n' +
+      'Or configure in ~/.uni/config.toml:\n' +
+      '  [ask]\n' +
+      '  provider = "anthropic"\n' +
+      '  model = "claude-3-5-sonnet-20241022"'
     );
   }
 
-  const model = config.model || DEFAULT_MODELS[provider];
+  const providerInfo = getProvider(provider)!;
+  const model = config.model || DEFAULT_MODEL[provider] || '';
+  const apiKey = config.apiKey || getApiKey(provider, config.providerConfig);
+  const baseUrl = config.baseUrl || providerInfo.baseUrl;
+
+  return createClient(provider, providerInfo, model, apiKey, baseUrl, config.timeout, config.maxTokens);
+}
+
+/**
+ * Create a client for a specific provider
+ */
+function createClient(
+  provider: LLMProvider,
+  providerInfo: ProviderInfo,
+  model: string,
+  apiKey?: string,
+  baseUrl?: string,
+  timeout?: number,
+  maxTokens?: number
+): LLMClient {
+  if (providerInfo.openaiCompatible) {
+    return new OpenAICompatibleClient(provider, model, apiKey || '', baseUrl || providerInfo.baseUrl, timeout, maxTokens);
+  }
 
   switch (provider) {
     case 'anthropic':
-      return new AnthropicClient(config.apiKey || process.env.ANTHROPIC_API_KEY!, model);
-    case 'openai':
-      return new OpenAIClient(config.apiKey || process.env.OPENAI_API_KEY!, model);
+      return new AnthropicClient(apiKey || '', model, timeout, maxTokens);
+    case 'minimax':
+      return new AnthropicClient(apiKey || '', model, timeout, maxTokens, baseUrl || 'https://api.minimax.io/anthropic');
+    case 'google':
+      return new GoogleClient(apiKey || '', model, timeout, maxTokens);
     case 'ollama':
-      return new OllamaClient(config.baseUrl || 'http://localhost:11434', model);
-    case 'groq':
-      return new GroqClient(config.apiKey || process.env.GROQ_API_KEY!, model);
+      return new OllamaClient(baseUrl || 'http://localhost:11434', model);
     default:
-      throw new Error(`Unknown LLM provider: ${provider}`);
+      return new OpenAICompatibleClient(provider, model, apiKey || '', baseUrl || providerInfo.baseUrl, timeout, maxTokens);
   }
 }
+
+// ============================================================
+// Provider Detection
+// ============================================================
 
 /**
  * Auto-detect available provider from environment
  */
-function detectProvider(): LLMProvider | null {
-  if (process.env.ANTHROPIC_API_KEY) return 'anthropic';
-  if (process.env.OPENAI_API_KEY) return 'openai';
-  if (process.env.GROQ_API_KEY) return 'groq';
-  // TODO: Check if Ollama is running
+export function detectProvider(): LLMProvider | null {
+  for (const provider of PROVIDER_DETECTION_ORDER) {
+    if (isProviderAvailable(provider)) {
+      return provider;
+    }
+  }
   return null;
 }
 
 /**
- * Anthropic Claude client
+ * Get API key for a provider
  */
-class AnthropicClient implements LLMClient {
-  constructor(
-    private apiKey: string,
-    private model: string
-  ) {}
+function getApiKey(provider: LLMProvider, providerConfig?: ProviderConfig): string | undefined {
+  const info = getProvider(provider);
+  if (!info) return undefined;
 
-  async complete(prompt: string, systemPrompt?: string): Promise<string> {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': this.apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: this.model,
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Anthropic API error: ${error}`);
-    }
-
-    const data = await response.json() as {
-      content: Array<{ type: string; text: string }>;
-    };
-
-    return data.content[0]?.text || '';
+  // Check provider-specific config first
+  if (providerConfig?.apiKeyEnv) {
+    return process.env[providerConfig.apiKeyEnv];
   }
+
+  // Check default env var
+  if (info.apiKeyEnv) {
+    return process.env[info.apiKeyEnv];
+  }
+
+  return undefined;
 }
 
-/**
- * OpenAI GPT client
- */
-class OpenAIClient implements LLMClient {
+// ============================================================
+// Base Client (OpenAI-Compatible)
+// ============================================================
+
+class OpenAICompatibleClient implements LLMClient {
   constructor(
+    private provider: string,
+    private model: string,
     private apiKey: string,
-    private model: string
+    private baseUrl: string,
+    private timeout?: number,
+    private maxTokens?: number
   ) {}
 
   async complete(prompt: string, systemPrompt?: string): Promise<string> {
@@ -123,35 +175,175 @@ class OpenAIClient implements LLMClient {
     }
     messages.push({ role: 'user', content: prompt });
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: this.model,
-        messages,
-        max_tokens: 1024,
-      }),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), (this.timeout || 30) * 1000);
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`OpenAI API error: ${error}`);
+    try {
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
+          // OpenRouter-specific headers
+          'HTTP-Referer': 'https://uni-cli.dev',
+          'X-Title': 'uni-cli',
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages,
+          max_tokens: this.maxTokens || 1024,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`${this.provider} API error: ${error}`);
+      }
+
+      const data = await response.json() as {
+        choices: Array<{ message: { content: string } }>;
+      };
+
+      return data.choices[0]?.message?.content || '';
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error(`${this.provider} request timed out`);
+      }
+      throw error;
     }
-
-    const data = await response.json() as {
-      choices: Array<{ message: { content: string } }>;
-    };
-
-    return data.choices[0]?.message?.content || '';
   }
 }
 
-/**
- * Ollama local client
- */
+// ============================================================
+// Anthropic Client
+// ============================================================
+
+class AnthropicClient implements LLMClient {
+  constructor(
+    private apiKey: string,
+    private model: string,
+    private timeout?: number,
+    private maxTokens?: number,
+    private baseUrl: string = 'https://api.anthropic.com'
+  ) {}
+
+  async complete(prompt: string, systemPrompt?: string): Promise<string> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), (this.timeout || 30) * 1000);
+
+    try {
+      const response = await fetch(`${this.baseUrl}/v1/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: this.model,
+          max_tokens: this.maxTokens || 1024,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Anthropic API error: ${error}`);
+      }
+
+      const data = await response.json() as {
+        content: Array<{ type: string; text: string }>;
+      };
+
+      return data.content[0]?.text || '';
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Anthropic request timed out');
+      }
+      throw error;
+    }
+  }
+}
+
+// ============================================================
+// Google AI Client
+// ============================================================
+
+class GoogleClient implements LLMClient {
+  constructor(
+    private apiKey: string,
+    private model: string,
+    private timeout?: number,
+    private maxTokens?: number
+  ) {}
+
+  async complete(prompt: string, systemPrompt?: string): Promise<string> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), (this.timeout || 30) * 1000);
+
+    try {
+      const contents = [{ role: 'user', parts: [{ text: prompt }] }];
+
+      // Add system instruction if provided
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
+
+      const body: Record<string, unknown> = {
+        contents,
+        generationConfig: {
+          maxOutputTokens: this.maxTokens || 1024,
+        },
+      };
+
+      if (systemPrompt) {
+        // Google uses systemInstruction instead of system message
+        (body as { systemInstruction?: { role: string; parts: Array<{ text: string }> } }).systemInstruction = {
+          role: 'system',
+          parts: [{ text: systemPrompt }],
+        };
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Google API error: ${error}`);
+      }
+
+      const data = await response.json() as {
+        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+      };
+
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Google API request timed out');
+      }
+      throw error;
+    }
+  }
+}
+
+// ============================================================
+// Ollama Client (Non-OpenAI Compatible)
+// ============================================================
+
 class OllamaClient implements LLMClient {
   constructor(
     private baseUrl: string,
@@ -183,45 +375,73 @@ class OllamaClient implements LLMClient {
   }
 }
 
+// ============================================================
+// Utility Functions
+// ============================================================
+
 /**
- * Groq client (OpenAI-compatible API)
+ * Get the list of all supported providers
  */
-class GroqClient implements LLMClient {
-  constructor(
-    private apiKey: string,
-    private model: string
-  ) {}
+export function getSupportedProviders(): LLMProvider[] {
+  return Object.keys(PROVIDERS) as LLMProvider[];
+}
 
-  async complete(prompt: string, systemPrompt?: string): Promise<string> {
-    const messages: Array<{ role: string; content: string }> = [];
+/**
+ * Get provider display name
+ */
+export function getProviderName(provider: LLMProvider): string {
+  return PROVIDERS[provider]?.name || provider;
+}
 
-    if (systemPrompt) {
-      messages.push({ role: 'system', content: systemPrompt });
-    }
-    messages.push({ role: 'user', content: prompt });
+/**
+ * Check if a provider is configured
+ */
+export function isConfigured(provider: LLMProvider): boolean {
+  const info = PROVIDERS[provider];
+  if (!info) return false;
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: this.model,
-        messages,
-        max_tokens: 1024,
-      }),
-    });
+  if (!info.requiresApiKey) return true;
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Groq API error: ${error}`);
-    }
+  if (info.apiKeyEnv) {
+    return Boolean(process.env[info.apiKeyEnv]);
+  }
 
-    const data = await response.json() as {
-      choices: Array<{ message: { content: string } }>;
-    };
+  return false;
+}
 
-    return data.choices[0]?.message?.content || '';
+/**
+ * Get available (configured) providers
+ */
+export function getAvailableProviders(): LLMProvider[] {
+  return getSupportedProviders().filter(isConfigured);
+}
+
+/**
+ * Get the default model for a provider
+ */
+export function getModelForProvider(provider: LLMProvider): string {
+  return getDefaultModel(provider);
+}
+
+/**
+ * Test if a provider is reachable
+ */
+export async function testProvider(provider: LLMProvider): Promise<{ success: boolean; error?: string }> {
+  const info = getProvider(provider);
+  if (!info) {
+    return { success: false, error: 'Unknown provider' };
+  }
+
+  if (!isConfigured(provider)) {
+    const envHint = info.apiKeyEnv ? ` (set ${info.apiKeyEnv})` : '';
+    return { success: false, error: `Provider not configured${envHint}` };
+  }
+
+  try {
+    const client = createLLMClient({ provider });
+    await client.complete('Hello', 'You are a helpful assistant.');
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
