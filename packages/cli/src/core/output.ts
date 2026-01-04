@@ -1,7 +1,7 @@
 /**
  * Adaptive output formatting
- * - Human-readable when TTY
- * - JSON when piped or --json flag
+ * - Human-readable by default
+ * - JSON only when --json flag is passed
  */
 
 import type { OutputFormatter, Spinner, GlobalFlags } from '@uni/shared';
@@ -9,7 +9,7 @@ import { isTTY, padRight, truncate } from '@uni/shared';
 import * as c from '../utils/colors';
 
 export function createOutputFormatter(flags: GlobalFlags): OutputFormatter {
-  const forceJson = flags.json || !isTTY();
+  const forceJson = flags.json;
   const verbose = flags.verbose;
   const quiet = flags.quiet;
 
