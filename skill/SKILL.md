@@ -771,9 +771,11 @@ User API via MTProto - full account access (not bot).
 
 ### Setup
 ```bash
-# Get API credentials from https://my.telegram.org
-# Then authenticate with phone + OTP:
-uni telegram auth --api-id 12345 --api-hash abcdef...
+# Authenticate with phone + OTP (no API keys needed):
+uni telegram auth
+
+# Logout
+uni telegram logout
 ```
 
 ### Chats

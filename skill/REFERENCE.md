@@ -2589,20 +2589,12 @@ Telegram user API (MTProto)
 
 ### `uni telegram auth`
 
-Authenticate with Telegram (phone + OTP)
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--api-id` |  | string |  | Telegram API ID (from my.telegram.org) |
-| `--api-hash` |  | string |  | Telegram API Hash (from my.telegram.org) |
+Authenticate with Telegram (phone + OTP). No API keys needed - uses embedded defaults.
 
 **Examples:**
 
 ```bash
 uni telegram auth
-uni telegram auth --api-id 12345 --api-hash abcdef123
 ```
 
 ---

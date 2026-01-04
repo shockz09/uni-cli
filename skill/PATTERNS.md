@@ -411,6 +411,64 @@ uni exa research "Vercel edge functions vs Cloudflare Workers"
 
 ---
 
+## Telegram Workflows
+
+### Getting Started
+
+```bash
+# Authenticate with phone + OTP
+uni telegram auth
+
+# Logout when needed
+uni telegram logout
+```
+
+### Reading Messages
+
+```bash
+# List all chats
+uni telegram chats
+
+# Read messages from a chat (by name, username, phone, or ID)
+uni telegram read "Family Group"
+uni telegram read @username
+uni telegram read 777000 -n 5
+
+# Search messages across all chats
+uni telegram search "meeting notes"
+
+# Search in specific chat
+uni telegram search "project" -c "Work Group"
+```
+
+### Sending Messages
+
+```bash
+# Send by name
+uni telegram send "Family Group" "Dinner at 7?"
+
+# Send by username
+uni telegram send @friend "Hey!"
+
+# Send by ID
+uni telegram send 777000 "Test message"
+```
+
+### Media & Contacts
+
+```bash
+# List contacts
+uni telegram contacts
+
+# Search contacts
+uni telegram contacts "john"
+
+# Download media from a message
+uni telegram download "Group Name" 12345 -o ./downloads
+```
+
+---
+
 ## Communication Workflows
 
 ### Team Updates
