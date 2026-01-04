@@ -234,7 +234,7 @@ const listCommand: Command = {
     }
 
     if (repos.length === 0) {
-      output.info('No repositories found');
+      console.log(c.dim('No repositories found'));
       return;
     }
 

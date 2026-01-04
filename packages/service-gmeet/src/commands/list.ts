@@ -50,7 +50,7 @@ export const listCommand: Command = {
       }
 
       if (meetings.length === 0) {
-        output.info('No upcoming meetings with Meet links');
+        console.log(c.dim('No upcoming meetings with Meet links'));
         return;
       }
 

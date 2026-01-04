@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gforms } from '../api';
 
 export const listCommand: Command = {
@@ -30,7 +31,7 @@ export const listCommand: Command = {
     }
 
     if (forms.length === 0) {
-      output.info('No forms found.');
+      console.log(c.dim('No forms found'));
       return;
     }
 

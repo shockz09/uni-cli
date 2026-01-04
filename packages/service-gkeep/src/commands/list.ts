@@ -3,6 +3,7 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
+import { c } from '@uni/shared';
 import { gkeep } from '../api';
 
 export const listCommand: Command = {
@@ -51,7 +52,7 @@ export const listCommand: Command = {
     }
 
     if (filtered.length === 0) {
-      output.info('No notes found.');
+      console.log(c.dim('No notes found'));
       return;
     }
 

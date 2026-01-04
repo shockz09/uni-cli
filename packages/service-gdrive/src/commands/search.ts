@@ -58,7 +58,7 @@ export const searchCommand: Command = {
       }
 
       if (files.length === 0) {
-        output.info('No files found');
+        console.log(c.dim('No files found'));
         return;
       }
 

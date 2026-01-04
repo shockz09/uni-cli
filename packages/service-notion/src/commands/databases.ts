@@ -43,7 +43,7 @@ const listCommand: Command = {
       }
 
       if (databases.length === 0) {
-        output.info('No databases found (make sure they are shared with your integration)');
+        console.log(c.dim('No databases found (make sure they are shared with your integration)'));
         return;
       }
 
@@ -120,7 +120,7 @@ const queryCommand: Command = {
       }
 
       if (pages.length === 0) {
-        output.info('No items in database');
+        console.log(c.dim('No items in database'));
         return;
       }
 

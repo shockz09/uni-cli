@@ -68,7 +68,7 @@ export const searchCommand: Command = {
       }
 
       if (results.length === 0) {
-        output.info('No results found');
+        console.log(c.dim('No results found'));
         return;
       }
 

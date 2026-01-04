@@ -91,7 +91,7 @@ const listCommand: Command = {
     }
 
     if (issues.length === 0) {
-      output.info('No issues found');
+      console.log(c.dim('No issues found'));
       return;
     }
 

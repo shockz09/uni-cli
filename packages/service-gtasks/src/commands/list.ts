@@ -62,7 +62,7 @@ export const listCommand: Command = {
       }
 
       if (tasks.length === 0) {
-        output.info('No tasks');
+        console.log(c.dim('No tasks'));
         return;
       }
 

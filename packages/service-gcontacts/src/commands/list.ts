@@ -44,7 +44,7 @@ export const listCommand: Command = {
       }
 
       if (contacts.length === 0) {
-        output.info('No contacts');
+        console.log(c.dim('No contacts'));
         return;
       }
 

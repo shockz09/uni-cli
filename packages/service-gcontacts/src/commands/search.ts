@@ -44,7 +44,7 @@ export const searchCommand: Command = {
       }
 
       if (contacts.length === 0) {
-        output.info('No contacts found');
+        console.log(c.dim('No contacts found'));
         return;
       }
 

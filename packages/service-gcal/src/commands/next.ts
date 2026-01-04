@@ -53,7 +53,7 @@ export const nextCommand: Command = {
       }
 
       if (events.length === 0) {
-        output.info('No upcoming events');
+        console.log(c.dim('No upcoming events'));
         return;
       }
 

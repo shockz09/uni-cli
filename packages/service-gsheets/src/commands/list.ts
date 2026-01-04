@@ -46,7 +46,7 @@ export const listCommand: Command = {
       }
 
       if (files.length === 0) {
-        output.info('No spreadsheets found');
+        console.log(c.dim('No spreadsheets found'));
         return;
       }
 

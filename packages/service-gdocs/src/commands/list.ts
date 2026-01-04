@@ -43,7 +43,7 @@ export const listCommand: Command = {
       }
 
       if (files.length === 0) {
-        output.info('No documents found');
+        console.log(c.dim('No documents found'));
         return;
       }
 

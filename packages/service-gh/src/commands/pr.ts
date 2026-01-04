@@ -87,7 +87,7 @@ const listCommand: Command = {
     }
 
     if (prs.length === 0) {
-      output.info('No pull requests found');
+      console.log(c.dim('No pull requests found'));
       return;
     }
 
