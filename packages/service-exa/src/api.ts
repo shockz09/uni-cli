@@ -239,7 +239,7 @@ export class ExaClient {
         }
         if (response.status === 429) {
           const retryAfter = response.headers.get('Retry-After');
-          throw new RateLimitError('exa', retryAfter ? parseInt(retryAfter) : undefined);
+          throw new RateLimitError('exa', retryAfter ? parseInt(retryAfter, 10) : undefined);
         }
 
         const errorText = await response.text();

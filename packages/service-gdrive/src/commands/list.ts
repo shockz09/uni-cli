@@ -68,7 +68,7 @@ export const listCommand: Command = {
       console.log('');
       for (const file of files) {
         const icon = gdrive.getMimeIcon(file.mimeType);
-        const size = file.size ? ` (${formatSize(parseInt(file.size))})` : '';
+        const size = file.size ? ` (${formatSize(parseInt(file.size, 10))})` : '';
         console.log(`${icon} ${c.bold(file.name)}${size}`);
         if (file.webViewLink) {
           console.log(`   ${c.cyan(file.webViewLink)}`);

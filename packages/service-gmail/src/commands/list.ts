@@ -101,7 +101,7 @@ export const listCommand: Command = {
         const from = gmail.getHeader(email, 'From') || 'Unknown';
         const subject = gmail.getHeader(email, 'Subject') || '(no subject)';
         const date = email.internalDate
-          ? new Date(parseInt(email.internalDate)).toLocaleDateString()
+          ? new Date(parseInt(email.internalDate, 10)).toLocaleDateString()
           : '';
 
         const isUnread = email.labelIds?.includes('UNREAD');

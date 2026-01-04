@@ -91,7 +91,11 @@ export class GoogleSlidesClient extends GoogleAuthClient {
 
     const text = await response.text();
     if (!text) return {} as T;
-    return JSON.parse(text) as T;
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      throw new Error(`Invalid JSON response: ${text.slice(0, 100)}`);
+    }
   }
 
   /**

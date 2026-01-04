@@ -57,7 +57,7 @@ export const getCommand: Command = {
     console.log(`   ID: ${file.id}`);
     console.log(`   Type: ${file.mimeType}`);
     if (file.size) {
-      const sizeKB = Math.round(parseInt(file.size) / 1024);
+      const sizeKB = Math.round(parseInt(file.size, 10) / 1024);
       console.log(`   Size: ${sizeKB} KB`);
     }
     if (file.modifiedTime) {

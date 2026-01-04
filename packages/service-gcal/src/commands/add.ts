@@ -13,14 +13,14 @@ function parseTime(timeStr: string): { hours: number; minutes: number } | null {
   // Try 24-hour format (14:00)
   let match = timeStr.match(/^(\d{1,2}):(\d{2})$/);
   if (match) {
-    return { hours: parseInt(match[1]), minutes: parseInt(match[2]) };
+    return { hours: parseInt(match[1], 10), minutes: parseInt(match[2], 10) };
   }
 
   // Try 12-hour format (10am, 2:30pm)
   match = timeStr.toLowerCase().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/);
   if (match) {
-    let hours = parseInt(match[1]);
-    const minutes = match[2] ? parseInt(match[2]) : 0;
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2] ? parseInt(match[2], 10) : 0;
     const period = match[3];
 
     if (period === 'pm' && hours !== 12) hours += 12;
@@ -41,18 +41,18 @@ function parseDuration(durationStr: string): number | null {
   // Match hours
   const hoursMatch = durationStr.match(/(\d+)\s*h/i);
   if (hoursMatch) {
-    totalMinutes += parseInt(hoursMatch[1]) * 60;
+    totalMinutes += parseInt(hoursMatch[1], 10) * 60;
   }
 
   // Match minutes
   const minsMatch = durationStr.match(/(\d+)\s*m/i);
   if (minsMatch) {
-    totalMinutes += parseInt(minsMatch[1]);
+    totalMinutes += parseInt(minsMatch[1], 10);
   }
 
   // If just a number, assume minutes
   if (!hoursMatch && !minsMatch) {
-    const num = parseInt(durationStr);
+    const num = parseInt(durationStr, 10);
     if (!isNaN(num)) {
       totalMinutes = num;
     }

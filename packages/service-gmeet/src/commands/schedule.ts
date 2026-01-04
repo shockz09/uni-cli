@@ -78,8 +78,8 @@ export const scheduleCommand: Command = {
       const timeMatch = timeStr.match(/^(\d{1,2}):?(\d{2})?\s*(am|pm)?$/i);
 
       if (timeMatch) {
-        let hours = parseInt(timeMatch[1]);
-        const minutes = parseInt(timeMatch[2] || '0');
+        let hours = parseInt(timeMatch[1], 10);
+        const minutes = parseInt(timeMatch[2] || '0', 10);
         const ampm = timeMatch[3]?.toLowerCase();
 
         if (ampm === 'pm' && hours < 12) hours += 12;
