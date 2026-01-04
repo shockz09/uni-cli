@@ -12,6 +12,10 @@ const UNI_DIR = path.join(process.env.HOME || '~', '.uni');
 const SESSION_FILE = path.join(UNI_DIR, 'tokens', 'telegram.session');
 const CONFIG_FILE = path.join(UNI_DIR, 'config.toml');
 
+// Default credentials - users don't need to register their own app
+const DEFAULT_API_ID = 23908127;
+const DEFAULT_API_HASH = 'dd40b2fa3b331a2c13c9d6272fc71cda';
+
 export interface TelegramConfig {
   apiId: number;
   apiHash: string;
@@ -89,10 +93,11 @@ export function isAuthenticated(): boolean {
   return !!(config?.session || savedSession);
 }
 
-// Get credentials - from config or environment
-export function getCredentials(): { apiId: number; apiHash: string } | null {
+// Get credentials - from config, environment, or defaults
+export function getCredentials(): { apiId: number; apiHash: string } {
   const config = readConfig();
 
+  // Priority: config > env > defaults
   if (config?.apiId && config?.apiHash) {
     return { apiId: config.apiId, apiHash: config.apiHash };
   }
@@ -105,15 +110,13 @@ export function getCredentials(): { apiId: number; apiHash: string } | null {
     return { apiId: parseInt(apiId, 10), apiHash };
   }
 
-  return null;
+  // Use embedded defaults
+  return { apiId: DEFAULT_API_ID, apiHash: DEFAULT_API_HASH };
 }
 
 // Create and connect client
 export async function createClient(): Promise<TelegramClient | null> {
   const creds = getCredentials();
-  if (!creds) {
-    return null;
-  }
 
   const config = readConfig();
   const savedSession = readSessionFile();

@@ -14,25 +14,12 @@ import {
 export const authCommand: Command = {
   name: 'auth',
   description: 'Authenticate with Telegram (phone + OTP)',
-  options: [
-    {
-      name: 'api-id',
-      type: 'string',
-      description: 'Telegram API ID (from my.telegram.org)',
-    },
-    {
-      name: 'api-hash',
-      type: 'string',
-      description: 'Telegram API Hash (from my.telegram.org)',
-    },
-  ],
   examples: [
     'uni telegram auth',
-    'uni telegram auth --api-id 12345 --api-hash abcdef123',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
-    const { output, flags } = ctx;
+    const { output } = ctx;
 
     // Check if already authenticated
     if (isAuthenticated()) {
@@ -43,38 +30,8 @@ export const authCommand: Command = {
       return;
     }
 
-    // Get credentials from flags, config, or env
-    let apiId = flags['api-id'] as string | undefined;
-    let apiHash = flags['api-hash'] as string | undefined;
-
-    if (!apiId || !apiHash) {
-      const creds = getCredentials();
-      if (creds) {
-        apiId = String(creds.apiId);
-        apiHash = creds.apiHash;
-      }
-    }
-
-    if (!apiId || !apiHash) {
-      output.error('Telegram API credentials required.');
-      console.log('');
-      console.log('Get your API ID and Hash from: https://my.telegram.org');
-      console.log('');
-      console.log('Then either:');
-      console.log('  1. Add to ~/.uni/config.toml:');
-      console.log('     [telegram]');
-      console.log('     api_id = "12345"');
-      console.log('     api_hash = "abcdef..."');
-      console.log('');
-      console.log('  2. Or set environment variables:');
-      console.log('     export TELEGRAM_API_ID="12345"');
-      console.log('     export TELEGRAM_API_HASH="abcdef..."');
-      console.log('');
-      console.log('  3. Or pass as flags:');
-      console.log('     uni telegram auth --api-id 12345 --api-hash abcdef...');
-      console.log('');
-      return;
-    }
+    // Get credentials (uses embedded defaults)
+    const creds = getCredentials();
 
     console.log('');
     console.log(c.bold('Telegram Authentication'));
@@ -82,7 +39,7 @@ export const authCommand: Command = {
     console.log('');
 
     try {
-      const sessionString = await authenticateInteractive(parseInt(apiId, 10), apiHash);
+      const sessionString = await authenticateInteractive(creds.apiId, creds.apiHash);
 
       if (sessionString) {
         saveSession(sessionString);
