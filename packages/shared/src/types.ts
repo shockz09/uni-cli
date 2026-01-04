@@ -179,7 +179,7 @@ export interface AuthToken {
 // ============================================================
 
 export interface OutputFormatter {
-  /** Check if output should be JSON (--json flag OR piped/non-TTY) */
+  /** Check if output should be JSON (only when --json flag is passed) */
   isJsonMode(): boolean;
 
   /** Output JSON data */

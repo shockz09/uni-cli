@@ -45,7 +45,6 @@ uni <service> <command> [subcommand] [args] [--options]
 
 - **Default**: Human-readable (tables, colors)
 - **`--json`**: Machine-readable JSON
-- **Piped output**: Auto-switches to JSON
 
 ---
 

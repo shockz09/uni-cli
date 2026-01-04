@@ -90,9 +90,7 @@ describe('output formatter', () => {
   });
 
   describe('human readable mode', () => {
-    // Note: When running in test environment, isTTY() might return false
-    // We create the formatter with explicit non-json flag but it may still
-    // be in json mode if not TTY. That's OK for these tests.
+    // Human readable mode is the default (JSON only when --json flag is passed)
     const output = createOutputFormatter({});
 
     it('text() should output plain text', () => {
@@ -108,9 +106,7 @@ describe('output formatter', () => {
   });
 
   describe('quiet mode', () => {
-    // Note: In non-TTY environments (like tests), JSON mode takes precedence
-    // over quiet mode for structured output methods (success, warn, info).
-    // Quiet mode only suppresses human-readable output.
+    // Quiet mode suppresses success, warn, info output (but not errors)
     const output = createOutputFormatter({ quiet: true });
 
     it('should suppress text()', () => {
@@ -118,21 +114,19 @@ describe('output formatter', () => {
       expect(capturedOutput.length).toBe(0);
     });
 
-    it('should NOT suppress success() in JSON mode (non-TTY)', () => {
-      // In non-TTY, forceJson=true, so JSON output still happens
+    it('should suppress success() in quiet mode', () => {
       output.success('suppressed');
-      expect(capturedOutput.length).toBe(1);
-      expect(isValidJson(capturedOutput[0])).toBe(true);
+      expect(capturedOutput.length).toBe(0);
     });
 
-    it('should NOT suppress warn() in JSON mode (non-TTY)', () => {
+    it('should suppress warn() in quiet mode', () => {
       output.warn('suppressed');
-      expect(capturedOutput.length).toBe(1);
+      expect(capturedOutput.length).toBe(0);
     });
 
-    it('should NOT suppress info() in JSON mode (non-TTY)', () => {
+    it('should suppress info() in quiet mode', () => {
       output.info('suppressed');
-      expect(capturedOutput.length).toBe(1);
+      expect(capturedOutput.length).toBe(0);
     });
 
     it('should NOT suppress error()', () => {
