@@ -17,7 +17,6 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | Service | Purpose | Key Commands |
 |---------|---------|--------------|
 | `exa` | Web search, code docs, research | `search`, `code`, `research`, `company` |
-| `gh` | GitHub PRs, issues, repos | `pr`, `issue`, `repo` |
 | `gcal` | Google Calendar events | `list`, `add`, `next`, `update`, `auth` |
 | `gtasks` | Google Tasks todos | `list`, `add`, `done`, `delete`, `lists` |
 | `gcontacts` | Google Contacts | `list`, `search`, `get`, `add`, `delete` |
@@ -143,7 +142,8 @@ uni gtasks update "Task" --notes "Added details"
 ### Complete/delete tasks
 ```bash
 uni gtasks done "Buy groceries"         # Mark as done
-uni gtasks delete "Old task"            # Delete task
+uni gtasks delete "Old task"            # Delete by name
+uni gtasks delete 1                     # Delete by index (1-based)
 ```
 
 ### Manage task lists

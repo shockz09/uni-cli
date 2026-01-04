@@ -3,7 +3,6 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
-import { c } from '@uni/shared';
 import { gtasks } from '../api';
 
 export const deleteCommand: Command = {
@@ -12,8 +11,8 @@ export const deleteCommand: Command = {
   aliases: ['rm', 'remove'],
   args: [
     {
-      name: 'title',
-      description: 'Task title or ID',
+      name: 'query',
+      description: 'Task title, ID, or index (1-based)',
       required: true,
     },
   ],
@@ -25,17 +24,10 @@ export const deleteCommand: Command = {
       description: 'Task list ID',
       default: '@default',
     },
-    {
-      name: 'force',
-      short: 'f',
-      type: 'boolean',
-      description: 'Skip confirmation',
-      default: false,
-    },
   ],
   examples: [
     'uni gtasks delete "Old task"',
-    'uni gtasks delete abc123 --force',
+    'uni gtasks delete 1',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
@@ -46,49 +38,38 @@ export const deleteCommand: Command = {
       return;
     }
 
-    const titleOrId = args.title as string;
+    const query = args.query as string;
     const listId = flags.list as string;
-    const spinner = output.spinner('Finding task...');
 
-    try {
-      const task = await gtasks.findTaskByTitle(listId, titleOrId);
+    let task;
 
-      if (!task) {
-        spinner.fail(`Task "${titleOrId}" not found`);
+    // Check if query is a number (index)
+    const index = parseInt(query, 10);
+    if (!isNaN(index) && index > 0 && String(index) === query) {
+      // It's an index - get tasks and find by position
+      const tasks = await gtasks.getTasks(listId, { showCompleted: false });
+      if (index > tasks.length) {
+        output.error(`No task at index ${index}. Only ${tasks.length} tasks.`);
         return;
       }
-
-      spinner.success(`Found: ${task.title}`);
-
-      // Confirm unless --force
-      if (!flags.force) {
-        const readline = await import('node:readline');
-        const rl = readline.createInterface({
-          input: process.stdin,
-          output: process.stdout,
-        });
-
-        const answer = await new Promise<string>((resolve) => {
-          rl.question(c.yellow(`Delete "${task.title}"? [y/N] `), resolve);
-        });
-        rl.close();
-
-        if (answer.toLowerCase() !== 'y') {
-          output.info('Cancelled');
-          return;
-        }
-      }
-
-      const deleteSpinner = output.spinner('Deleting...');
-      await gtasks.deleteTask(listId, task.id);
-      deleteSpinner.success('Task deleted');
-
-      if (globalFlags.json) {
-        output.json({ deleted: task.id, title: task.title });
-      }
-    } catch (error) {
-      spinner.fail('Failed to delete task');
-      throw error;
+      task = tasks[index - 1]; // 1-based index
+    } else {
+      // Search by title
+      task = await gtasks.findTaskByTitle(listId, query);
     }
+
+    if (!task) {
+      output.error(`Task "${query}" not found`);
+      return;
+    }
+
+    await gtasks.deleteTask(listId, task.id);
+
+    if (globalFlags.json) {
+      output.json({ deleted: task.id, title: task.title });
+      return;
+    }
+
+    output.success(`Deleted: ${task.title}`);
   },
 };

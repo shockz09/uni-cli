@@ -542,14 +542,12 @@ Delete files from Drive
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
 | `--id` |  | string |  | Delete by file ID directly |
-| `--force` | -f | boolean | `false` | Skip confirmation |
 
 **Examples:**
 
 ```bash
 uni gdrive delete "old document"
 uni gdrive delete --id 1abc123xyz
-uni gdrive delete "gk quiz" --force
 ```
 
 ---
@@ -1025,17 +1023,11 @@ Delete a contact
 |------|----------|-------------|
 | `query` | Yes | Contact name or email |
 
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--force` | -f | boolean | `false` | Skip confirmation |
-
 **Examples:**
 
 ```bash
 uni gcontacts delete "John Doe"
-uni gcontacts delete "old@email.com" --force
+uni gcontacts delete "old@email.com"
 ```
 
 ---
@@ -1471,20 +1463,19 @@ Delete a task
 
 | Name | Required | Description |
 |------|----------|-------------|
-| `title` | Yes | Task title or ID |
+| `query` | Yes | Task title, ID, or index (1-based) |
 
 **Options:**
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
 | `--list` | -l | string | `@default` | Task list ID |
-| `--force` | -f | boolean | `false` | Skip confirmation |
 
 **Examples:**
 
 ```bash
 uni gtasks delete "Old task"
-uni gtasks delete abc123 --force
+uni gtasks delete 1
 ```
 
 ---

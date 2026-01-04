@@ -3,7 +3,6 @@
  */
 
 import type { Command, CommandContext } from '@uni/shared';
-import { c } from '@uni/shared';
 import { gcontacts } from '../api';
 
 export const deleteCommand: Command = {
@@ -17,22 +16,13 @@ export const deleteCommand: Command = {
       required: true,
     },
   ],
-  options: [
-    {
-      name: 'force',
-      short: 'f',
-      type: 'boolean',
-      description: 'Skip confirmation',
-      default: false,
-    },
-  ],
   examples: [
     'uni gcontacts delete "John Doe"',
-    'uni gcontacts delete "old@email.com" --force',
+    'uni gcontacts delete "old@email.com"',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
-    const { output, args, flags, globalFlags } = ctx;
+    const { output, args, globalFlags } = ctx;
 
     if (!gcontacts.isAuthenticated()) {
       output.error('Not authenticated. Run "uni gcontacts auth" first.');
@@ -40,49 +30,23 @@ export const deleteCommand: Command = {
     }
 
     const query = args.query as string;
-    const spinner = output.spinner(`Finding "${query}"...`);
+    const contacts = await gcontacts.searchContacts(query);
 
-    try {
-      const contacts = await gcontacts.searchContacts(query);
-
-      if (contacts.length === 0) {
-        spinner.fail('Contact not found');
-        return;
-      }
-
-      const contact = contacts[0];
-      const name = gcontacts.getDisplayName(contact);
-      spinner.success(`Found: ${name}`);
-
-      // Confirm unless --force
-      if (!flags.force) {
-        const readline = await import('node:readline');
-        const rl = readline.createInterface({
-          input: process.stdin,
-          output: process.stdout,
-        });
-
-        const answer = await new Promise<string>((resolve) => {
-          rl.question(c.yellow(`Delete "${name}"? [y/N] `), resolve);
-        });
-        rl.close();
-
-        if (answer.toLowerCase() !== 'y') {
-          output.info('Cancelled');
-          return;
-        }
-      }
-
-      const deleteSpinner = output.spinner('Deleting...');
-      await gcontacts.deleteContact(contact.resourceName);
-      deleteSpinner.success('Contact deleted');
-
-      if (globalFlags.json) {
-        output.json({ deleted: contact.resourceName, name });
-      }
-    } catch (error) {
-      spinner.fail('Failed to delete contact');
-      throw error;
+    if (contacts.length === 0) {
+      output.error('Contact not found');
+      return;
     }
+
+    const contact = contacts[0];
+    const name = gcontacts.getDisplayName(contact);
+
+    await gcontacts.deleteContact(contact.resourceName);
+
+    if (globalFlags.json) {
+      output.json({ deleted: contact.resourceName, name });
+      return;
+    }
+
+    output.success(`Deleted: ${name}`);
   },
 };
