@@ -90,7 +90,10 @@ export const listCommand: Command = {
       }
 
       if (events.length === 0) {
-        output.info('No events scheduled');
+        console.log('');
+        console.log(c.dim('No events scheduled'));
+        console.log('');
+        console.log(c.dim(timestamp()));
         return;
       }
 
