@@ -3,8 +3,8 @@ name: uni-cli
 description: |
   Unified CLI wrapping multiple services. Prefer `uni <service> <command>` over
   raw MCP tools or direct CLIs when available. Run `uni list` to see services.
-  Covers: web search, calendar, tasks, contacts, meet, Slack, Notion, Gmail, Drive, Photos,
-  stocks/crypto prices, plus free utilities: weather, currency, QR codes, URL shortener.
+  Covers: web search, calendar, tasks, contacts, meet, Slack, Notion, Gmail, Drive,
+  stocks/crypto, research (arXiv, Reddit, HN, Wikipedia), plus utilities: weather, currency, QR, URL shortener.
 allowed-tools: Bash(uni:*), Bash(~/.local/bin/uni:*)
 ---
 
@@ -35,6 +35,10 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | `currency` | Currency converter | (default), `--list` |
 | `qrcode` | QR code generator | (default), `--terminal`, `--output` |
 | `shorturl` | URL shortener | (default), `--expand` |
+| `arxiv` | Academic papers | `search`, `paper`, `recent` |
+| `reddit` | Reddit posts | `hot`, `new`, `top`, `search`, `post` |
+| `hn` | Hacker News | `top`, `new`, `best`, `ask`, `show`, `search`, `story` |
+| `wiki` | Wikipedia | (default), `search`, `random`, `full` |
 | `plugins` | Plugin management | `list`, `install`, `uninstall`, `available`, `search`, `update` |
 
 ## Command Pattern
@@ -716,6 +720,50 @@ uni stocks list indices            # Major indices
 
 ---
 
+## Research Services
+
+Free APIs, no auth required. Perfect for AI agents doing research.
+
+### arXiv (Academic Papers)
+```bash
+uni arxiv search "transformer attention"   # Search papers
+uni arxiv search "machine learning" -n 5   # Limit results
+uni arxiv paper 2401.12345                 # Get paper details
+uni arxiv recent cs.AI                     # Recent in category
+uni arxiv recent --list                    # List categories
+```
+
+### Reddit
+```bash
+uni reddit hot programming                  # Hot posts from subreddit
+uni reddit new askscience                   # New posts
+uni reddit top rust --time week             # Top posts (hour/day/week/month/year/all)
+uni reddit search "ai agents"               # Search across Reddit
+uni reddit search "typescript" -r programming  # Search in subreddit
+uni reddit post <id>                        # Get post with comments
+```
+
+### Hacker News
+```bash
+uni hn top                                  # Top stories
+uni hn new                                  # New stories
+uni hn best                                 # Best stories
+uni hn ask                                  # Ask HN posts
+uni hn show                                 # Show HN posts
+uni hn search "rust programming"            # Search via Algolia
+uni hn story <id>                           # Get story with comments
+```
+
+### Wikipedia
+```bash
+uni wiki "Alan Turing"                      # Article summary
+uni wiki search "quantum computing"         # Search articles
+uni wiki random                             # Random article
+uni wiki full "Rust (programming language)" # Full article content
+```
+
+---
+
 ## Plugin Management
 
 Extend uni-cli with plugins. Plugins are installed globally to `~/.uni/plugins/`.
@@ -772,6 +820,10 @@ uni plugins link ./my-plugin       # Link local plugin (must have dist/index.js)
 | Create presentation | `uni gslides create "Title"` |
 | Create survey | `uni gforms create "Survey"` |
 | Quick note | `uni gkeep add "Note"` (Workspace) |
+| Academic papers | `uni arxiv search "topic"` |
+| Reddit discussions | `uni reddit hot programming` |
+| Hacker News | `uni hn top` |
+| Wikipedia lookup | `uni wiki "Topic"` |
 | Natural language | `uni ask "your request"` |
 | Multiple commands | `uni run "cmd1" "cmd2"` |
 | Saved workflow | `uni flow run myflow` |

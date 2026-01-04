@@ -1271,6 +1271,133 @@ uni gmail auth --logout
 
 ---
 
+## uni reddit
+
+Reddit posts and search (free)
+
+### `uni reddit hot`
+
+Get hot posts from a subreddit
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `subreddit` | Yes | Subreddit name (without r/) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+
+**Examples:**
+
+```bash
+uni reddit hot programming
+uni reddit hot rust -n 5
+```
+
+---
+
+### `uni reddit new`
+
+Get new posts from a subreddit
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `subreddit` | Yes | Subreddit name (without r/) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+
+**Examples:**
+
+```bash
+uni reddit new programming
+uni reddit new askscience -n 5
+```
+
+---
+
+### `uni reddit top`
+
+Get top posts from a subreddit
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `subreddit` | Yes | Subreddit name (without r/) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--time` | -t | string | `day` | Time period: hour, day, week, month, year, all |
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+
+**Examples:**
+
+```bash
+uni reddit top programming
+uni reddit top rust --time week
+uni reddit top typescript -t month -n 5
+```
+
+---
+
+### `uni reddit search`
+
+Search Reddit posts
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Search query |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--subreddit` | -r | string |  | Limit to subreddit |
+| `--sort` | -s | string | `relevance` | Sort: relevance, hot, top, new |
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+
+**Examples:**
+
+```bash
+uni reddit search "ai agents"
+uni reddit search "typescript tips" -r programming
+uni reddit search "rust vs go" --sort top -n 5
+```
+
+---
+
+### `uni reddit post`
+
+Get a post with comments
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Post ID (from URL) |
+
+**Examples:**
+
+```bash
+uni reddit post 1abc2de
+```
+
+---
+
 ## uni gmeet
 
 Google Meet - video meetings
@@ -1781,6 +1908,81 @@ uni notion databases query abc123 --limit 50
 
 ---
 
+## uni arxiv
+
+arXiv paper search (free)
+
+### `uni arxiv search`
+
+Search arXiv papers
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Search query |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+
+**Examples:**
+
+```bash
+uni arxiv search "transformer attention"
+uni arxiv search "reinforcement learning" -n 5
+```
+
+---
+
+### `uni arxiv paper`
+
+Get paper details by arXiv ID
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | arXiv paper ID (e.g., 2401.12345) |
+
+**Examples:**
+
+```bash
+uni arxiv paper 2401.12345
+uni arxiv paper 1706.03762
+```
+
+---
+
+### `uni arxiv recent`
+
+Get recent papers in a category
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `category` | No | arXiv category (e.g., cs.AI, cs.LG) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+| `--list` | -l | boolean |  | List common categories |
+
+**Examples:**
+
+```bash
+uni arxiv recent cs.AI
+uni arxiv recent cs.LG -n 5
+uni arxiv recent --list
+```
+
+---
+
 ## uni weather
 
 Weather forecasts (Open-Meteo)
@@ -2136,6 +2338,86 @@ Authenticate with Google Forms
 uni gforms auth
 uni gforms auth --status
 uni gforms auth --logout
+```
+
+---
+
+## uni wiki
+
+Wikipedia articles and search (free)
+
+### `uni wiki `
+
+Get Wikipedia article summary
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Article title |
+
+**Examples:**
+
+```bash
+uni wiki "Alan Turing"
+uni wiki "Quantum computing"
+uni wiki "Rust (programming language)"
+```
+
+---
+
+### `uni wiki search`
+
+Search Wikipedia articles
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Search query |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+
+**Examples:**
+
+```bash
+uni wiki search "quantum computing"
+uni wiki search "machine learning" -n 5
+```
+
+---
+
+### `uni wiki random`
+
+Get a random Wikipedia article
+
+**Examples:**
+
+```bash
+uni wiki random
+```
+
+---
+
+### `uni wiki full`
+
+Get full Wikipedia article
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Article title |
+
+**Examples:**
+
+```bash
+uni wiki full "Alan Turing"
+uni wiki full "Rust (programming language)"
 ```
 
 ---
@@ -2838,6 +3120,157 @@ uni currency 100 usd eur
 uni currency 5000 jpy to usd
 uni currency 1000 eur to usd gbp jpy
 uni currency --list
+```
+
+---
+
+## uni hn
+
+Hacker News stories and search (free)
+
+### `uni hn top`
+
+Get top Hacker News stories
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+
+**Examples:**
+
+```bash
+uni hn top
+uni hn top -n 20
+```
+
+---
+
+### `uni hn new`
+
+Get newest Hacker News stories
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+
+**Examples:**
+
+```bash
+uni hn new
+uni hn new -n 20
+```
+
+---
+
+### `uni hn best`
+
+Get best Hacker News stories
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+
+**Examples:**
+
+```bash
+uni hn best
+uni hn best -n 20
+```
+
+---
+
+### `uni hn ask`
+
+Get Ask HN posts
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+
+**Examples:**
+
+```bash
+uni hn ask
+uni hn ask -n 5
+```
+
+---
+
+### `uni hn show`
+
+Get Show HN posts
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+
+**Examples:**
+
+```bash
+uni hn show
+uni hn show -n 5
+```
+
+---
+
+### `uni hn search`
+
+Search Hacker News (via Algolia)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Search query |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sort` | -s | string | `relevance` | Sort by: relevance or date |
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+
+**Examples:**
+
+```bash
+uni hn search "rust programming"
+uni hn search "ai agents" --sort date
+uni hn search "typescript" -n 5
+```
+
+---
+
+### `uni hn story`
+
+Get a story with comments
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Story ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--comments` | -c | number | `10` | Number of comments (default: 10) |
+
+**Examples:**
+
+```bash
+uni hn story 12345678
+uni hn story 12345678 -c 20
 ```
 
 ---
