@@ -4,13 +4,10 @@
 
 import { TelegramClient, Api } from 'telegram';
 import { StringSession } from 'telegram/sessions';
-import { Logger, LogLevel } from 'telegram/extensions';
+import { Logger, LogLevel } from 'telegram/extensions/Logger';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
-
-// Suppress gramjs debug logs - only show errors
-Logger.setLevel(LogLevel.NONE);
 
 const UNI_DIR = path.join(process.env.HOME || '~', '.uni');
 const SESSION_FILE = path.join(UNI_DIR, 'tokens', 'telegram.session');
@@ -127,8 +124,10 @@ export async function createClient(): Promise<TelegramClient | null> {
   const sessionString = config?.session || savedSession || '';
 
   const session = new StringSession(sessionString);
+  const silentLogger = new Logger(LogLevel.NONE);
   const client = new TelegramClient(session, creds.apiId, creds.apiHash, {
     connectionRetries: 5,
+    baseLogger: silentLogger,
   });
 
   await client.connect();
@@ -161,8 +160,10 @@ export async function authenticateInteractive(
     });
 
   const session = new StringSession('');
+  const silentLogger = new Logger(LogLevel.NONE);
   const client = new TelegramClient(session, apiId, apiHash, {
     connectionRetries: 5,
+    baseLogger: silentLogger,
   });
 
   try {
