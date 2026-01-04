@@ -78,37 +78,6 @@ uni exa company "OpenAI" --num 10
 
 ---
 
-## GitHub Service (via gh CLI)
-
-### Pull Requests
-```bash
-uni gh pr list                          # List open PRs
-uni gh pr list --state all --limit 20   # All PRs
-uni gh pr view 123                      # View PR details
-uni gh pr create --title "Feature"      # Create PR
-uni gh pr merge 123 --squash            # Merge PR
-```
-
-### Issues
-```bash
-uni gh issue list                       # List open issues
-uni gh issue list --label bug           # Filter by label
-uni gh issue view 456                   # View issue
-uni gh issue create --title "Bug"       # Create issue
-uni gh issue close 456                  # Close issue
-```
-
-### Repositories
-```bash
-uni gh repo view                        # Current repo info
-uni gh repo view owner/repo             # Specific repo
-uni gh repo list --limit 10             # Your repos
-uni gh repo clone owner/repo            # Clone repo
-uni gh repo create my-project --public  # Create repo
-```
-
----
-
 ## Google Calendar Service
 
 ### List events
@@ -532,8 +501,8 @@ uni ask "show my calendar tomorrow"
 uni ask "search for React tutorials"
 # → uni exa search "React tutorials"
 
-uni ask "list my open PRs"
-# → uni gh pr list --state open
+uni ask "what meetings do I have today"
+# → uni gcal list --date today
 
 uni ask -i                              # Interactive mode
 uni ask "query" --dry-run               # Show without executing
@@ -572,7 +541,7 @@ uni ask "query" --provider deepseek --model deepseek-chat
 Run multiple commands at once:
 
 ```bash
-uni run "gh pr list" "gcal list"        # Sequential
+uni run "gcal list" "gtasks list"       # Sequential
 uni run -p "cmd1" "cmd2" "cmd3"         # Parallel
 uni run --dry-run "cmd1" "cmd2"         # Preview only
 ```
@@ -585,8 +554,8 @@ Save and run command macros:
 
 ```bash
 # Create a flow
-uni flow add standup "gcal list" "gh pr list --mine"
-uni flow add prcheck "gh pr view $1" "gh pr checks $1"
+uni flow add standup "gcal list" "gtasks list"
+uni flow add morning "weather London" "gcal next"
 
 # List flows
 uni flow list
@@ -627,13 +596,13 @@ uni uninstall linear                    # Remove package
 Create shortcuts for common commands:
 
 ```bash
-uni alias add prs "gh pr list --state open"
 uni alias add inbox "gmail list --unread"
+uni alias add today "gcal list --date today"
 uni alias list                          # Show all aliases
-uni alias remove prs                    # Remove alias
+uni alias remove inbox                  # Remove alias
 
 # Use aliases
-uni prs                                 # → uni gh pr list --state open
+uni inbox                               # → uni gmail list --unread
 ```
 
 ---
@@ -645,7 +614,7 @@ View and re-run past commands:
 ```bash
 uni history                             # Recent commands
 uni history --limit 50                  # More history
-uni history --search "gh pr"            # Search history
+uni history --search "gcal"             # Search history
 uni history run 42                      # Re-run command #42
 uni history clear                       # Clear history
 ```
@@ -719,9 +688,8 @@ uni gdrive auth --logout
 | Current info/news | `uni exa search "topic"` |
 | Code/library docs | `uni exa code "library feature"` |
 | In-depth research | `uni exa research "topic" --mode deep` |
-| List PRs/issues | `uni gh pr list` / `uni gh issue list` |
-| Create PR | `uni gh pr create --title "..."` |
 | Today's calendar | `uni gcal list` |
+| My tasks | `uni gtasks list` |
 | Schedule meeting | `uni gcal add "Title" --time 2pm` |
 | Slack message | `uni slack send channel "message"` |
 | Search Notion | `uni notion search "query"` |

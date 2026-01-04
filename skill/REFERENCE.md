@@ -116,8 +116,8 @@ Natural language interface - translate plain English to uni commands.
 uni ask "show my calendar tomorrow"
 # → uni gcal list --date tomorrow
 
-uni ask "list my open PRs"
-# → uni gh pr list --state open
+uni ask "what tasks do I have"
+# → uni gtasks list
 ```
 
 ### Options
@@ -162,9 +162,9 @@ uni run "cmd1" "cmd2" "cmd3"
 ### Examples
 
 ```bash
-uni run "gh pr list" "gcal list"
-uni run -p "gh pr list" "gcal list" "exa search 'news'"
-uni run --dry-run "gh pr create" "slack send general 'PR ready'"
+uni run "gcal list" "gtasks list"
+uni run -p "gmail list" "gcal list" "exa search 'news'"
+uni run --dry-run "gcal add 'Meeting'" "slack send general 'Meeting scheduled'"
 ```
 
 ---
@@ -186,8 +186,8 @@ uni flow list
 Create a new flow.
 
 ```bash
-uni flow add standup "gcal list" "gh pr list --mine"
-uni flow add prcheck "gh pr view $1" "gh pr checks $1"
+uni flow add standup "gcal list" "gtasks list"
+uni flow add morning "weather London" "gcal next"
 ```
 
 ### `uni flow remove <name>`
@@ -276,8 +276,8 @@ List all aliases.
 Create an alias.
 
 ```bash
-uni alias add prs "gh pr list --state open"
 uni alias add inbox "gmail list --unread"
+uni alias add today "gcal list --date today"
 ```
 
 ### `uni alias remove <name>`
@@ -285,13 +285,13 @@ uni alias add inbox "gmail list --unread"
 Remove an alias.
 
 ```bash
-uni alias remove prs
+uni alias remove inbox
 ```
 
 ### Usage
 
 ```bash
-uni prs                         # → uni gh pr list --state open
+uni inbox                       # → uni gmail list --unread
 ```
 
 ---
@@ -324,7 +324,7 @@ Clear command history.
 ```bash
 uni history
 uni history --limit 50
-uni history --search "gh pr"
+uni history --search "gcal"
 uni history run 42
 uni history clear
 ```
@@ -382,12 +382,14 @@ List files in Drive
 |--------|-------|------|---------|-------------|
 | `--limit` | -l | number | `20` | Maximum files |
 | `--folder` | -f | string |  | Folder ID to list |
+| `--all` | -a | boolean | `false` | Include shared files (default: owned only) |
 
 **Examples:**
 
 ```bash
 uni gdrive list
 uni gdrive list --limit 50
+uni gdrive list --all
 ```
 
 ---
@@ -419,6 +421,139 @@ uni gdrive search "project" --limit 50
 
 ---
 
+### `uni gdrive get`
+
+Get file details
+
+**Aliases:** `info`, `view`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `file` | Yes | File ID or search query |
+
+**Examples:**
+
+```bash
+uni gdrive get 1abc123def
+uni gdrive get "report.pdf"
+```
+
+---
+
+### `uni gdrive upload`
+
+Upload a file to Google Drive
+
+**Aliases:** `up`, `put`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `file` | Yes | Local file path to upload |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--name` | -n | string |  | Name in Drive (defaults to filename) |
+| `--folder` | -f | string |  | Destination folder ID |
+
+**Examples:**
+
+```bash
+uni gdrive upload ./report.pdf
+uni gdrive upload ./photo.jpg --name "Vacation Photo"
+uni gdrive upload ./data.csv --folder 1abc123
+```
+
+---
+
+### `uni gdrive download`
+
+Download a file from Google Drive
+
+**Aliases:** `down`, `get`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `file` | Yes | File ID or search query |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--output` | -o | string |  | Output path (defaults to current dir) |
+
+**Examples:**
+
+```bash
+uni gdrive download 1abc123def
+uni gdrive download "report.pdf"
+uni gdrive download 1abc123 --output ./downloads/
+```
+
+---
+
+### `uni gdrive share`
+
+Share a file with someone
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `file` | Yes | File ID or search query |
+| `email` | Yes | Email address to share with |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--role` | -r | string | `reader` | Permission role: reader, writer, commenter |
+
+**Examples:**
+
+```bash
+uni gdrive share 1abc123 user@example.com
+uni gdrive share "report.pdf" team@company.com --role writer
+```
+
+---
+
+### `uni gdrive delete`
+
+Delete files from Drive
+
+**Aliases:** `rm`, `remove`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | File name or search query |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--id` |  | string |  | Delete by file ID directly |
+| `--force` | -f | boolean | `false` | Skip confirmation |
+
+**Examples:**
+
+```bash
+uni gdrive delete "old document"
+uni gdrive delete --id 1abc123xyz
+uni gdrive delete "gk quiz" --force
+```
+
+---
+
 ### `uni gdrive auth`
 
 Authenticate with Google Drive
@@ -438,277 +573,6 @@ Authenticate with Google Drive
 uni gdrive auth
 uni gdrive auth --status
 uni gdrive auth --logout
-```
-
----
-
-## uni gh
-
-GitHub management - PRs, issues, and repositories
-
-### `uni gh pr`
-
-Manage pull requests
-
-**Aliases:** `pull-request`
-
-**Examples:**
-
-```bash
-uni gh pr list
-uni gh pr view 123
-uni gh pr create --title "Feature"
-```
-
-**Subcommands:**
-
-#### `uni gh pr list`
-
-List pull requests
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--state` | -s | string | Filter by state: open, closed, merged, all |
-| `--limit` | -l | number | Maximum number of PRs to list |
-| `--author` | -a | string | Filter by author |
-
-```bash
-uni gh pr list
-uni gh pr list --state all --limit 20
-uni gh pr list --author @me
-```
-
-#### `uni gh pr view`
-
-View a pull request
-
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `number` | Yes | PR number |
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--web` | -w | boolean | Open in browser |
-
-```bash
-uni gh pr view 123
-uni gh pr view 123 --web
-```
-
-#### `uni gh pr create`
-
-Create a pull request
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--title` | -t | string | PR title |
-| `--body` | -b | string | PR description |
-| `--base` |  | string | Base branch |
-| `--draft` | -d | boolean | Create as draft |
-| `--web` | -w | boolean | Open in browser to create |
-
-```bash
-uni gh pr create --title "Add feature" --body "Description"
-uni gh pr create --draft
-uni gh pr create --web
-```
-
-#### `uni gh pr merge`
-
-Merge a pull request
-
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `number` | No | PR number (defaults to current branch PR) |
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--method` | -m | string | Merge method: merge, squash, rebase |
-| `--delete-branch` | -d | boolean | Delete branch after merge |
-
-```bash
-uni gh pr merge 123
-uni gh pr merge --method squash
-uni gh pr merge 123 --delete-branch
-```
-
----
-
-### `uni gh issue`
-
-Manage issues
-
-**Aliases:** `issues`, `i`
-
-**Examples:**
-
-```bash
-uni gh issue list
-uni gh issue view 123
-uni gh issue create --title "Bug"
-```
-
-**Subcommands:**
-
-#### `uni gh issue list`
-
-List issues
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--state` | -s | string | Filter by state: open, closed, all |
-| `--limit` | -l | number | Maximum number of issues to list |
-| `--label` |  | string | Filter by label |
-| `--assignee` | -a | string | Filter by assignee |
-
-```bash
-uni gh issue list
-uni gh issue list --state all --limit 20
-uni gh issue list --label bug
-```
-
-#### `uni gh issue view`
-
-View an issue
-
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `number` | Yes | Issue number |
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--web` | -w | boolean | Open in browser |
-
-```bash
-uni gh issue view 123
-uni gh issue view 123 --web
-```
-
-#### `uni gh issue create`
-
-Create an issue
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--title` | -t | string | Issue title |
-| `--body` | -b | string | Issue description |
-| `--label` | -l | string | Add labels (comma-separated) |
-| `--assignee` | -a | string | Assign to user |
-| `--web` | -w | boolean | Open in browser to create |
-
-```bash
-uni gh issue create --title "Bug report" --body "Description"
-uni gh issue create --title "Feature" --label enhancement
-uni gh issue create --web
-```
-
-#### `uni gh issue close`
-
-Close an issue
-
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `number` | Yes | Issue number |
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--reason` | -r | string | Reason: completed, not_planned |
-
-```bash
-uni gh issue close 123
-uni gh issue close 123 --reason not_planned
-```
-
----
-
-### `uni gh repo`
-
-Manage repositories
-
-**Aliases:** `repository`, `r`
-
-**Examples:**
-
-```bash
-uni gh repo view
-uni gh repo clone owner/repo
-uni gh repo list
-```
-
-**Subcommands:**
-
-#### `uni gh repo view`
-
-View repository details
-
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `repo` | No | Repository name (owner/repo) |
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--web` | -w | boolean | Open in browser |
-
-```bash
-uni gh repo view
-uni gh repo view owner/repo
-uni gh repo view --web
-```
-
-#### `uni gh repo clone`
-
-Clone a repository
-
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `repo` | Yes | Repository to clone (owner/repo or URL) |
-| `directory` | No | Target directory |
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--depth` |  | number | Shallow clone depth |
-
-```bash
-uni gh repo clone owner/repo
-uni gh repo clone owner/repo ./my-dir
-uni gh repo clone owner/repo --depth 1
-```
-
-#### `uni gh repo list`
-
-List repositories
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--limit` | -l | number | Maximum number of repos to list |
-| `--visibility` |  | string | Filter by visibility: public, private, all |
-| `--source` |  | boolean | Show only non-forks |
-
-```bash
-uni gh repo list
-uni gh repo list --limit 20
-uni gh repo list --visibility private
-```
-
-#### `uni gh repo create`
-
-Create a new repository
-
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `name` | No | Repository name |
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--public` |  | boolean | Make repository public |
-| `--private` |  | boolean | Make repository private |
-| `--description` | -d | string | Repository description |
-| `--clone` | -c | boolean | Clone after creating |
-
-```bash
-uni gh repo create my-project
-uni gh repo create my-project --public
-uni gh repo create my-project --description "My project" --clone
 ```
 
 ---
@@ -834,6 +698,371 @@ uni exa company "Stripe"
 
 ---
 
+## uni gslides
+
+Google Slides - presentations
+
+### `uni gslides list`
+
+List recent presentations
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | string |  | Number of presentations to show (default: 10) |
+
+**Examples:**
+
+```bash
+uni gslides list
+uni gslides list -n 20
+```
+
+---
+
+### `uni gslides get`
+
+Get presentation details
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--text` | -t | boolean |  | Extract text from slides |
+
+**Examples:**
+
+```bash
+uni gslides get <presentation-id>
+uni gslides get <presentation-id> --text
+uni gslides get https://docs.google.com/presentation/d/xxx/edit
+```
+
+---
+
+### `uni gslides create`
+
+Create a new presentation
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Presentation title |
+
+**Examples:**
+
+```bash
+uni gslides create "Q1 Review"
+uni gslides create "Product Launch"
+```
+
+---
+
+### `uni gslides add-slide`
+
+Add a new slide to presentation
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Examples:**
+
+```bash
+uni gslides add-slide <presentation-id>
+```
+
+---
+
+### `uni gslides add-text`
+
+Add text to a slide
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `text` | Yes | Text to add |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--slide` | -s | string |  | Slide number (default: last slide) |
+
+**Examples:**
+
+```bash
+uni gslides add-text <id> "Hello World"
+uni gslides add-text <id> "Title" --slide 1
+```
+
+---
+
+### `uni gslides share`
+
+Share a presentation with someone
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `email` | Yes | Email address to share with |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--role` | -r | string |  | Permission role: reader or writer (default: writer) |
+
+**Examples:**
+
+```bash
+uni gslides share <id> colleague@example.com
+uni gslides share <id> viewer@example.com --role reader
+```
+
+---
+
+### `uni gslides export`
+
+Export presentation to PDF, PPTX, or other formats
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `format` | Yes | Export format: pdf, pptx, odp, txt |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--output` | -o | string |  | Output file path |
+
+**Examples:**
+
+```bash
+uni gslides export <id> pdf
+uni gslides export <id> pptx -o presentation.pptx
+```
+
+---
+
+### `uni gslides auth`
+
+Authenticate with Google Slides
+
+**Aliases:** `login`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` | -s | boolean | `false` | Check authentication status |
+| `--logout` |  | boolean | `false` | Remove authentication token |
+
+**Examples:**
+
+```bash
+uni gslides auth
+uni gslides auth --status
+uni gslides auth --logout
+```
+
+---
+
+## uni gcontacts
+
+Google Contacts - manage contacts
+
+### `uni gcontacts list`
+
+List contacts
+
+**Aliases:** `ls`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -l | number | `20` | Max contacts |
+
+**Examples:**
+
+```bash
+uni gcontacts list
+uni gcontacts list --limit 50
+```
+
+---
+
+### `uni gcontacts search`
+
+Search contacts
+
+**Aliases:** `s`, `find`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Search query (name, email, phone) |
+
+**Examples:**
+
+```bash
+uni gcontacts search "John"
+uni gcontacts search "john@example.com"
+uni gcontacts search "+91"
+```
+
+---
+
+### `uni gcontacts get`
+
+Get contact details
+
+**Aliases:** `view`, `show`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Contact name or email |
+
+**Examples:**
+
+```bash
+uni gcontacts get "John Doe"
+uni gcontacts get "john@example.com"
+```
+
+---
+
+### `uni gcontacts add`
+
+Add a new contact
+
+**Aliases:** `new`, `create`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `name` | Yes | Contact name |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--email` | -e | string |  | Email address |
+| `--phone` | -p | string |  | Phone number |
+| `--company` | -c | string |  | Company name |
+
+**Examples:**
+
+```bash
+uni gcontacts add "John Doe" --email john@example.com
+uni gcontacts add "Jane" --phone "+91-9876543210" --company "Acme Inc"
+```
+
+---
+
+### `uni gcontacts update`
+
+Update a contact
+
+**Aliases:** `edit`, `modify`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `search` | Yes | Contact name to search for |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--name` | -n | string |  | New name |
+| `--email` | -e | string |  | New email |
+| `--phone` | -p | string |  | New phone |
+| `--company` | -c | string |  | New company |
+
+**Examples:**
+
+```bash
+uni gcontacts update "John Doe" --email john.new@example.com
+uni gcontacts update "Jane" --phone "+1-555-1234"
+uni gcontacts update "Bob" --company "New Corp" --name "Robert Smith"
+```
+
+---
+
+### `uni gcontacts delete`
+
+Delete a contact
+
+**Aliases:** `rm`, `remove`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Contact name or email |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--force` | -f | boolean | `false` | Skip confirmation |
+
+**Examples:**
+
+```bash
+uni gcontacts delete "John Doe"
+uni gcontacts delete "old@email.com" --force
+```
+
+---
+
+### `uni gcontacts auth`
+
+Authenticate with Google Contacts
+
+**Aliases:** `login`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` | -s | boolean | `false` | Check authentication status |
+| `--logout` |  | boolean | `false` | Remove authentication token |
+
+**Examples:**
+
+```bash
+uni gcontacts auth
+uni gcontacts auth --status
+uni gcontacts auth --logout
+```
+
+---
+
 ## uni gmail
 
 Gmail - read, send, and search emails
@@ -882,14 +1111,8 @@ Read an email by ID or search query
 ```bash
 uni gmail read 19b637d54e3f3c51
 uni gmail read "Your Booking is Ticketed"
-uni gmail read "from:amazon order confirmation"
+uni gmail read "from:amazon order"
 ```
-
-**Notes:**
-
-- If query looks like a hex ID (16+ chars), it's treated as an email ID
-- Otherwise, it searches for emails matching the query and reads the first result
-- Use Gmail search syntax for advanced queries (from:, subject:, has:attachment, etc.)
 
 ---
 
@@ -915,9 +1138,37 @@ uni gmail send --to user@example.com --subject "Hello" --body "Message"
 
 ---
 
+### `uni gmail delete`
+
+Delete an email (moves to trash)
+
+**Aliases:** `trash`, `rm`, `remove`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Email ID or search query |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--permanent` | -p | boolean | `false` | Permanently delete (skip trash) |
+
+**Examples:**
+
+```bash
+uni gmail delete 19b637d54e3f3c51
+uni gmail delete "Newsletter from spam"
+uni gmail delete "old email" --permanent
+```
+
+---
+
 ### `uni gmail auth`
 
-Authenticate with Gmail
+Authenticate with Google Gmail
 
 **Aliases:** `login`
 
@@ -934,6 +1185,406 @@ Authenticate with Gmail
 uni gmail auth
 uni gmail auth --status
 uni gmail auth --logout
+```
+
+---
+
+## uni gmeet
+
+Google Meet - video meetings
+
+### `uni gmeet create`
+
+Create an instant meeting link
+
+**Aliases:** `new`, `now`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--title` | -t | string | `Quick Meeting` | Meeting title |
+| `--duration` | -d | number | `30` | Duration in minutes |
+
+**Examples:**
+
+```bash
+uni gmeet create
+uni gmeet create --title "Standup"
+uni gmeet create --title "Interview" --duration 60
+```
+
+---
+
+### `uni gmeet schedule`
+
+Schedule a meeting for later
+
+**Aliases:** `plan`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Meeting title |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--date` | -d | string | `today` | Date (today, tomorrow, YYYY-MM-DD) |
+| `--time` | -t | string |  | Time (e.g., 2pm, 14:00) |
+| `--duration` |  | number | `30` | Duration in minutes |
+| `--invite` | -i | string |  | Comma-separated emails to invite |
+
+**Examples:**
+
+```bash
+uni gmeet schedule "Team Sync" --date tomorrow --time 10am
+uni gmeet schedule "1:1" --time 3pm --invite john@example.com
+uni gmeet schedule "Review" --date 2026-01-10 --time 2pm --duration 60
+```
+
+---
+
+### `uni gmeet list`
+
+List upcoming meetings with Meet links
+
+**Aliases:** `ls`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--days` | -d | number | `7` | Days to look ahead |
+
+**Examples:**
+
+```bash
+uni gmeet list
+uni gmeet list --days 14
+```
+
+---
+
+### `uni gmeet delete`
+
+Cancel/delete a scheduled meeting
+
+**Aliases:** `cancel`, `remove`, `rm`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `search` | Yes | Meeting name to search for |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--days` | -d | number | `14` | Days to search ahead |
+
+**Examples:**
+
+```bash
+uni gmeet delete "Team Sync"
+uni gmeet cancel "1:1 with John"
+```
+
+---
+
+### `uni gmeet auth`
+
+Authenticate with Google Meet
+
+**Aliases:** `login`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` | -s | boolean | `false` | Check authentication status |
+| `--logout` |  | boolean | `false` | Remove authentication token |
+
+**Examples:**
+
+```bash
+uni gmeet auth
+uni gmeet auth --status
+uni gmeet auth --logout
+```
+
+---
+
+## uni gtasks
+
+Google Tasks - manage todos
+
+### `uni gtasks list`
+
+List tasks
+
+**Aliases:** `ls`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | string | `@default` | Task list ID (default: @default) |
+| `--completed` | -c | boolean | `false` | Include completed tasks |
+| `--limit` |  | number | `20` | Max tasks |
+
+**Examples:**
+
+```bash
+uni gtasks list
+uni gtasks list --completed
+uni gtasks list --list Work
+```
+
+---
+
+### `uni gtasks add`
+
+Add a new task
+
+**Aliases:** `new`, `create`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Task title |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | string | `@default` | Task list ID |
+| `--notes` | -n | string |  | Task notes/description |
+| `--due` | -d | string |  | Due date (today, tomorrow, YYYY-MM-DD) |
+
+**Examples:**
+
+```bash
+uni gtasks add "Buy groceries"
+uni gtasks add "Finish report" --due tomorrow
+uni gtasks add "Call mom" --notes "Ask about weekend"
+```
+
+---
+
+### `uni gtasks update`
+
+Update a task
+
+**Aliases:** `edit`, `modify`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `search` | Yes | Task title to search for |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--title` | -t | string |  | New title |
+| `--notes` | -n | string |  | New notes |
+| `--due` | -d | string |  | New due date (today, tomorrow, YYYY-MM-DD) |
+| `--list` | -l | string |  | Task list name |
+
+**Examples:**
+
+```bash
+uni gtasks update "Buy milk" --title "Buy groceries"
+uni gtasks update "Review PR" --due tomorrow
+uni gtasks update "Call client" --notes "Ask about budget"
+```
+
+---
+
+### `uni gtasks done`
+
+Mark task as completed
+
+**Aliases:** `complete`, `check`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Task title or ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | string | `@default` | Task list ID |
+
+**Examples:**
+
+```bash
+uni gtasks done "Buy groceries"
+uni gtasks done abc123
+```
+
+---
+
+### `uni gtasks undone`
+
+Mark task as not completed
+
+**Aliases:** `uncomplete`, `uncheck`, `reopen`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Task title or ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | string | `@default` | Task list ID |
+
+**Examples:**
+
+```bash
+uni gtasks undone "Buy groceries"
+uni gtasks undone abc123
+```
+
+---
+
+### `uni gtasks delete`
+
+Delete a task
+
+**Aliases:** `rm`, `remove`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Task title or ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | string | `@default` | Task list ID |
+| `--force` | -f | boolean | `false` | Skip confirmation |
+
+**Examples:**
+
+```bash
+uni gtasks delete "Old task"
+uni gtasks delete abc123 --force
+```
+
+---
+
+### `uni gtasks lists`
+
+Manage task lists
+
+**Examples:**
+
+```bash
+uni gtasks lists
+uni gtasks lists add "Work"
+uni gtasks lists delete <list-id>
+```
+
+**Subcommands:**
+
+#### `uni gtasks lists list`
+
+List all task lists
+
+#### `uni gtasks lists add`
+
+Create a new task list
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | List name |
+
+#### `uni gtasks lists delete`
+
+Delete a task list
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `id` | Yes | List ID |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--force` | -f | boolean | Skip confirmation |
+
+---
+
+### `uni gtasks auth`
+
+Authenticate with Google Tasks
+
+**Aliases:** `login`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` | -s | boolean | `false` | Check authentication status |
+| `--logout` |  | boolean | `false` | Remove authentication token |
+
+**Examples:**
+
+```bash
+uni gtasks auth
+uni gtasks auth --status
+uni gtasks auth --logout
+```
+
+---
+
+## uni qrcode
+
+QR code generator
+
+### `uni qrcode `
+
+Generate QR codes
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `content` | No | Text, URL, or data to encode |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--output` | -o | string |  | Output file path (PNG) |
+| `--size` | -s | number | `256` | QR code size in pixels (default: 256) |
+| `--foreground` |  | string | `#000000` | Foreground color (hex, default: #000000) |
+| `--background` |  | string | `#ffffff` | Background color (hex, default: #ffffff) |
+| `--terminal` | -t | boolean |  | Display in terminal (ASCII art) |
+| `--wifi` | -w | string |  | Generate WiFi QR: "SSID:password" |
+
+**Examples:**
+
+```bash
+uni qrcode "https://example.com"
+uni qrcode "Hello World" --terminal
+uni qrcode "https://example.com" --output qr.png
+uni qrcode "https://example.com" --size 512
+uni qrcode --wifi "MyNetwork:password123"
 ```
 
 ---
@@ -1045,6 +1696,39 @@ Query a database
 ```bash
 uni notion databases query abc123
 uni notion databases query abc123 --limit 50
+```
+
+---
+
+## uni weather
+
+Weather forecasts (Open-Meteo)
+
+### `uni weather `
+
+Get weather for a location
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `location` | No | City name or lat,long coordinates |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--forecast` | -f | number |  | Number of days to forecast (1-7) |
+| `--units` | -u | string | `celsius` | Temperature units: celsius or fahrenheit |
+
+**Examples:**
+
+```bash
+uni weather London
+uni weather "New York, US"
+uni weather Tokyo --forecast 3
+uni weather London --units fahrenheit
+uni weather 40.7128,-74.0060
 ```
 
 ---
@@ -1195,6 +1879,186 @@ uni slack users info U01234567
 
 ---
 
+## uni gforms
+
+Google Forms - surveys and forms
+
+### `uni gforms list`
+
+List recent forms
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | string |  | Number of forms to show (default: 10) |
+
+**Examples:**
+
+```bash
+uni gforms list
+uni gforms list -n 20
+```
+
+---
+
+### `uni gforms get`
+
+Get form details
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Form ID or URL |
+
+**Examples:**
+
+```bash
+uni gforms get <form-id>
+uni gforms get https://docs.google.com/forms/d/xxx/edit
+```
+
+---
+
+### `uni gforms create`
+
+Create a new form
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Form title |
+
+**Examples:**
+
+```bash
+uni gforms create "Customer Feedback"
+uni gforms create "Event Registration"
+```
+
+---
+
+### `uni gforms add-question`
+
+Add a question to a form
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Form ID or URL |
+| `title` | Yes | Question title |
+| `type` | No | Question type: text, paragraph, scale, choice (default: text) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--required` | -r | boolean |  | Make question required |
+| `--choices` |  | string |  | Comma-separated choices (for choice type) |
+| `--low` |  | string |  | Low value for scale (default: 1) |
+| `--high` |  | string |  | High value for scale (default: 5) |
+
+**Examples:**
+
+```bash
+uni gforms add-question <id> "Your name" text
+uni gforms add-question <id> "Comments" paragraph
+uni gforms add-question <id> "Rating" scale --low 1 --high 10
+uni gforms add-question <id> "Color" choice --choices "Red,Blue,Green"
+uni gforms add-question <id> "Email" text -r
+```
+
+---
+
+### `uni gforms responses`
+
+View form responses
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Form ID or URL |
+
+**Examples:**
+
+```bash
+uni gforms responses <form-id>
+uni gforms responses <form-id> --json
+```
+
+---
+
+### `uni gforms share`
+
+Share a form with someone
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Form ID or URL |
+| `email` | Yes | Email address to share with |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--role` | -r | string |  | Permission role: reader or writer (default: writer) |
+
+**Examples:**
+
+```bash
+uni gforms share <id> colleague@example.com
+uni gforms share <id> viewer@example.com --role reader
+```
+
+---
+
+### `uni gforms delete`
+
+Delete a form
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Form ID or URL |
+
+**Examples:**
+
+```bash
+uni gforms delete <form-id>
+```
+
+---
+
+### `uni gforms auth`
+
+Authenticate with Google Forms
+
+**Aliases:** `login`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` | -s | boolean | `false` | Check authentication status |
+| `--logout` |  | boolean | `false` | Remove authentication token |
+
+**Examples:**
+
+```bash
+uni gforms auth
+uni gforms auth --status
+uni gforms auth --logout
+```
+
+---
+
 ## uni gcal
 
 Google Calendar - events and scheduling
@@ -1279,23 +2143,26 @@ uni gcal next --count 3
 
 ### `uni gcal update`
 
-Update/rename a calendar event
+Update a calendar event
 
-**Aliases:** `edit`, `rename`
+**Aliases:** `edit`, `rename`, `reschedule`
 
 **Arguments:**
 
 | Name | Required | Description |
 |------|----------|-------------|
-| `search` | Yes | Event name or ID to search for |
+| `search` | Yes | Event name/ID to search for |
 
 **Options:**
 
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--title` | -t | string | New event title |
-| `--location` | -l | string | New location |
-| `--description` | -d | string | New description |
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--title` | -t | string |  | New event title |
+| `--location` | -l | string |  | New location |
+| `--description` |  | string |  | New description |
+| `--time` |  | string |  | New start time (e.g., 10am, 14:30) |
+| `--date` |  | string |  | New date (today, tomorrow, YYYY-MM-DD) |
+| `--duration` | -d | string |  | New duration (e.g., 30m, 1h) |
 
 **Examples:**
 
@@ -1303,6 +2170,29 @@ Update/rename a calendar event
 uni gcal update "Flight Check-in" --title "Web Check-in: 6E 906"
 uni gcal update "Meeting" --location "Room B"
 uni gcal update "Standup" -t "Daily Standup"
+uni gcal update "Check-in" --date 2026-01-05 --time 10:45am
+uni gcal update "Meeting" --time 3pm --duration 1h
+```
+
+---
+
+### `uni gcal delete`
+
+Delete a calendar event
+
+**Aliases:** `remove`, `rm`, `cancel`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `search` | Yes | Event name/ID to search for |
+
+**Examples:**
+
+```bash
+uni gcal delete "Team Meeting"
+uni gcal delete "Check-in"
 ```
 
 ---
@@ -1330,142 +2220,6 @@ uni gcal auth --logout
 
 ---
 
-## uni gsheets
-
-Google Sheets - spreadsheets
-
-### `uni gsheets list`
-
-List recent spreadsheets
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--limit` | -n | string | `10` | Number of spreadsheets to show |
-
-**Examples:**
-
-```bash
-uni gsheets list
-uni gsheets list -n 20
-```
-
----
-
-### `uni gsheets get`
-
-Get spreadsheet data
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Spreadsheet ID or URL |
-
-**Options:**
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--range` | -r | string | Cell range (e.g., A1:C10) |
-| `--sheet` | -s | string | Sheet name |
-
-**Examples:**
-
-```bash
-uni gsheets get <spreadsheet-id>
-uni gsheets get <id> --range "A1:C10"
-uni gsheets get <id> --sheet "Sheet2"
-```
-
----
-
-### `uni gsheets create`
-
-Create a new spreadsheet
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `title` | Yes | Spreadsheet title |
-
-**Examples:**
-
-```bash
-uni gsheets create "Budget 2025"
-uni gsheets create "Inventory"
-```
-
----
-
-### `uni gsheets set`
-
-Set cell values
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Spreadsheet ID or URL |
-| `range` | Yes | Cell range (e.g., A1, A1:B2) |
-| `value` | Yes | Value(s) to set |
-
-**Examples:**
-
-```bash
-uni gsheets set <id> A1 "Hello"
-uni gsheets set <id> A1:B2 "1,2;3,4"
-```
-
----
-
-### `uni gsheets append`
-
-Append rows to a sheet
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Spreadsheet ID or URL |
-| `range` | Yes | Range to append to (e.g., A:A) |
-| `values` | Yes | Values to append |
-
-**Examples:**
-
-```bash
-uni gsheets append <id> "A:A" "New,Row,Data"
-```
-
----
-
-### `uni gsheets share`
-
-Share a spreadsheet
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Spreadsheet ID or URL |
-| `email` | Yes | Email address to share with |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--role` | -r | string | `writer` | Permission: reader or writer |
-
-**Examples:**
-
-```bash
-uni gsheets share <id> user@email.com
-uni gsheets share <id> user@email.com --role reader
-```
-
----
-
 ## uni gdocs
 
 Google Docs - documents
@@ -1474,17 +2228,19 @@ Google Docs - documents
 
 List recent documents
 
+**Aliases:** `ls`
+
 **Options:**
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
-| `--limit` | -n | string | `10` | Number of documents to show |
+| `--limit` | -l | number | `10` | Max documents to show |
 
 **Examples:**
 
 ```bash
 uni gdocs list
-uni gdocs list -n 20
+uni gdocs list --limit 20
 ```
 
 ---
@@ -1501,15 +2257,16 @@ Get document content
 
 **Options:**
 
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--text` | -t | boolean | Extract plain text |
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--markdown` | -m | boolean |  | Output as markdown |
 
 **Examples:**
 
 ```bash
-uni gdocs get <document-id>
-uni gdocs get <id> --text
+uni gdocs get 1abc123XYZ
+uni gdocs get 1abc123XYZ --markdown
+uni gdocs get "https://docs.google.com/document/d/1abc123XYZ/edit"
 ```
 
 ---
@@ -1547,14 +2304,15 @@ Append text to document
 **Examples:**
 
 ```bash
-uni gdocs append <id> "New paragraph"
+uni gdocs append 1abc123XYZ "New paragraph"
+uni gdocs append 1abc123XYZ "\n\nAction Items:\n- Task 1\n- Task 2"
 ```
 
 ---
 
 ### `uni gdocs replace`
 
-Find and replace text
+Replace text in document
 
 **Arguments:**
 
@@ -1567,7 +2325,34 @@ Find and replace text
 **Examples:**
 
 ```bash
-uni gdocs replace <id> "old text" "new text"
+uni gdocs replace 1abc123XYZ "old text" "new text"
+uni gdocs replace 1abc123XYZ "TODO" "DONE"
+```
+
+---
+
+### `uni gdocs share`
+
+Share document with email
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `email` | Yes | Email address to share with |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--role` | -r | string | `writer` | Permission role: reader or writer (default: writer) |
+
+**Examples:**
+
+```bash
+uni gdocs share 1abc123XYZ colleague@company.com
+uni gdocs share 1abc123XYZ viewer@example.com --role reader
 ```
 
 ---
@@ -1585,370 +2370,46 @@ Export document to file
 
 **Options:**
 
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--output` | -o | string | Output file path |
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--output` | -o | string |  | Output file path |
 
 **Examples:**
 
 ```bash
-uni gdocs export <id> pdf
-uni gdocs export <id> docx -o report.docx
-uni gdocs export <id> txt
+uni gdocs export 1abc123XYZ pdf
+uni gdocs export 1abc123XYZ pdf --output report.pdf
+uni gdocs export 1abc123XYZ txt --output notes.txt
 ```
 
 ---
 
-### `uni gdocs share`
+### `uni gdocs auth`
 
-Share a document
+Authenticate with Google Docs
 
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Document ID or URL |
-| `email` | Yes | Email address to share with |
+**Aliases:** `login`
 
 **Options:**
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
-| `--role` | -r | string | `writer` | Permission: reader or writer |
+| `--status` | -s | boolean | `false` | Check authentication status |
+| `--logout` |  | boolean | `false` | Remove authentication token |
 
 **Examples:**
 
 ```bash
-uni gdocs share <id> user@email.com
-uni gdocs share <id> user@email.com --role reader
-```
-
----
-
-## uni gslides
-
-Google Slides - presentations
-
-### `uni gslides list`
-
-List recent presentations
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--limit` | -n | string | `10` | Number of presentations to show |
-
-**Examples:**
-
-```bash
-uni gslides list
-uni gslides list -n 20
-```
-
----
-
-### `uni gslides get`
-
-Get presentation details
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-
-**Options:**
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--text` | -t | boolean | Extract text from slides |
-
-**Examples:**
-
-```bash
-uni gslides get <presentation-id>
-uni gslides get <id> --text
-```
-
----
-
-### `uni gslides create`
-
-Create a new presentation
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `title` | Yes | Presentation title |
-
-**Examples:**
-
-```bash
-uni gslides create "Q1 Review"
-uni gslides create "Product Launch"
-```
-
----
-
-### `uni gslides add-slide`
-
-Add a new slide
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-
-**Examples:**
-
-```bash
-uni gslides add-slide <id>
-```
-
----
-
-### `uni gslides add-text`
-
-Add text to a slide
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-| `text` | Yes | Text to add |
-
-**Options:**
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--slide` | -s | string | Slide number (default: last) |
-
-**Examples:**
-
-```bash
-uni gslides add-text <id> "Hello World"
-uni gslides add-text <id> "Title" --slide 1
-```
-
----
-
-### `uni gslides export`
-
-Export presentation to file
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-| `format` | Yes | Export format: pdf, pptx, odp, txt |
-
-**Options:**
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--output` | -o | string | Output file path |
-
-**Examples:**
-
-```bash
-uni gslides export <id> pdf
-uni gslides export <id> pptx -o presentation.pptx
-```
-
----
-
-### `uni gslides share`
-
-Share a presentation
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-| `email` | Yes | Email address to share with |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--role` | -r | string | `writer` | Permission: reader or writer |
-
-**Examples:**
-
-```bash
-uni gslides share <id> user@email.com
-uni gslides share <id> user@email.com --role reader
-```
-
----
-
-## uni gforms
-
-Google Forms - surveys and forms
-
-### `uni gforms list`
-
-List recent forms
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--limit` | -n | string | `10` | Number of forms to show |
-
-**Examples:**
-
-```bash
-uni gforms list
-uni gforms list -n 20
-```
-
----
-
-### `uni gforms get`
-
-Get form details
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Form ID or URL |
-
-**Examples:**
-
-```bash
-uni gforms get <form-id>
-```
-
----
-
-### `uni gforms create`
-
-Create a new form
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `title` | Yes | Form title |
-
-**Examples:**
-
-```bash
-uni gforms create "Customer Feedback"
-uni gforms create "Event Registration"
-```
-
----
-
-### `uni gforms add-question`
-
-Add a question to a form
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Form ID or URL |
-| `title` | Yes | Question title |
-| `type` | No | Question type: text, paragraph, scale, choice (default: text) |
-
-**Options:**
-
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--required` | -r | boolean | Make question required |
-| `--choices` |  | string | Comma-separated choices (for choice type) |
-| `--low` |  | string | Low value for scale (default: 1) |
-| `--high` |  | string | High value for scale (default: 5) |
-
-**Examples:**
-
-```bash
-uni gforms add-question <id> "Your name" text
-uni gforms add-question <id> "Comments" paragraph
-uni gforms add-question <id> "Rating" scale --low 1 --high 10
-uni gforms add-question <id> "Color" choice --choices "Red,Blue,Green"
-uni gforms add-question <id> "Email" text -r
-```
-
----
-
-### `uni gforms responses`
-
-View form responses
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Form ID or URL |
-
-**Examples:**
-
-```bash
-uni gforms responses <form-id>
-uni gforms responses <id> --json
-```
-
----
-
-### `uni gforms share`
-
-Share a form
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Form ID or URL |
-| `email` | Yes | Email address to share with |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--role` | -r | string | `writer` | Permission: reader or writer |
-
-**Examples:**
-
-```bash
-uni gforms share <id> user@email.com
-uni gforms share <id> user@email.com --role reader
-```
-
----
-
-### `uni gforms delete`
-
-Delete a form
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Form ID or URL |
-
-**Examples:**
-
-```bash
-uni gforms delete <form-id>
+uni gdocs auth
+uni gdocs auth --status
+uni gdocs auth --logout
 ```
 
 ---
 
 ## uni gkeep
 
-Google Keep - notes (Workspace Only)
-
-> **Note:** Google Keep API requires Google Workspace Enterprise/Education Plus account.
+Google Keep - notes
 
 ### `uni gkeep list`
 
@@ -1958,8 +2419,8 @@ List notes
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
-| `--archived` | -a | boolean | `false` | Show archived notes |
-| `--trashed` | -t | boolean | `false` | Show trashed notes |
+| `--archived` | -a | boolean |  | Show archived notes |
+| `--trashed` | -t | boolean |  | Show trashed notes |
 
 **Examples:**
 
@@ -2001,10 +2462,10 @@ Create a new note
 
 **Options:**
 
-| Option | Short | Type | Description |
-|--------|-------|------|-------------|
-| `--title` | -t | string | Note title |
-| `--list` | -l | boolean | Create as checklist |
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--title` | -t | string |  | Note title |
+| `--list` | -l | boolean |  | Create as checklist (content as comma-separated items) |
 
 **Examples:**
 
@@ -2030,6 +2491,272 @@ Delete a note (moves to trash)
 
 ```bash
 uni gkeep delete <note-id>
+```
+
+---
+
+### `uni gkeep auth`
+
+Authenticate with Google Keep
+
+**Aliases:** `login`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` | -s | boolean | `false` | Check authentication status |
+| `--logout` |  | boolean | `false` | Remove authentication token |
+
+**Examples:**
+
+```bash
+uni gkeep auth
+uni gkeep auth --status
+uni gkeep auth --logout
+```
+
+---
+
+## uni shorturl
+
+URL shortener (is.gd)
+
+### `uni shorturl `
+
+Shorten or expand URLs
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `url` | No | URL to shorten or expand |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--expand` | -e | boolean |  | Expand a short URL to original |
+
+**Examples:**
+
+```bash
+uni shorturl "https://example.com/very/long/path"
+uni shorturl "https://is.gd/abc123" --expand
+uni short "https://example.com"
+```
+
+---
+
+## uni gsheets
+
+Google Sheets - spreadsheets
+
+### `uni gsheets list`
+
+List recent spreadsheets
+
+**Aliases:** `ls`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -l | number | `10` | Max spreadsheets to show |
+
+**Examples:**
+
+```bash
+uni gsheets list
+uni gsheets list --limit 20
+```
+
+---
+
+### `uni gsheets get`
+
+Get spreadsheet data
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | No | Cell range (e.g., A1:B10, Sheet1!A1:Z100) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+| `--data` | -d | boolean |  | Include all data |
+
+**Examples:**
+
+```bash
+uni gsheets get 1abc123XYZ
+uni gsheets get 1abc123XYZ A1:B10
+uni gsheets get 1abc123XYZ --data
+uni gsheets get "https://docs.google.com/spreadsheets/d/1abc123XYZ/edit"
+```
+
+---
+
+### `uni gsheets create`
+
+Create a new spreadsheet
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Spreadsheet title |
+
+**Examples:**
+
+```bash
+uni gsheets create "Budget 2025"
+uni gsheets create "Project Tracker"
+```
+
+---
+
+### `uni gsheets set`
+
+Set cell value
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Cell or range (e.g., A1, B2:C5) |
+| `value` | Yes | Value to set (or comma-separated values for range) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets set 1abc123XYZ A1 "Hello"
+uni gsheets set 1abc123XYZ B2 "=SUM(A1:A10)"
+uni gsheets set 1abc123XYZ A1 100
+uni gsheets set 1abc123XYZ --sheet "Data" A1 "Value"
+```
+
+---
+
+### `uni gsheets append`
+
+Append row to spreadsheet
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `values` | Yes | Comma-separated values or multiple arguments |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets append 1abc123XYZ "John,Doe,john@example.com"
+uni gsheets append 1abc123XYZ "Item,100,In Stock"
+uni gsheets append 1abc123XYZ --sheet "Data" "Row,Data,Here"
+```
+
+---
+
+### `uni gsheets share`
+
+Share spreadsheet with email
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `email` | Yes | Email address to share with |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--role` | -r | string | `writer` | Permission role: reader or writer (default: writer) |
+
+**Examples:**
+
+```bash
+uni gsheets share 1abc123XYZ colleague@company.com
+uni gsheets share 1abc123XYZ viewer@example.com --role reader
+```
+
+---
+
+### `uni gsheets auth`
+
+Authenticate with Google Sheets
+
+**Aliases:** `login`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` | -s | boolean | `false` | Check authentication status |
+| `--logout` |  | boolean | `false` | Remove authentication token |
+
+**Examples:**
+
+```bash
+uni gsheets auth
+uni gsheets auth --status
+uni gsheets auth --logout
+```
+
+---
+
+## uni currency
+
+Currency converter (ECB rates)
+
+### `uni currency `
+
+Convert currencies
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `amount` | No | Amount to convert |
+| `from` | No | Source currency code (USD, EUR, etc.) |
+| `to` | No | "to" keyword (optional) |
+| `target` | No | Target currency code(s) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | boolean |  | List all supported currencies |
+
+**Examples:**
+
+```bash
+uni currency 100 usd to eur
+uni currency 100 usd eur
+uni currency 5000 jpy to usd
+uni currency 1000 eur to usd gbp jpy
+uni currency --list
 ```
 
 ---

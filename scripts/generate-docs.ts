@@ -126,8 +126,8 @@ Natural language interface - translate plain English to uni commands.
 uni ask "show my calendar tomorrow"
 # → uni gcal list --date tomorrow
 
-uni ask "list my open PRs"
-# → uni gh pr list --state open
+uni ask "what tasks do I have"
+# → uni gtasks list
 \`\`\`
 
 ### Options
@@ -172,9 +172,9 @@ uni run "cmd1" "cmd2" "cmd3"
 ### Examples
 
 \`\`\`bash
-uni run "gh pr list" "gcal list"
-uni run -p "gh pr list" "gcal list" "exa search 'news'"
-uni run --dry-run "gh pr create" "slack send general 'PR ready'"
+uni run "gcal list" "gtasks list"
+uni run -p "gmail list" "gcal list" "exa search 'news'"
+uni run --dry-run "gcal add 'Meeting'" "slack send general 'Meeting scheduled'"
 \`\`\`
 
 ---
@@ -196,8 +196,8 @@ uni flow list
 Create a new flow.
 
 \`\`\`bash
-uni flow add standup "gcal list" "gh pr list --mine"
-uni flow add prcheck "gh pr view \$1" "gh pr checks \$1"
+uni flow add standup "gcal list" "gtasks list"
+uni flow add morning "weather London" "gcal next"
 \`\`\`
 
 ### \`uni flow remove <name>\`
@@ -286,8 +286,8 @@ List all aliases.
 Create an alias.
 
 \`\`\`bash
-uni alias add prs "gh pr list --state open"
 uni alias add inbox "gmail list --unread"
+uni alias add today "gcal list --date today"
 \`\`\`
 
 ### \`uni alias remove <name>\`
@@ -295,13 +295,13 @@ uni alias add inbox "gmail list --unread"
 Remove an alias.
 
 \`\`\`bash
-uni alias remove prs
+uni alias remove inbox
 \`\`\`
 
 ### Usage
 
 \`\`\`bash
-uni prs                         # → uni gh pr list --state open
+uni inbox                       # → uni gmail list --unread
 \`\`\`
 
 ---
@@ -334,7 +334,7 @@ Clear command history.
 \`\`\`bash
 uni history
 uni history --limit 50
-uni history --search "gh pr"
+uni history --search "gcal"
 uni history run 42
 uni history clear
 \`\`\`
