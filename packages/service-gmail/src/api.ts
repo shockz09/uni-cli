@@ -13,15 +13,22 @@ const SCOPES = [
   'https://www.googleapis.com/auth/gmail.modify',
 ];
 
+interface EmailPart {
+  mimeType: string;
+  body?: { data?: string };
+  parts?: EmailPart[];
+}
+
 interface Email {
   id: string;
   threadId: string;
   snippet: string;
   labelIds: string[];
   payload?: {
+    mimeType?: string;
     headers: Array<{ name: string; value: string }>;
     body?: { data?: string };
-    parts?: Array<{ mimeType: string; body?: { data?: string } }>;
+    parts?: EmailPart[];
   };
   internalDate?: string;
 }
@@ -103,18 +110,87 @@ export class GmailClient extends GoogleAuthClient {
   }
 
   /**
+   * Recursively find a part by mime type
+   */
+  private findPart(parts: EmailPart[] | undefined, mimeType: string): EmailPart | undefined {
+    if (!parts) return undefined;
+    for (const part of parts) {
+      if (part.mimeType === mimeType && part.body?.data) {
+        return part;
+      }
+      if (part.parts) {
+        const found = this.findPart(part.parts, mimeType);
+        if (found) return found;
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Convert HTML to readable plain text
+   */
+  private htmlToText(html: string): string {
+    return html
+      // Remove style and script tags with content
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      // Convert common elements to text equivalents
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n\n')
+      .replace(/<\/div>/gi, '\n')
+      .replace(/<\/tr>/gi, '\n')
+      .replace(/<\/td>/gi, ' | ')
+      .replace(/<\/th>/gi, ' | ')
+      .replace(/<li>/gi, '• ')
+      .replace(/<\/li>/gi, '\n')
+      // Remove all remaining HTML tags
+      .replace(/<[^>]+>/g, '')
+      // Decode common HTML entities
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&rsquo;/g, "'")
+      .replace(/&lsquo;/g, "'")
+      .replace(/&rdquo;/g, '"')
+      .replace(/&ldquo;/g, '"')
+      .replace(/&hellip;/g, '...')
+      .replace(/&#\d+;/g, '')
+      // Clean up whitespace
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n\s*\n\s*\n/g, '\n\n')
+      .trim();
+  }
+
+  /**
    * Decode email body
    */
   decodeBody(email: Email): string {
+    // Direct body data (simple emails)
     if (email.payload?.body?.data) {
-      return Buffer.from(email.payload.body.data, 'base64url').toString('utf-8');
+      const content = Buffer.from(email.payload.body.data, 'base64url').toString('utf-8');
+      if (email.payload.mimeType === 'text/html') {
+        return this.htmlToText(content);
+      }
+      return content;
     }
 
-    const textPart = email.payload?.parts?.find((p) => p.mimeType === 'text/plain');
+    // Try text/plain first (preferred)
+    const textPart = this.findPart(email.payload?.parts, 'text/plain');
     if (textPart?.body?.data) {
       return Buffer.from(textPart.body.data, 'base64url').toString('utf-8');
     }
 
+    // Fall back to text/html and convert to text
+    const htmlPart = this.findPart(email.payload?.parts, 'text/html');
+    if (htmlPart?.body?.data) {
+      const html = Buffer.from(htmlPart.body.data, 'base64url').toString('utf-8');
+      return this.htmlToText(html);
+    }
+
+    // Last resort: snippet
     return email.snippet || '';
   }
 
