@@ -2583,6 +2583,189 @@ uni gcal auth --logout
 
 ---
 
+## uni telegram
+
+Telegram user API (MTProto)
+
+### `uni telegram auth`
+
+Authenticate with Telegram (phone + OTP)
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--api-id` |  | string |  | Telegram API ID (from my.telegram.org) |
+| `--api-hash` |  | string |  | Telegram API Hash (from my.telegram.org) |
+
+**Examples:**
+
+```bash
+uni telegram auth
+uni telegram auth --api-id 12345 --api-hash abcdef123
+```
+
+---
+
+### `uni telegram logout`
+
+Clear Telegram session
+
+**Examples:**
+
+```bash
+uni telegram logout
+```
+
+---
+
+### `uni telegram chats`
+
+List all chats (dialogs)
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `20` | Max results (default: 20) |
+| `--archived` | -a | boolean |  | Show archived chats only |
+
+**Examples:**
+
+```bash
+uni telegram chats
+uni telegram chats -n 50
+uni telegram chats --archived
+```
+
+---
+
+### `uni telegram read`
+
+Read messages from a chat
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `chat` | Yes | Chat identifier (@username, phone, ID, or title) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `20` | Number of messages (default: 20) |
+
+**Examples:**
+
+```bash
+uni telegram read @username
+uni telegram read +1234567890
+uni telegram read "Family Group" -n 50
+```
+
+---
+
+### `uni telegram send`
+
+Send a message to a chat
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `chat` | Yes | Chat identifier (@username, phone, ID, or title) |
+| `message` | Yes | Message text to send |
+
+**Examples:**
+
+```bash
+uni telegram send @username "Hello!"
+uni telegram send +1234567890 "Hi there"
+uni telegram send "Family Group" "Dinner at 7?"
+```
+
+---
+
+### `uni telegram search`
+
+Search messages across chats
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Search query |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--chat` | -c | string |  | Search in specific chat only |
+| `--limit` | -n | number | `20` | Max results (default: 20) |
+
+**Examples:**
+
+```bash
+uni telegram search "meeting"
+uni telegram search "project" -c @username
+uni telegram search "dinner" -n 50
+```
+
+---
+
+### `uni telegram contacts`
+
+List Telegram contacts
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `search` | No | Search query (optional) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `50` | Max results (default: 50) |
+
+**Examples:**
+
+```bash
+uni telegram contacts
+uni telegram contacts "john"
+uni telegram contacts -n 100
+```
+
+---
+
+### `uni telegram download`
+
+Download media from a message
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `chat` | Yes | Chat identifier |
+| `message_id` | Yes | Message ID containing media |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--output` | -o | string | `.` | Output directory (default: current dir) |
+
+**Examples:**
+
+```bash
+uni telegram download @username 12345
+uni telegram download "Family Group" 67890 -o ./downloads
+```
+
+---
+
 ## uni gdocs
 
 Google Docs - documents

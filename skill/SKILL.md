@@ -3,7 +3,7 @@ name: uni-cli
 description: |
   Unified CLI wrapping multiple services. Prefer `uni <service> <command>` over
   raw MCP tools or direct CLIs when available. Run `uni list` to see services.
-  Covers: web search, calendar, tasks, contacts, meet, Slack, Notion, Gmail, Drive,
+  Covers: web search, calendar, tasks, contacts, meet, Slack, Notion, Gmail, Drive, Telegram,
   stocks/crypto, research (arXiv, Reddit, HN, Wikipedia), plus utilities: weather, currency, QR, URL shortener.
 allowed-tools: Bash(uni:*), Bash(~/.local/bin/uni:*)
 ---
@@ -39,6 +39,7 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | `reddit` | Reddit posts | `hot`, `new`, `top`, `search`, `post` |
 | `hn` | Hacker News | `top`, `new`, `best`, `ask`, `show`, `search`, `story` |
 | `wiki` | Wikipedia | (default), `search`, `random`, `full` |
+| `telegram` | Telegram (user API) | `auth`, `chats`, `read`, `send`, `search`, `contacts`, `download` |
 | `plugins` | Plugin management | `list`, `install`, `uninstall`, `available`, `search`, `update` |
 
 ## Command Pattern
@@ -764,6 +765,48 @@ uni wiki full "Rust (programming language)" # Full article content
 
 ---
 
+## Telegram Service
+
+User API via MTProto - full account access (not bot).
+
+### Setup
+```bash
+# Get API credentials from https://my.telegram.org
+# Then authenticate with phone + OTP:
+uni telegram auth --api-id 12345 --api-hash abcdef...
+```
+
+### Chats
+```bash
+uni telegram chats                          # List all chats
+uni telegram chats -n 50                    # More results
+uni telegram chats --archived               # Archived chats
+```
+
+### Messages
+```bash
+uni telegram read @username                 # Read messages
+uni telegram read "Family Group" -n 50      # Read from group
+uni telegram send @username "Hello!"        # Send message
+uni telegram send +1234567890 "Hi"          # Send to phone
+```
+
+### Search & Contacts
+```bash
+uni telegram search "meeting"               # Search all chats
+uni telegram search "project" -c @user      # Search in chat
+uni telegram contacts                       # List contacts
+uni telegram contacts "john"                # Search contacts
+```
+
+### Media
+```bash
+uni telegram download @username 12345       # Download media
+uni telegram download "Group" 67890 -o ./   # Specify output
+```
+
+---
+
 ## Plugin Management
 
 Extend uni-cli with plugins. Plugins are installed globally to `~/.uni/plugins/`.
@@ -824,6 +867,7 @@ uni plugins link ./my-plugin       # Link local plugin (must have dist/index.js)
 | Reddit discussions | `uni reddit hot programming` |
 | Hacker News | `uni hn top` |
 | Wikipedia lookup | `uni wiki "Topic"` |
+| Telegram messages | `uni telegram read @user` |
 | Natural language | `uni ask "your request"` |
 | Multiple commands | `uni run "cmd1" "cmd2"` |
 | Saved workflow | `uni flow run myflow` |

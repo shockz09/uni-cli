@@ -1,0 +1,20 @@
+{
+  "name": "@uni/service-telegram",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "dev": "bun run --watch src/index.ts"
+  },
+  "dependencies": {
+    "@uni/shared": "workspace:*",
+    "telegram": "^2.26.22",
+    "input": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  }
+}
