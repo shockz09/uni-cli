@@ -57,7 +57,7 @@ export const chatsCommand: Command = {
 
       await client.disconnect();
 
-      spinner.success(`${dialogs.length} chats`);
+      spinner.success(`Fetched ${dialogs.length} chats`);
 
       if (globalFlags.json) {
         const data = dialogs.map((d) => ({
