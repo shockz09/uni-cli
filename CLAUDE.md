@@ -40,13 +40,24 @@ registry/
 └── plugins.json      # Official plugin registry
 ```
 
-## Key Commands
+## Commands
 
 ```bash
-uni list                    # List all services
-uni <service> --help        # Service help
-uni plugins install <name>  # Install plugin
-uni doctor                  # Health check
+# Build
+bun run build
+
+# Test a service
+bun run packages/cli/src/main.ts exa search "test"
+bun run packages/cli/src/main.ts gcal list
+
+# Regenerate docs
+bun run scripts/generate-docs.ts
+
+# Use globally (if ~/.local/bin in PATH)
+uni list
+uni <service> --help
+uni plugins install <name>
+uni doctor
 ```
 
 ## Adding a New Service
