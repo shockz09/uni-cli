@@ -236,36 +236,11 @@ Unified duplicated command patterns into shared factories and helpers.
 
 ---
 
-### Phase 18: Testing Infrastructure 🚧
-**Spec file**: `specs/phase-18-testing-infrastructure.md`
-
-Comprehensive test suite to catch deep bugs that "mostly work" but fail in edge cases.
-
-**Motivation:** On 2026-01-04, discovered 5 critical bugs hiding in plain sight:
-
-| Bug | Impact | Hidden Because |
-|-----|--------|----------------|
-| `--days` off-by-one | Showed 2 days instead of 1 | Works fine for 7+ days |
-| `output.info` → JSON | Inconsistent output in pipes | Only breaks in non-TTY |
-| Gmail HTML decode | 99% of emails showed truncated snippet | Only text/plain worked |
-| `parseInt` no radix | Potential octal misinterpretation | Modern JS defaults to 10 |
-| `JSON.parse` no try/catch | Crash on malformed API response | APIs rarely return bad JSON |
-
-**Plan:**
-- [ ] Test infrastructure setup (Bun test runner, utilities)
-- [ ] Unit tests for date/time parsing, email decode, HTML-to-text
-- [ ] Integration tests for critical commands (gcal list, gmail read)
-- [ ] Edge case tests (boundary conditions, empty results)
-- [ ] CI integration (fail build on test failure)
-
-**Priority:** High
-
----
-
-### Future: Phase 19 (TBD)
+### Future: Phase 18 (TBD)
 - Plugin development documentation
 - More services (YouTube, Linear, etc.)
 - TUI/terminal UI enhancements
+- Command output formatting (JSON/human auto-detect)
 
 ---
 
@@ -330,9 +305,7 @@ These will be optional `uni install` packages:
     ├── phase-13-gsuite-expansion.md
     ├── phase-14-universal-utilities.md
     ├── phase-15-gsuite-expansion.md
-    ├── phase-16-google-auth-refactor.md
-    ├── phase-17-shared-commands.md
-    └── phase-18-testing-infrastructure.md
+    └── phase-16-google-auth-refactor.md
 ```
 
 ---
