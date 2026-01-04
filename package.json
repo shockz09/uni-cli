@@ -10,6 +10,8 @@
     "dev": "bun run --filter @uni/cli dev",
     "build": "bun run --filter '*' build",
     "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage",
     "lint": "biome check .",
     "format": "biome format --write .",
     "uni": "bun run packages/cli/src/main.ts"

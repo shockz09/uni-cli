@@ -18,3 +18,6 @@ export * from './google-service-setup';
 
 // Colors
 export * from './colors';
+
+// Test utilities
+export * from './test-utils';
