@@ -31,7 +31,6 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | `gforms` | Google Forms | `list`, `get`, `create`, `add-question`, `responses` |
 | `gkeep` | Google Keep (Workspace only) | `list`, `get`, `add`, `delete` |
 | `stocks` | Stock & crypto prices | (default), `info`, `history`, `list` |
-| `gphotos` | Google Photos | `list`, `search`, `download`, `upload`, `albums` |
 | `weather` | Weather forecasts | (default), `--forecast` |
 | `currency` | Currency converter | (default), `--list` |
 | `qrcode` | QR code generator | (default), `--terminal`, `--output` |
@@ -712,34 +711,6 @@ uni stocks history tsla -p 1y      # 1 year
 uni stocks list                    # Top stocks
 uni stocks list crypto             # Top crypto
 uni stocks list indices            # Major indices
-```
-
----
-
-## Google Photos Service
-
-Access Google Photos. Requires auth: `uni gphotos auth`
-
-### List and search
-```bash
-uni gphotos                        # Recent photos
-uni gphotos list --limit 50        # More photos
-uni gphotos search --date 2025-01  # By month
-```
-
-### Download and upload
-```bash
-uni gphotos download <id>          # Download photo
-uni gphotos download <id> -o ~/    # To specific path
-uni gphotos upload ./photo.jpg     # Upload photo
-```
-
-### Albums
-```bash
-uni gphotos albums                 # List albums
-uni gphotos albums create "Trip"   # Create album
-uni gphotos albums photos <id>     # Photos in album
-uni gphotos albums share <id>      # Share album
 ```
 
 ---
