@@ -1,0 +1,23 @@
+{
+  "name": "@uni/service-stocks",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node --format esm",
+    "dev": "bun run --watch src/index.ts"
+  },
+  "dependencies": {
+    "yahoo-finance2": "^3.11.2"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@uni/shared": "workspace:*"
+  }
+}

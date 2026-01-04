@@ -366,6 +366,155 @@ Show config file path.
 
 ---
 
+## uni gphotos
+
+Google Photos (photos, albums)
+
+### `uni gphotos `
+
+List recent photos
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -l | number | `20` | Number of photos to show |
+
+**Examples:**
+
+```bash
+uni gphotos
+uni gphotos list
+uni gphotos list --limit 50
+```
+
+---
+
+### `uni gphotos search`
+
+Search photos by date
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | No | Search query (optional) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--date` | -d | string |  | Filter by date (YYYY-MM or YYYY-MM-DD) |
+| `--limit` | -l | number | `20` | Number of results |
+
+**Examples:**
+
+```bash
+uni gphotos search --date 2025-01
+uni gphotos search --date 2025-01-15
+uni gphotos search "beach" --date 2025
+```
+
+---
+
+### `uni gphotos download`
+
+Download a photo
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Photo ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--output` | -o | string | `./` | Output path (default: current directory) |
+
+**Examples:**
+
+```bash
+uni gphotos download <photo-id>
+uni gphotos download <photo-id> -o ~/Downloads/
+```
+
+---
+
+### `uni gphotos upload`
+
+Upload a photo
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `file` | Yes | File path to upload |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--album` | -a | string |  | Album ID to add photo to |
+| `--description` | -d | string |  | Photo description |
+
+**Examples:**
+
+```bash
+uni gphotos upload ./photo.jpg
+uni gphotos upload ./photo.jpg --album <album-id>
+uni gphotos upload ./photo.jpg -d "Beach vacation"
+```
+
+---
+
+### `uni gphotos albums`
+
+List or manage albums
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `action` | No | Action: list (default), create, photos, share |
+| `value` | No | Album title (for create) or album ID (for photos/share) |
+
+**Examples:**
+
+```bash
+uni gphotos albums
+uni gphotos albums list
+uni gphotos albums create "Vacation 2025"
+uni gphotos albums photos <album-id>
+uni gphotos albums share <album-id>
+```
+
+---
+
+### `uni gphotos auth`
+
+Authenticate with Google Photos
+
+**Aliases:** `login`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` | -s | boolean | `false` | Check authentication status |
+| `--logout` |  | boolean | `false` | Remove authentication token |
+
+**Examples:**
+
+```bash
+uni gphotos auth
+uni gphotos auth --status
+uni gphotos auth --logout
+```
+
+---
+
 ## uni gdrive
 
 Google Drive - files and search
@@ -571,6 +720,96 @@ Authenticate with Google Drive
 uni gdrive auth
 uni gdrive auth --status
 uni gdrive auth --logout
+```
+
+---
+
+## uni stocks
+
+Real-time stock & crypto prices (Yahoo Finance)
+
+### `uni stocks `
+
+Get stock/crypto price
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `symbol` | Yes | Stock/crypto symbol (e.g., AAPL, BTC-USD) |
+
+**Examples:**
+
+```bash
+uni stocks aapl
+uni stocks tsla
+uni stocks btc-usd
+uni stocks eth-usd
+```
+
+---
+
+### `uni stocks info`
+
+Get detailed stock/crypto info
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `symbol` | Yes | Stock/crypto symbol |
+
+**Examples:**
+
+```bash
+uni stocks info aapl
+uni stocks info msft
+```
+
+---
+
+### `uni stocks history`
+
+Get price history
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `symbol` | Yes | Stock/crypto symbol |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--period` | -p | string | `1mo` | Time period (1d, 5d, 1w, 1mo, 3mo, 6mo, 1y, 5y) |
+
+**Examples:**
+
+```bash
+uni stocks history aapl
+uni stocks history btc-usd --period 1w
+uni stocks history tsla -p 1y
+```
+
+---
+
+### `uni stocks list`
+
+List popular symbols with prices
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `type` | No | Type: stocks, crypto, or indices (default: stocks) |
+
+**Examples:**
+
+```bash
+uni stocks list
+uni stocks list crypto
+uni stocks list indices
 ```
 
 ---
