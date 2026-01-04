@@ -4,9 +4,13 @@
 
 import { TelegramClient, Api } from 'telegram';
 import { StringSession } from 'telegram/sessions';
+import { Logger, LogLevel } from 'telegram/extensions';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
+
+// Suppress gramjs debug logs - only show errors
+Logger.setLevel(LogLevel.NONE);
 
 const UNI_DIR = path.join(process.env.HOME || '~', '.uni');
 const SESSION_FILE = path.join(UNI_DIR, 'tokens', 'telegram.session');
