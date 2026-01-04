@@ -71,9 +71,9 @@ export const listCommand: Command = {
       // Set to start of day
       startDate.setHours(0, 0, 0, 0);
 
-      // Calculate end date
+      // Calculate end date (days=1 means same day, days=7 means 7 days total)
       const endDate = new Date(startDate);
-      endDate.setDate(endDate.getDate() + (flags.days as number));
+      endDate.setDate(endDate.getDate() + (flags.days as number) - 1);
       endDate.setHours(23, 59, 59, 999);
 
       const events = await gcal.listEvents({
