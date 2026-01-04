@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "plugins": [
+    {
+      "name": "gkeep",
+      "package": "@uni/plugin-gkeep",
+      "description": "Google Keep (Workspace accounts only)",
+      "version": "1.0.0",
+      "repository": "github:shockz09/uni-plugin-gkeep",
+      "tags": ["google", "notes", "workspace"]
+    }
+  ]
+}

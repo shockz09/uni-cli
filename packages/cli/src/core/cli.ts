@@ -16,6 +16,8 @@ import { createPromptHelper } from '../utils/prompt';
 import { generateZshCompletions, generateBashCompletions, generateFishCompletions } from './completions';
 import { runDoctor, printDoctorReport } from './doctor';
 import { runSetupWizard, setupService, type ServiceType } from './setup';
+import pluginsService from '../commands/plugins/index.js';
+import { shouldCheckForUpdates, checkForUpdates, formatUpdateReminder } from './plugins.js';
 import * as c from '../utils/colors';
 import * as readline from 'node:readline';
 
@@ -97,13 +99,8 @@ export class UniCLI {
         return;
       }
 
-      if (parsed.service === 'install') {
-        await this.handleInstall(parsed, output);
-        return;
-      }
-
-      if (parsed.service === 'uninstall') {
-        await this.handleUninstall(parsed, output);
+      if (parsed.service === 'plugins') {
+        await this.handlePlugins(parsed, output);
         return;
       }
 
@@ -430,8 +427,7 @@ ${c.bold('COMMANDS')}
   ask             Natural language commands
   run             Run multiple commands at once
   flow            Manage saved command macros
-  install         Install a service package
-  uninstall       Uninstall a service package
+  plugins         Manage plugins (install, uninstall, update)
   auth            Manage authentication
   config          Manage configuration
   alias           Manage command aliases
@@ -440,10 +436,9 @@ ${c.bold('COMMANDS')}
 
 ${c.bold('EXAMPLES')}
   uni exa search "React hooks"
-  uni gh pr list
   uni gcal add "Meeting" --time 10am
-  uni run "gh pr list" "gcal list"
-  uni flow add standup "gcal list" "gh pr list"
+  uni run "gcal list" "gmail list"
+  uni plugins install gkeep
 
 ${c.muted(`Run 'uni <service> --help' for service-specific help`)}
 `);
@@ -477,7 +472,7 @@ ${c.muted(`Run 'uni <service> --help' for service-specific help`)}
         output.json({ services: [] });
       } else {
         output.info('No services installed');
-        console.log(`\n${c.muted("Install services with 'uni install <service>'")}`);
+        console.log(`\n${c.muted("Install plugins with 'uni plugins install <name>'")}`);
       }
       return;
     }
@@ -1642,157 +1637,57 @@ ${c.bold('Shorthand:')}
   }
 
   /**
-   * Handle install command
-   *
-   * uni install <name>
-   * - If name starts with @, installs as-is
-   * - Otherwise, tries @uni/service-<name> first, then uni-service-<name>
+   * Handle plugins command
    */
-  private async handleInstall(
+  private async handlePlugins(
     parsed: ReturnType<typeof parseArgs>,
     output: ReturnType<typeof createOutputFormatter>
   ): Promise<void> {
-    const name = parsed.command;
+    const commandName = parsed.command || 'list';
 
-    if (!name) {
+    // Find the command
+    const command = pluginsService.commands.find(
+      (c) => c.name === commandName || c.name === '' && !parsed.command
+    );
+
+    if (!command) {
+      // Show plugins help
       console.log(`
-${c.bold('uni install')} - Install a service package
+${c.bold('uni plugins')} - Plugin management
 
-${c.bold('Usage:')}
-  uni install <name>              Install a uni service
+${c.bold('Commands:')}
+  list              List installed plugins
+  available         List official plugins from registry
+  search <query>    Search for plugins
+  install <name>    Install a plugin
+  uninstall <name>  Remove a plugin
+  update [name]     Update plugin(s)
+  link <path>       Link a local plugin (development)
 
 ${c.bold('Examples:')}
-  uni install linear              # → bun add @uni/service-linear
-  uni install @other/some-plugin  # → bun add @other/some-plugin
-  uni install uni-service-weather # → bun add uni-service-weather
-
-${c.bold('Note:')}
-  This is a convenience wrapper around 'bun add'.
-  For simple names, it first tries @uni/service-<name>.
+  uni plugins list
+  uni plugins available
+  uni plugins install gkeep
+  uni plugins install github:user/repo
+  uni plugins uninstall gkeep
+  uni plugins update
 `);
       return;
     }
 
-    const { spawn } = await import('node:child_process');
+    // Build context - include subcommand as first arg if present
+    const args = parsed.subcommand
+      ? [parsed.subcommand, ...parsed.args]
+      : parsed.args;
 
-    // Determine package name
-    let pkgName: string;
-    if (name.startsWith('@') || name.startsWith('uni-service-')) {
-      // Use as-is for scoped packages or explicit uni-service-* names
-      pkgName = name;
-    } else {
-      // Try @uni/service-* first (official)
-      pkgName = `@uni/service-${name}`;
-    }
+    const context: CommandContext = {
+      args,
+      flags: { ...parsed.flags, ...parsed.globalFlags },
+      rawArgs: parsed.args,
+    };
 
-    console.log(`${c.dim('→')} bun add ${pkgName}`);
-
-    const child = spawn('bun', ['add', pkgName], {
-      stdio: 'inherit',
-      cwd: process.cwd(),
-    });
-
-    await new Promise<void>((resolve, reject) => {
-      child.on('close', (code) => {
-        if (code === 0) {
-          registry.invalidate();
-          output.success(`Installed ${pkgName}`);
-          resolve();
-        } else {
-          // If @uni/ package failed, try uni-service-* for non-scoped names
-          if (!name.startsWith('@') && !name.startsWith('uni-service-')) {
-            const fallbackPkg = `uni-service-${name}`;
-            console.log(`\n${c.dim('→')} Trying ${fallbackPkg}...`);
-
-            const fallbackChild = spawn('bun', ['add', fallbackPkg], {
-              stdio: 'inherit',
-              cwd: process.cwd(),
-            });
-
-            fallbackChild.on('close', (fallbackCode) => {
-              if (fallbackCode === 0) {
-                registry.invalidate();
-                output.success(`Installed ${fallbackPkg}`);
-                resolve();
-              } else {
-                output.error(`Could not find package: @uni/service-${name} or uni-service-${name}`);
-                process.exit(1);
-              }
-            });
-          } else {
-            output.error(`Failed to install ${pkgName}`);
-            process.exit(1);
-          }
-        }
-      });
-
-      child.on('error', (err) => {
-        output.error(`Failed to run bun: ${err.message}`);
-        reject(err);
-      });
-    });
-  }
-
-  /**
-   * Handle uninstall command
-   *
-   * uni uninstall <name>
-   */
-  private async handleUninstall(
-    parsed: ReturnType<typeof parseArgs>,
-    output: ReturnType<typeof createOutputFormatter>
-  ): Promise<void> {
-    const name = parsed.command;
-
-    if (!name) {
-      console.log(`
-${c.bold('uni uninstall')} - Uninstall a service package
-
-${c.bold('Usage:')}
-  uni uninstall <name>            Uninstall a uni service
-
-${c.bold('Examples:')}
-  uni uninstall linear            # → bun remove @uni/service-linear
-  uni uninstall @other/plugin     # → bun remove @other/plugin
-`);
-      return;
-    }
-
-    const { spawn } = await import('node:child_process');
-
-    // Determine package name
-    let pkgName: string;
-    if (name.startsWith('@') || name.startsWith('uni-service-')) {
-      pkgName = name;
-    } else {
-      // Assume @uni/service-* for simple names
-      pkgName = `@uni/service-${name}`;
-    }
-
-    console.log(`${c.dim('→')} bun remove ${pkgName}`);
-
-    const child = spawn('bun', ['remove', pkgName], {
-      stdio: 'inherit',
-      cwd: process.cwd(),
-    });
-
-    await new Promise<void>((resolve) => {
-      child.on('close', (code) => {
-        if (code === 0) {
-          registry.invalidate();
-          output.success(`Uninstalled ${pkgName}`);
-        } else {
-          output.error(`Failed to uninstall ${pkgName}`);
-          process.exit(1);
-        }
-        resolve();
-      });
-
-      child.on('error', (err) => {
-        output.error(`Failed to run bun: ${err.message}`);
-        process.exit(1);
-      });
-    });
+    // Run command
+    await command.run(context);
   }
 
   /**

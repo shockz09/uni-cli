@@ -35,6 +35,7 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | `currency` | Currency converter | (default), `--list` |
 | `qrcode` | QR code generator | (default), `--terminal`, `--output` |
 | `shorturl` | URL shortener | (default), `--expand` |
+| `plugins` | Plugin management | `list`, `install`, `uninstall`, `available`, `search`, `update` |
 
 ## Command Pattern
 
@@ -711,6 +712,38 @@ uni stocks history tsla -p 1y      # 1 year
 uni stocks list                    # Top stocks
 uni stocks list crypto             # Top crypto
 uni stocks list indices            # Major indices
+```
+
+---
+
+## Plugin Management
+
+Extend uni-cli with plugins. Plugins are installed globally to `~/.uni/plugins/`.
+
+### List & discover
+```bash
+uni plugins                        # List installed plugins
+uni plugins list                   # Same as above
+uni plugins available              # Show official plugins
+uni plugins search google          # Search npm for plugins
+```
+
+### Install & uninstall
+```bash
+uni plugins install gkeep          # Install from official registry
+uni plugins install github:user/repo  # Install from GitHub
+uni plugins uninstall gkeep        # Remove a plugin
+```
+
+### Update
+```bash
+uni plugins update                 # Update all plugins
+uni plugins update gkeep           # Update specific plugin
+```
+
+### Development
+```bash
+uni plugins link ./my-plugin       # Link local plugin (must have dist/index.js)
 ```
 
 ---
