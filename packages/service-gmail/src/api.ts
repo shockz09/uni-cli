@@ -5,6 +5,8 @@
  * Tokens stored in ~/.uni/tokens/gmail.json
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
 import { GoogleAuthClient } from '@uni/shared';
 
 const SCOPES = [
@@ -76,8 +78,13 @@ export class GmailClient extends GoogleAuthClient {
   /**
    * Send email
    */
-  async sendEmail(to: string, subject: string, body: string): Promise<{ id: string }> {
-    const raw = this.createRawEmail(to, subject, body);
+  async sendEmail(
+    to: string,
+    subject: string,
+    body: string,
+    attachments?: string[]
+  ): Promise<{ id: string }> {
+    const raw = this.createRawEmail(to, subject, body, attachments);
 
     return this.request<{ id: string }>('/users/me/messages/send', {
       method: 'POST',
@@ -86,18 +93,85 @@ export class GmailClient extends GoogleAuthClient {
   }
 
   /**
-   * Create base64 encoded email
+   * Create base64 encoded email with optional attachments
    */
-  private createRawEmail(to: string, subject: string, body: string): string {
-    const email = [
-      `To: ${to}`,
-      `Subject: ${subject}`,
-      'Content-Type: text/plain; charset=utf-8',
-      '',
-      body,
-    ].join('\r\n');
+  private createRawEmail(
+    to: string,
+    subject: string,
+    body: string,
+    attachments?: string[]
+  ): string {
+    if (!attachments || attachments.length === 0) {
+      // Simple email without attachments
+      const email = [
+        `To: ${to}`,
+        `Subject: ${subject}`,
+        'Content-Type: text/plain; charset=utf-8',
+        '',
+        body,
+      ].join('\r\n');
+      return Buffer.from(email).toString('base64url');
+    }
 
-    return Buffer.from(email).toString('base64url');
+    // Multipart email with attachments
+    const boundary = `boundary_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const parts: string[] = [];
+
+    // Headers
+    parts.push(`To: ${to}`);
+    parts.push(`Subject: ${subject}`);
+    parts.push('MIME-Version: 1.0');
+    parts.push(`Content-Type: multipart/mixed; boundary="${boundary}"`);
+    parts.push('');
+
+    // Body part
+    parts.push(`--${boundary}`);
+    parts.push('Content-Type: text/plain; charset=utf-8');
+    parts.push('');
+    parts.push(body);
+
+    // Attachment parts
+    for (const filePath of attachments) {
+      const resolvedPath = path.resolve(filePath);
+      const fileName = path.basename(resolvedPath);
+      const fileContent = fs.readFileSync(resolvedPath);
+      const base64Content = fileContent.toString('base64');
+      const mimeType = this.getMimeType(fileName);
+
+      parts.push(`--${boundary}`);
+      parts.push(`Content-Type: ${mimeType}; name="${fileName}"`);
+      parts.push('Content-Transfer-Encoding: base64');
+      parts.push(`Content-Disposition: attachment; filename="${fileName}"`);
+      parts.push('');
+      parts.push(base64Content);
+    }
+
+    parts.push(`--${boundary}--`);
+
+    return Buffer.from(parts.join('\r\n')).toString('base64url');
+  }
+
+  /**
+   * Get MIME type from filename
+   */
+  private getMimeType(filename: string): string {
+    const ext = path.extname(filename).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.pdf': 'application/pdf',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.gif': 'image/gif',
+      '.txt': 'text/plain',
+      '.html': 'text/html',
+      '.doc': 'application/msword',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.xls': 'application/vnd.ms-excel',
+      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      '.zip': 'application/zip',
+      '.json': 'application/json',
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
   }
 
   /**

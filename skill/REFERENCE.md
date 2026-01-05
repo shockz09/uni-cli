@@ -1412,11 +1412,14 @@ Send an email
 | `--to` | -t | string |  | Recipient email |
 | `--subject` | -s | string |  | Email subject |
 | `--body` | -b | string |  | Email body |
+| `--attach` | -a | string |  | File path to attach (can use multiple times) |
 
 **Examples:**
 
 ```bash
 uni gmail send --to user@example.com --subject "Hello" --body "Message"
+uni gmail send -t me@example.com -s "Report" -b "See attached" --attach report.pdf
+uni gmail send -t user@example.com -s "Photos" -b "Here are the photos" -a photo1.jpg -a photo2.jpg
 ```
 
 ---

@@ -254,7 +254,8 @@ uni gmail list                          # Recent emails
 uni gmail list --unread                 # Unread only
 uni gmail list --from "boss@company"    # Filter by sender
 uni gmail read <id-or-query>            # Read email by ID or search
-uni gmail send "to@email.com" --subject "Hi" --body "Hello"
+uni gmail send -t to@email.com -s "Hi" -b "Hello"
+uni gmail send -t to@email.com -s "Report" -b "See attached" --attach report.pdf
 uni gmail delete "Newsletter spam"      # Move to trash
 uni gmail delete <id> --permanent       # Permanently delete
 uni gmail auth                          # Authenticate

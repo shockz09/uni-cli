@@ -628,6 +628,12 @@ uni gmail list --query "from:boss@company.com"
 # Read a specific email by search
 uni gmail read "Your Booking is Ticketed"
 uni gmail read "from:amazon order confirmation"
+
+# Send email with attachment
+uni gmail send -t user@example.com -s "Report" -b "See attached" --attach report.pdf
+
+# Multiple attachments
+uni gmail send -t user@example.com -s "Photos" -b "Here are the files" -a doc1.pdf -a doc2.pdf
 ```
 
 ---
