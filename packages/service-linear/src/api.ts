@@ -311,9 +311,10 @@ export class LinearClient {
   }
 
   async searchIssues(query: string, limit = 20): Promise<Issue[]> {
-    const data = await this.query<{ searchIssues: { nodes: Issue[] } }>(`
-      query SearchIssues($query: String!, $first: Int) {
-        searchIssues(query: $query, first: $first) {
+    // Linear's search APIs are deprecated, so we filter issues by title/description containing query
+    const data = await this.query<{ issues: { nodes: Issue[] } }>(`
+      query SearchIssues($first: Int, $filter: IssueFilter) {
+        issues(first: $first, filter: $filter) {
           nodes {
             id
             identifier
@@ -325,9 +326,17 @@ export class LinearClient {
           }
         }
       }
-    `, { query, first: limit });
+    `, {
+      first: 100, // Fetch more to filter locally
+      filter: {
+        or: [
+          { title: { containsIgnoreCase: query } },
+          { description: { containsIgnoreCase: query } },
+        ]
+      }
+    });
 
-    return data.searchIssues.nodes;
+    return data.issues.nodes.slice(0, limit);
   }
 }
 
