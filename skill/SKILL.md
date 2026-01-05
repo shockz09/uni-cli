@@ -814,7 +814,14 @@ uni telegram download "Group" 67890 -o ./   # Specify output
 
 ## Linear Service
 
-Issue tracking and project management. Requires `LINEAR_API_KEY` from https://linear.app/settings/api
+Issue tracking and project management.
+
+### Setup
+```bash
+uni linear auth                             # Authenticate (opens browser)
+uni linear auth --status                    # Check auth status
+uni linear auth --logout                    # Logout
+```
 
 ### Issues
 ```bash
@@ -844,7 +851,14 @@ uni linear comments add ENG-123 "Fixed!"    # Add comment
 
 ## Todoist Service
 
-Task management. Requires `TODOIST_TOKEN` from https://todoist.com/app/settings/integrations/developer
+Task management.
+
+### Setup
+```bash
+uni todoist auth                            # Authenticate (opens browser)
+uni todoist auth --status                   # Check auth status
+uni todoist auth --logout                   # Logout
+```
 
 ### Tasks
 ```bash

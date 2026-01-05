@@ -669,6 +669,27 @@ uni stocks list indices
 
 Linear - issues, projects, and teams
 
+### `uni linear auth`
+
+Authenticate with Linear
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` | -s | boolean |  | Check auth status |
+| `--logout` |  | boolean |  | Clear authentication |
+
+**Examples:**
+
+```bash
+uni linear auth
+uni linear auth --status
+uni linear auth --logout
+```
+
+---
+
 ### `uni linear issues`
 
 Manage Linear issues
@@ -3653,6 +3674,27 @@ uni trello members "My Project"
 ## uni todoist
 
 Todoist - tasks, projects, labels, and comments
+
+### `uni todoist auth`
+
+Authenticate with Todoist
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` | -s | boolean |  | Check auth status |
+| `--logout` |  | boolean |  | Clear authentication |
+
+**Examples:**
+
+```bash
+uni todoist auth
+uni todoist auth --status
+uni todoist auth --logout
+```
+
+---
 
 ### `uni todoist tasks`
 
