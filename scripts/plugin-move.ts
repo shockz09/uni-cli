@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Move services between core and plugin
+ * Move services between core and plugins monorepo
  *
  * Usage:
  *   bun scripts/plugin-move.ts extract <name>  # Core → Plugin
@@ -13,6 +13,7 @@ import * as path from 'path';
 const ROOT = path.join(import.meta.dir, '..');
 const PACKAGES = path.join(ROOT, 'packages');
 const REGISTRY = path.join(ROOT, 'registry/plugins.json');
+const PLUGINS_MONO = path.join(ROOT, '..', 'uni-plugins', 'packages');
 
 const [,, action, name] = process.argv;
 
@@ -22,16 +23,21 @@ if (!action || !name) {
 }
 
 const serviceDir = path.join(PACKAGES, `service-${name}`);
-const pluginDir = path.join(ROOT, '..', `uni-plugin-${name}`);
+const pluginDir = path.join(PLUGINS_MONO, name);
 
 if (action === 'extract') {
-  // Core → Plugin
   if (!fs.existsSync(serviceDir)) {
     console.error(`Service "${name}" not found in packages/`);
     process.exit(1);
   }
 
-  // Copy to plugin dir
+  if (!fs.existsSync(PLUGINS_MONO)) {
+    console.error(`Plugins monorepo not found at ${PLUGINS_MONO}`);
+    console.error('Clone it first: gh repo clone shockz09/uni-plugins ../uni-plugins');
+    process.exit(1);
+  }
+
+  // Copy to plugins monorepo
   fs.cpSync(serviceDir, pluginDir, { recursive: true });
 
   // Update package.json name
@@ -48,7 +54,8 @@ if (action === 'extract') {
       package: `@uni/plugin-${name}`,
       description: pkg.description,
       version: pkg.version,
-      repository: `github:shockz09/uni-plugin-${name}`,
+      repository: 'github:shockz09/uni-plugins',
+      path: `packages/${name}`,
       tags: []
     });
     fs.writeFileSync(REGISTRY, JSON.stringify(registry, null, 2) + '\n');
@@ -60,10 +67,9 @@ if (action === 'extract') {
   console.log(`✓ Extracted ${name} to ${pluginDir}`);
   console.log(`  → Added to registry/plugins.json`);
   console.log(`  → Removed from packages/`);
-  console.log(`\nNext: cd ${pluginDir} && git init && gh repo create`);
+  console.log(`\nNext: cd ../uni-plugins && git add . && git commit -m "feat: add ${name}" && git push`);
 
 } else if (action === 'absorb') {
-  // Plugin → Core
   const registry = JSON.parse(fs.readFileSync(REGISTRY, 'utf-8'));
   const plugin = registry.plugins.find((p: any) => p.name === name);
 
@@ -77,14 +83,15 @@ if (action === 'extract') {
     process.exit(1);
   }
 
-  // Clone from repo or copy from ~/.uni/plugins
+  // Copy from plugins monorepo or installed location
   const installedDir = path.join(process.env.HOME || '~', '.uni/plugins', name);
-  if (fs.existsSync(installedDir)) {
-    fs.cpSync(installedDir, serviceDir, { recursive: true });
-  } else if (fs.existsSync(pluginDir)) {
+
+  if (fs.existsSync(pluginDir)) {
     fs.cpSync(pluginDir, serviceDir, { recursive: true });
+  } else if (fs.existsSync(installedDir)) {
+    fs.cpSync(installedDir, serviceDir, { recursive: true });
   } else {
-    console.error(`Plugin not found. Install it first: uni plugins install ${name}`);
+    console.error(`Plugin not found. Clone monorepo: gh repo clone shockz09/uni-plugins ../uni-plugins`);
     process.exit(1);
   }
 
@@ -97,6 +104,12 @@ if (action === 'extract') {
   // Remove from registry
   registry.plugins = registry.plugins.filter((p: any) => p.name !== name);
   fs.writeFileSync(REGISTRY, JSON.stringify(registry, null, 2) + '\n');
+
+  // Remove from monorepo if exists
+  if (fs.existsSync(pluginDir)) {
+    fs.rmSync(pluginDir, { recursive: true });
+    console.log(`  → Removed from uni-plugins monorepo`);
+  }
 
   console.log(`✓ Absorbed ${name} into packages/service-${name}`);
   console.log(`  → Removed from registry/plugins.json`);
