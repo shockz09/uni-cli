@@ -2,6 +2,8 @@
  * uni telegram send - Send a message
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
 import type { Command, CommandContext } from '@uni/shared';
 import { c } from '@uni/shared';
 import { createClient, isAuthenticated } from '../client';
@@ -17,27 +19,54 @@ export const sendCommand: Command = {
     },
     {
       name: 'message',
-      description: 'Message text to send',
-      required: true,
+      description: 'Message text (or caption when sending file)',
+      required: false,
+    },
+  ],
+  options: [
+    {
+      name: 'file',
+      short: 'f',
+      type: 'string',
+      description: 'File path to send (image, video, document)',
     },
   ],
   examples: [
     'uni telegram send @username "Hello!"',
     'uni telegram send +1234567890 "Hi there"',
     'uni telegram send "Family Group" "Dinner at 7?"',
+    'uni telegram send me --file photo.jpg',
+    'uni telegram send me "Check this out" -f ./screenshot.png',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
-    const { output, args, globalFlags } = ctx;
+    const { output, args, flags, globalFlags } = ctx;
     const chat = args.chat as string;
-    const message = args.message as string;
+    const message = args.message as string | undefined;
+    const filePath = flags.file as string | undefined;
+
+    // Must have either message or file
+    if (!message && !filePath) {
+      output.error('Must provide either a message or --file');
+      return;
+    }
+
+    // Validate file exists
+    if (filePath) {
+      const resolvedPath = path.resolve(filePath);
+      if (!fs.existsSync(resolvedPath)) {
+        output.error(`File not found: ${filePath}`);
+        return;
+      }
+    }
 
     if (!isAuthenticated()) {
       output.error('Not authenticated. Run `uni telegram auth` first.');
       return;
     }
 
-    const spinner = output.spinner(`Sending message to ${chat}...`);
+    const spinnerText = filePath ? `Sending file to ${chat}...` : `Sending message to ${chat}...`;
+    const spinner = output.spinner(spinnerText);
 
     try {
       const client = await createClient();
@@ -69,11 +98,26 @@ export const sendCommand: Command = {
         }
       }
 
-      const result = await client.sendMessage(entity, { message });
+      let result;
+      let fileName: string | undefined;
+
+      if (filePath) {
+        // Send file with optional caption
+        const resolvedPath = path.resolve(filePath);
+        fileName = path.basename(resolvedPath);
+        result = await client.sendFile(entity, {
+          file: resolvedPath,
+          caption: message,
+        });
+      } else {
+        // Send text message
+        result = await client.sendMessage(entity, { message: message! });
+      }
 
       await client.disconnect();
 
-      spinner.success('Message sent');
+      const successMsg = filePath ? 'File sent' : 'Message sent';
+      spinner.success(successMsg);
 
       if (globalFlags.json) {
         output.json({
@@ -81,16 +125,30 @@ export const sendCommand: Command = {
           messageId: result.id,
           chat,
           text: message,
+          file: fileName,
         });
         return;
       }
 
       console.log('');
-      console.log(c.green('✓ Message sent successfully'));
+      if (filePath) {
+        console.log(c.green('✓ File sent successfully'));
+        console.log(c.dim(`  File: ${fileName}`));
+        if (message) {
+          console.log(c.dim(`  Caption: ${message}`));
+        }
+      } else {
+        console.log(c.green('✓ Message sent successfully'));
+      }
       console.log(c.dim(`  Message ID: ${result.id}`));
       console.log('');
+
+      // gramjs upload workers don't clean up properly, force exit after file send
+      if (filePath) {
+        setTimeout(() => process.exit(0), 100);
+      }
     } catch (error) {
-      spinner.fail('Failed to send message');
+      spinner.fail('Failed to send');
       throw error;
     }
   },

@@ -454,6 +454,16 @@ uni telegram send @friend "Hey!"
 uni telegram send 777000 "Test message"
 ```
 
+### Sending Files
+
+```bash
+# Send a file
+uni telegram send me --file ./screenshot.png
+
+# File with caption
+uni telegram send "Work Chat" "Here's the report" -f report.pdf
+```
+
 ### Media & Contacts
 
 ```bash

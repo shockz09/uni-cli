@@ -798,6 +798,8 @@ uni telegram read @username                 # Read messages
 uni telegram read "Family Group" -n 50      # Read from group
 uni telegram send @username "Hello!"        # Send message
 uni telegram send +1234567890 "Hi"          # Send to phone
+uni telegram send me --file photo.jpg       # Send file
+uni telegram send me "caption" -f doc.pdf   # File with caption
 ```
 
 ### Search & Contacts
