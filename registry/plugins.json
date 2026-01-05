@@ -7,7 +7,19 @@
       "description": "Google Keep (Workspace accounts only)",
       "version": "1.0.0",
       "repository": "github:shockz09/uni-plugin-gkeep",
-      "tags": ["google", "notes", "workspace"]
+      "tags": [
+        "google",
+        "notes",
+        "workspace"
+      ]
+    },
+    {
+      "name": "trello",
+      "package": "@uni/plugin-trello",
+      "description": "Trello service for uni CLI",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugin-trello",
+      "tags": []
     }
   ]
 }
