@@ -622,10 +622,12 @@ uni notify "Feature complete, ready for review"
 # Quick inbox check
 uni gmail list --unread
 
-# Search for important emails
-uni gmail list --query "from:boss@company.com"
+# Full-text search (finds in subject, body, sender)
+uni gmail search "flight booking"
+uni gmail search "indigo PNR"
+uni gmail search "invoice" -n 20
 
-# Read a specific email by search
+# Read a specific email
 uni gmail read "Your Booking is Ticketed"
 uni gmail read "from:amazon order confirmation"
 

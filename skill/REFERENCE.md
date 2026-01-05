@@ -1399,6 +1399,36 @@ uni gmail read "from:amazon order"
 
 ---
 
+### `uni gmail search`
+
+Search emails (full-text search in subject, body, sender)
+
+**Aliases:** `find`, `query`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Search term (searches everywhere: subject, body, sender) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+| `--all` | -a | boolean | `false` | Include promotions, social, updates |
+
+**Examples:**
+
+```bash
+uni gmail search "flight booking"
+uni gmail search "indigo PNR"
+uni gmail search "invoice" -n 20
+uni gmail search "amazon order" --all
+```
+
+---
+
 ### `uni gmail send`
 
 Send an email
@@ -3894,6 +3924,137 @@ Get a story with comments
 ```bash
 uni hn story 12345678
 uni hn story 12345678 -c 20
+```
+
+---
+
+## uni hf
+
+HuggingFace - models, datasets, spaces, and inference
+
+### `uni hf models`
+
+Search and get HuggingFace models
+
+**Aliases:** `model`, `m`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | No | Search query or model ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--author` | -a | string |  | Filter by author/organization |
+| `--task` | -t | string |  | Filter by task (e.g., text-generation, image-classification) |
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+| `--info` | -i | boolean |  | Get detailed info for a specific model |
+
+**Examples:**
+
+```bash
+uni hf models
+uni hf models "llama"
+uni hf models -a meta-llama
+uni hf models -t text-generation -n 5
+uni hf models meta-llama/Llama-2-7b --info
+```
+
+---
+
+### `uni hf datasets`
+
+Search and get HuggingFace datasets
+
+**Aliases:** `dataset`, `ds`, `d`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | No | Search query or dataset ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--author` | -a | string |  | Filter by author/organization |
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+| `--info` | -i | boolean |  | Get detailed info for a specific dataset |
+
+**Examples:**
+
+```bash
+uni hf datasets
+uni hf datasets "wikipedia"
+uni hf datasets -a openai
+uni hf datasets squad --info
+```
+
+---
+
+### `uni hf spaces`
+
+Search and get HuggingFace Spaces
+
+**Aliases:** `space`, `s`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | No | Search query or Space ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--author` | -a | string |  | Filter by author/organization |
+| `--sdk` |  | string |  | Filter by SDK (gradio, streamlit, docker, static) |
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+| `--info` | -i | boolean |  | Get detailed info for a specific Space |
+
+**Examples:**
+
+```bash
+uni hf spaces
+uni hf spaces "chat"
+uni hf spaces -a stabilityai
+uni hf spaces --sdk gradio -n 5
+uni hf spaces stabilityai/stable-diffusion --info
+```
+
+---
+
+### `uni hf infer`
+
+Run inference on a HuggingFace model (requires HF_TOKEN)
+
+**Aliases:** `inference`, `run`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `model` | Yes | Model ID (e.g., gpt2, meta-llama/Llama-2-7b) |
+| `input` | Yes | Input text or prompt |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--max-tokens` |  | number |  | Max tokens to generate (for text generation) |
+| `--temperature` |  | number |  | Temperature for sampling (0.0-2.0) |
+
+**Examples:**
+
+```bash
+uni hf infer gpt2 "Hello, my name is"
+uni hf infer bigscience/bloom-560m "The meaning of life is"
+uni hf infer gpt2 "Once upon a time" --max-tokens 50
 ```
 
 ---

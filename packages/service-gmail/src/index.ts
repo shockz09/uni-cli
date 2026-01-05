@@ -4,6 +4,7 @@
  * Commands:
  *   list   - List emails
  *   read   - Read an email
+ *   search - Search emails (full-text)
  *   send   - Send an email
  *   auth   - Authenticate
  *
@@ -16,6 +17,7 @@ import type { UniService } from '@uni/shared';
 import { createGoogleServiceSetup } from '@uni/shared';
 import { listCommand } from './commands/list';
 import { readCommand } from './commands/read';
+import { searchCommand } from './commands/search';
 import { sendCommand } from './commands/send';
 import { deleteCommand } from './commands/delete';
 import { authCommand } from './commands/auth';
@@ -26,7 +28,7 @@ const gmailService: UniService = {
   description: 'Gmail - read, send, and search emails',
   version: '0.1.0',
 
-  commands: [listCommand, readCommand, sendCommand, deleteCommand, authCommand],
+  commands: [listCommand, readCommand, searchCommand, sendCommand, deleteCommand, authCommand],
 
   auth: {
     type: 'oauth',

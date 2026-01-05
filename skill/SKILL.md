@@ -252,7 +252,8 @@ uni notion databases query <db-id>      # Query database
 ```bash
 uni gmail list                          # Recent emails
 uni gmail list --unread                 # Unread only
-uni gmail list --from "boss@company"    # Filter by sender
+uni gmail search "flight booking"       # Full-text search
+uni gmail search "indigo PNR"           # Search subject, body, sender
 uni gmail read <id-or-query>            # Read email by ID or search
 uni gmail send -t to@email.com -s "Hi" -b "Hello"
 uni gmail send -t to@email.com -s "Report" -b "See attached" --attach report.pdf
