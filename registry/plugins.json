@@ -18,6 +18,15 @@
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/trello",
       "tags": ["kanban", "boards", "tasks"]
+    },
+    {
+      "name": "hf",
+      "package": "@uni/plugin-hf",
+      "description": "HuggingFace models, datasets, spaces, and inference",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/hf",
+      "tags": ["ai", "ml", "models", "huggingface"]
     }
   ]
 }
