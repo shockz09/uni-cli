@@ -469,6 +469,108 @@ uni telegram download "Group Name" 12345 -o ./downloads
 
 ---
 
+## Linear Workflows
+
+### Daily Issue Triage
+
+```bash
+# Check your open issues
+uni linear issues
+
+# Filter by team
+uni linear issues list --team ENG
+
+# Close completed issues
+uni linear issues close ENG-123
+
+# Search for related issues
+uni linear issues search "authentication"
+```
+
+### Sprint Planning
+
+```bash
+# Check all projects
+uni linear projects
+
+# Create issues for sprint
+uni linear issues create "Implement feature X" -t ENG -p 2
+uni linear issues create "Fix bug Y" -t ENG -p 1
+
+# Add context to issues
+uni linear comments add ENG-123 "Needs design review first"
+```
+
+---
+
+## Todoist Workflows
+
+### Daily Task Management
+
+```bash
+# Check today's tasks
+uni todoist tasks list --filter today
+
+# Check overdue
+uni todoist tasks list --filter overdue
+
+# Add quick task
+uni todoist tasks add "Review PR" --due today
+
+# Complete tasks as you go
+uni todoist tasks done "Review PR"
+```
+
+### Project Organization
+
+```bash
+# Create project structure
+uni todoist projects create "Q1 Goals"
+uni todoist labels create "priority"
+uni todoist labels create "waiting"
+
+# Add tasks to project
+uni todoist tasks add "Define OKRs" -p "Q1 Goals" --priority 4
+```
+
+---
+
+## Trello Workflows
+
+### Kanban Board Flow
+
+```bash
+# View your boards
+uni trello boards
+
+# Check cards in a board
+uni trello cards list "Sprint Board"
+
+# See specific list
+uni trello cards list "Sprint Board" -l "In Progress"
+
+# Move cards between lists
+uni trello cards move "Sprint Board" "Fix login" "Done"
+```
+
+### Board Setup
+
+```bash
+# Create new board
+uni trello boards create "New Project"
+
+# Add lists
+uni trello lists create "New Project" "Backlog"
+uni trello lists create "New Project" "In Progress"
+uni trello lists create "New Project" "Done"
+
+# Add initial cards
+uni trello cards create "New Project" "Backlog" "Setup CI/CD"
+uni trello cards create "New Project" "Backlog" "Write docs"
+```
+
+---
+
 ## Communication Workflows
 
 ### Team Updates

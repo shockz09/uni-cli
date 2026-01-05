@@ -4,7 +4,7 @@ description: |
   Unified CLI wrapping multiple services. Prefer `uni <service> <command>` over
   raw MCP tools or direct CLIs when available. Run `uni list` to see services.
   Covers: web search, calendar, tasks, contacts, meet, Slack, Notion, Gmail, Drive, Telegram,
-  stocks/crypto, research (arXiv, Reddit, HN, Wikipedia), plus utilities: weather, currency, QR, URL shortener.
+  Linear, Todoist, Trello, stocks/crypto, research (arXiv, Reddit, HN, Wikipedia), plus utilities.
 allowed-tools: Bash(uni:*), Bash(~/.local/bin/uni:*)
 ---
 
@@ -40,6 +40,9 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | `hn` | Hacker News | `top`, `new`, `best`, `ask`, `show`, `search`, `story` |
 | `wiki` | Wikipedia | (default), `search`, `random`, `full` |
 | `telegram` | Telegram (user API) | `auth`, `chats`, `read`, `send`, `search`, `contacts`, `download` |
+| `linear` | Linear issues & projects | `issues`, `projects`, `teams`, `comments` |
+| `todoist` | Todoist tasks & projects | `tasks`, `projects`, `labels`, `comments` |
+| `trello` | Trello boards & cards | `boards`, `lists`, `cards`, `members` |
 | `plugins` | Plugin management | `list`, `install`, `uninstall`, `available`, `search`, `update` |
 
 ## Command Pattern
@@ -809,6 +812,102 @@ uni telegram download "Group" 67890 -o ./   # Specify output
 
 ---
 
+## Linear Service
+
+Issue tracking and project management. Requires `LINEAR_API_KEY` from https://linear.app/settings/api
+
+### Issues
+```bash
+uni linear issues                           # List open issues
+uni linear issues list --team ENG           # Filter by team
+uni linear issues list --filter closed      # Show closed issues
+uni linear issues get ENG-123               # Get issue details
+uni linear issues create "Fix bug" -t ENG   # Create issue
+uni linear issues update ENG-123 --priority 1  # Update priority
+uni linear issues close ENG-123             # Close issue
+uni linear issues search "login bug"        # Search issues
+```
+
+### Projects & Teams
+```bash
+uni linear projects                         # List projects
+uni linear teams                            # List teams
+```
+
+### Comments
+```bash
+uni linear comments list ENG-123            # List comments
+uni linear comments add ENG-123 "Fixed!"    # Add comment
+```
+
+---
+
+## Todoist Service
+
+Task management. Requires `TODOIST_TOKEN` from https://todoist.com/app/settings/integrations/developer
+
+### Tasks
+```bash
+uni todoist tasks                           # List tasks
+uni todoist tasks list --project Work       # Filter by project
+uni todoist tasks list --filter today       # Today's tasks
+uni todoist tasks add "Buy groceries"       # Add task
+uni todoist tasks add "Report" --due tomorrow --priority 4
+uni todoist tasks done "Buy groceries"      # Complete task
+uni todoist tasks update "Report" --due friday
+uni todoist tasks delete "Old task"         # Delete task
+```
+
+### Projects & Labels
+```bash
+uni todoist projects                        # List projects
+uni todoist projects create "Work"          # Create project
+uni todoist labels                          # List labels
+uni todoist labels create "urgent"          # Create label
+```
+
+### Comments
+```bash
+uni todoist comments list "Buy groceries"   # List comments
+uni todoist comments add "Groceries" "Get organic"  # Add comment
+```
+
+---
+
+## Trello Service
+
+Kanban boards. Requires `TRELLO_API_KEY` and `TRELLO_TOKEN` from https://trello.com/power-ups/admin
+
+### Boards
+```bash
+uni trello boards                           # List boards
+uni trello boards create "My Project"       # Create board
+uni trello boards close "Old Project"       # Archive board
+```
+
+### Lists
+```bash
+uni trello lists list "My Project"          # List lists in board
+uni trello lists create "My Project" "To Do"  # Create list
+uni trello lists archive "My Project" "Done"  # Archive list
+```
+
+### Cards
+```bash
+uni trello cards list "My Project"          # List all cards
+uni trello cards list "My Project" -l "To Do"  # Cards in list
+uni trello cards create "Board" "To Do" "Fix bug"  # Create card
+uni trello cards move "Board" "Fix bug" "Done"  # Move card
+uni trello cards archive "Board" "Old card"  # Archive card
+```
+
+### Members
+```bash
+uni trello members "My Project"             # List board members
+```
+
+---
+
 ## Plugin Management
 
 Extend uni-cli with plugins. Plugins are installed globally to `~/.uni/plugins/`.
@@ -870,6 +969,9 @@ uni plugins link ./my-plugin       # Link local plugin (must have dist/index.js)
 | Hacker News | `uni hn top` |
 | Wikipedia lookup | `uni wiki "Topic"` |
 | Telegram messages | `uni telegram read @user` |
+| Linear issues | `uni linear issues` |
+| Todoist tasks | `uni todoist tasks` |
+| Trello cards | `uni trello cards list "Board"` |
 | Natural language | `uni ask "your request"` |
 | Multiple commands | `uni run "cmd1" "cmd2"` |
 | Saved workflow | `uni flow run myflow` |

@@ -665,6 +665,186 @@ uni stocks list indices
 
 ---
 
+## uni linear
+
+Linear - issues, projects, and teams
+
+### `uni linear issues`
+
+Manage Linear issues
+
+**Aliases:** `issue`, `i`
+
+**Subcommands:**
+
+#### `uni linear issues list`
+
+List issues
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--team` | -t | string | Filter by team key (e.g., ENG) |
+| `--filter` | -f | string | Filter: open, closed, all (default: open) |
+| `--limit` | -n | number | Max results (default: 20) |
+
+```bash
+uni linear issues list
+uni linear issues list --team ENG
+uni linear issues list --filter closed -n 10
+```
+
+#### `uni linear issues get`
+
+Get issue details
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `identifier` | Yes | Issue identifier (e.g., ENG-123) |
+
+```bash
+uni linear issues get ENG-123
+```
+
+#### `uni linear issues create`
+
+Create a new issue
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `title` | Yes | Issue title |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--team` | -t | string | Team key (required) |
+| `--description` | -d | string | Issue description |
+| `--priority` | -p | number | Priority: 1=Urgent, 2=High, 3=Medium, 4=Low |
+
+```bash
+uni linear issues create "Fix login bug" --team ENG
+uni linear issues create "Add dark mode" -t ENG -p 2 -d "Users want dark mode"
+```
+
+#### `uni linear issues update`
+
+Update an issue
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `identifier` | Yes | Issue identifier |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--title` | -t | string | New title |
+| `--description` | -d | string | New description |
+| `--priority` | -p | number | New priority |
+| `--status` | -s | string | New status (state name) |
+
+```bash
+uni linear issues update ENG-123 --title "Updated title"
+uni linear issues update ENG-123 --priority 1
+```
+
+#### `uni linear issues close`
+
+Close an issue (mark as Done)
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `identifier` | Yes | Issue identifier |
+
+```bash
+uni linear issues close ENG-123
+```
+
+#### `uni linear issues search`
+
+Search issues
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `query` | Yes | Search query |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--limit` | -n | number | Max results |
+
+```bash
+uni linear issues search "login bug"
+```
+
+---
+
+### `uni linear projects`
+
+List projects
+
+**Aliases:** `project`, `p`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `20` | Max results (default: 20) |
+
+**Examples:**
+
+```bash
+uni linear projects
+uni linear projects -n 10
+```
+
+---
+
+### `uni linear teams`
+
+List teams
+
+**Aliases:** `team`, `t`
+
+**Examples:**
+
+```bash
+uni linear teams
+```
+
+---
+
+### `uni linear comments`
+
+Manage issue comments
+
+**Aliases:** `comment`, `c`
+
+**Subcommands:**
+
+#### `uni linear comments list`
+
+List comments on an issue
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `identifier` | Yes | Issue identifier (e.g., ENG-123) |
+
+```bash
+uni linear comments list ENG-123
+```
+
+#### `uni linear comments add`
+
+Add a comment to an issue
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `identifier` | Yes | Issue identifier (e.g., ENG-123) |
+| `body` | Yes | Comment text |
+
+```bash
+uni linear comments add ENG-123 "This is fixed now"
+uni linear comments add ENG-123 "Needs more investigation"
+```
+
+---
+
 ## uni exa
 
 Web search, code context, and research powered by Exa AI
@@ -2589,7 +2769,7 @@ Telegram user API (MTProto)
 
 ### `uni telegram auth`
 
-Authenticate with Telegram (phone + OTP). No API keys needed - uses embedded defaults.
+Authenticate with Telegram (phone + OTP)
 
 **Examples:**
 
@@ -3260,6 +3440,439 @@ Authenticate with Google Sheets
 uni gsheets auth
 uni gsheets auth --status
 uni gsheets auth --logout
+```
+
+---
+
+## uni trello
+
+Trello - boards, lists, cards, and members
+
+### `uni trello boards`
+
+Manage boards
+
+**Aliases:** `board`, `b`
+
+**Subcommands:**
+
+#### `uni trello boards list`
+
+List boards
+
+```bash
+uni trello boards list
+```
+
+#### `uni trello boards create`
+
+Create a board
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | Board name |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--description` | -d | string | Board description |
+
+```bash
+uni trello boards create "My Project"
+uni trello boards create "Sprint Board" -d "Q1 Sprint planning"
+```
+
+#### `uni trello boards close`
+
+Close (archive) a board
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | Board name or ID |
+
+```bash
+uni trello boards close "Old Project"
+```
+
+---
+
+### `uni trello lists`
+
+Manage lists in a board
+
+**Aliases:** `list`, `l`
+
+**Subcommands:**
+
+#### `uni trello lists list`
+
+List lists in a board
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+
+```bash
+uni trello lists list "My Project"
+```
+
+#### `uni trello lists create`
+
+Create a list in a board
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+| `name` | Yes | List name |
+
+```bash
+uni trello lists create "My Project" "To Do"
+```
+
+#### `uni trello lists archive`
+
+Archive a list
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+| `name` | Yes | List name |
+
+```bash
+uni trello lists archive "My Project" "Done"
+```
+
+---
+
+### `uni trello cards`
+
+Manage cards
+
+**Aliases:** `card`, `c`
+
+**Subcommands:**
+
+#### `uni trello cards list`
+
+List cards in a board or list
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--list` | -l | string | Filter by list name |
+
+```bash
+uni trello cards list "My Project"
+uni trello cards list "My Project" --list "To Do"
+```
+
+#### `uni trello cards create`
+
+Create a card
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+| `list` | Yes | List name |
+| `name` | Yes | Card name |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--description` | -d | string | Card description |
+| `--due` |  | string | Due date (YYYY-MM-DD) |
+
+```bash
+uni trello cards create "My Project" "To Do" "Fix login bug"
+uni trello cards create "Sprint" "Backlog" "Add dark mode" -d "Users want dark mode" --due 2026-01-15
+```
+
+#### `uni trello cards move`
+
+Move a card to another list
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+| `card` | Yes | Card name (partial match) |
+| `list` | Yes | Destination list name |
+
+```bash
+uni trello cards move "My Project" "Fix bug" "Done"
+```
+
+#### `uni trello cards archive`
+
+Archive a card
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+| `card` | Yes | Card name (partial match) |
+
+```bash
+uni trello cards archive "My Project" "Old task"
+```
+
+#### `uni trello cards delete`
+
+Delete a card permanently
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+| `card` | Yes | Card name (partial match) |
+
+```bash
+uni trello cards delete "My Project" "Test card"
+```
+
+---
+
+### `uni trello members`
+
+List board members
+
+**Aliases:** `member`, `m`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `board` | Yes | Board name or ID |
+
+**Examples:**
+
+```bash
+uni trello members "My Project"
+```
+
+---
+
+## uni todoist
+
+Todoist - tasks, projects, labels, and comments
+
+### `uni todoist tasks`
+
+Manage tasks
+
+**Aliases:** `task`, `t`
+
+**Subcommands:**
+
+#### `uni todoist tasks list`
+
+List tasks
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--project` | -p | string | Filter by project name |
+| `--filter` | -f | string | Todoist filter (e.g., "today", "overdue") |
+
+```bash
+uni todoist tasks list
+uni todoist tasks list --project Work
+uni todoist tasks list --filter today
+uni todoist tasks list --filter "p1 | p2"
+```
+
+#### `uni todoist tasks add`
+
+Add a new task
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `content` | Yes | Task content |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--project` | -p | string | Project name |
+| `--due` | -d | string | Due date (e.g., "today", "tomorrow", "next week") |
+| `--priority` |  | number | Priority: 1-4 (4=Urgent) |
+| `--labels` | -l | string | Comma-separated labels |
+| `--description` |  | string | Task description |
+
+```bash
+uni todoist tasks add "Buy groceries"
+uni todoist tasks add "Finish report" --due tomorrow --priority 4
+uni todoist tasks add "Call mom" -p Personal -d "next weekend"
+```
+
+#### `uni todoist tasks done`
+
+Mark a task as complete
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `query` | Yes | Task ID or search text |
+
+```bash
+uni todoist tasks done "Buy groceries"
+uni todoist tasks done 123456789
+```
+
+#### `uni todoist tasks delete`
+
+Delete a task
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `query` | Yes | Task ID or search text |
+
+```bash
+uni todoist tasks delete "Old task"
+```
+
+#### `uni todoist tasks update`
+
+Update a task
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `query` | Yes | Task ID or search text |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--content` | -c | string | New content |
+| `--due` | -d | string | New due date |
+| `--priority` | -p | number | New priority |
+| `--labels` | -l | string | New labels (comma-separated) |
+
+```bash
+uni todoist tasks update "Buy groceries" --due tomorrow
+uni todoist tasks update "Report" --priority 4
+```
+
+---
+
+### `uni todoist projects`
+
+Manage projects
+
+**Aliases:** `project`, `p`
+
+**Subcommands:**
+
+#### `uni todoist projects list`
+
+List projects
+
+```bash
+uni todoist projects list
+```
+
+#### `uni todoist projects create`
+
+Create a project
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | Project name |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--favorite` | -f | boolean | Mark as favorite |
+| `--view` | -v | string | View style: list or board |
+
+```bash
+uni todoist projects create "Work"
+uni todoist projects create "Side Project" --favorite
+```
+
+#### `uni todoist projects delete`
+
+Delete a project
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | Project name or ID |
+
+```bash
+uni todoist projects delete "Old Project"
+```
+
+---
+
+### `uni todoist labels`
+
+Manage labels
+
+**Aliases:** `label`, `l`
+
+**Subcommands:**
+
+#### `uni todoist labels list`
+
+List labels
+
+```bash
+uni todoist labels list
+```
+
+#### `uni todoist labels create`
+
+Create a label
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | Label name |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--favorite` | -f | boolean | Mark as favorite |
+
+```bash
+uni todoist labels create "urgent"
+uni todoist labels create "work" --favorite
+```
+
+#### `uni todoist labels delete`
+
+Delete a label
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | Label name or ID |
+
+```bash
+uni todoist labels delete "old-label"
+```
+
+---
+
+### `uni todoist comments`
+
+Manage comments
+
+**Aliases:** `comment`, `c`
+
+**Subcommands:**
+
+#### `uni todoist comments list`
+
+List comments on a task
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `task` | Yes | Task ID or search text |
+
+```bash
+uni todoist comments list "Buy groceries"
+```
+
+#### `uni todoist comments add`
+
+Add a comment to a task
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `task` | Yes | Task ID or search text |
+| `content` | Yes | Comment text |
+
+```bash
+uni todoist comments add "Buy groceries" "Remember to get organic"
 ```
 
 ---
