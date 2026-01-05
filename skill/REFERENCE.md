@@ -3146,7 +3146,9 @@ uni gdocs auth --logout
 
 ---
 
-## uni gkeep
+## uni gkeep (Plugin)
+
+> Install: `uni plugins install gkeep`
 
 Google Keep - notes
 
@@ -3465,7 +3467,9 @@ uni gsheets auth --logout
 
 ---
 
-## uni trello
+## uni trello (Plugin)
+
+> Install: `uni plugins install trello`
 
 Trello - boards, lists, cards, and members
 

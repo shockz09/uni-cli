@@ -31,7 +31,7 @@ uni gsheets auth
 uni gdocs auth
 uni gslides auth
 uni gforms auth
-# uni gkeep auth            # Workspace accounts only
+# uni gkeep auth            # Plugin - Workspace accounts only
 
 # Check auth status
 uni gcal auth --status
@@ -537,10 +537,10 @@ uni todoist tasks add "Define OKRs" -p "Q1 Goals" --priority 4
 
 ## Trello Workflows
 
-### Kanban Board Flow
+### Kanban Board Flow (Plugin)
 
 ```bash
-# View your boards
+# Requires: uni plugins install trello
 uni trello boards
 
 # Check cards in a board

@@ -8,7 +8,7 @@
 - **Just needs skill.md** - Works with Claude Code, OpenCode, Cursor, etc.
 - **Human-readable output** - AI can parse and act on it
 - **No confirmation prompts** - Designed for autonomous agents
-- **Consistent interface** - `uni <service> <command>` pattern across 19+ services
+- **Consistent interface** - `uni <service> <command>` pattern across 25+ services
 
 ## Quick Start
 
@@ -28,7 +28,7 @@ See `specs/STATUS.md` for current status.
 packages/
 ├── cli/              # Main CLI
 ├── shared/           # Shared types & utils
-├── service-*/        # Service packages (19 total)
+├── service-*/        # Service packages (25 builtin)
 skill/
 ├── SKILL.md          # AI agent skill file
 ├── REFERENCE.md      # Auto-generated command reference

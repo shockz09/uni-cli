@@ -14,6 +14,8 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 
 ## Quick Reference
 
+**(P)** = Plugin (install via `uni plugins install <name>`)
+
 | Service | Purpose | Key Commands |
 |---------|---------|--------------|
 | `exa` | Web search, code docs, research | `search`, `code`, `research`, `company` |
@@ -29,7 +31,7 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | `gdocs` | Google Docs | `list`, `get`, `create`, `append`, `replace`, `export` |
 | `gslides` | Google Slides | `list`, `get`, `create`, `add-slide`, `add-text`, `export` |
 | `gforms` | Google Forms | `list`, `get`, `create`, `add-question`, `responses` |
-| `gkeep` | Google Keep (Workspace only) | `list`, `get`, `add`, `delete` |
+| `gkeep` | Google Keep (Workspace only) **(P)** | `list`, `get`, `add`, `delete` |
 | `stocks` | Stock & crypto prices | (default), `info`, `history`, `list` |
 | `weather` | Weather forecasts | (default), `--forecast` |
 | `currency` | Currency converter | (default), `--list` |
@@ -42,7 +44,7 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | `telegram` | Telegram (user API) | `auth`, `chats`, `read`, `send`, `search`, `contacts`, `download` |
 | `linear` | Linear issues & projects | `issues`, `projects`, `teams`, `comments` |
 | `todoist` | Todoist tasks & projects | `tasks`, `projects`, `labels`, `comments` |
-| `trello` | Trello boards & cards | `boards`, `lists`, `cards`, `members` |
+| `trello` | Trello boards & cards **(P)** | `boards`, `lists`, `cards`, `members` |
 | `plugins` | Plugin management | `list`, `install`, `uninstall`, `available`, `search`, `update` |
 
 ## Command Pattern
@@ -422,8 +424,10 @@ uni gforms share <id> user@email.com --role reader
 
 ---
 
-## Google Keep Service (Workspace Only)
+## Google Keep Service (Workspace Only) (Plugin)
 
+> **Plugin:** Install via `uni plugins install gkeep`
+>
 > **Note:** Google Keep API requires Google Workspace Enterprise/Education Plus account.
 > Regular Gmail accounts cannot access the Keep API.
 
@@ -888,7 +892,9 @@ uni todoist comments add "Groceries" "Get organic"  # Add comment
 
 ---
 
-## Trello Service
+## Trello Service (Plugin)
+
+> **Plugin:** Install via `uni plugins install trello`
 
 Kanban boards. Requires `TRELLO_API_KEY` and `TRELLO_TOKEN` from https://trello.com/power-ups/admin
 

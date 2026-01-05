@@ -244,20 +244,21 @@ Unified duplicated command patterns into shared factories and helpers.
 
 ---
 
-## Extension Services (Post Phase 10)
+## Extension Services (Prioritized)
 
 These will be optional `uni install` packages:
 
-### @uni/service-yt (YouTube)
-- Search, download, transcripts via yt-dlp
-- Requires: yt-dlp, ffmpeg (optional)
+| Priority | Service | Description |
+|----------|---------|-------------|
+| 1 | **Linear** | Issues, projects (popular with devs) |
+| 2 | **Todoist** | Task management |
+| 3 | **Trello** | Boards, cards |
+| 4 | **Spotify** | Search, queue, control (via Spotify Connect API) |
+| 5 | **YouTube** | Search, download, transcripts (via yt-dlp) |
 
-### Future Extension Ideas
-- Trello (boards, cards)
-- Linear (issues, projects)
-- Spotify (playback, search)
-- Weather
+### Other Ideas
 - Translator
+- Airtable
 
 ---
 
