@@ -69,6 +69,21 @@ uni doctor
 5. `bun run build`
 6. Service auto-discovered
 
+## Moving Services Between Core and Plugins
+
+```bash
+# Extract a core service to the plugins monorepo
+bun scripts/plugin-move.ts extract <name>
+# Then: cd ../uni-plugins && git add . && git commit && git push
+
+# Absorb a plugin back into core
+bun scripts/plugin-move.ts absorb <name>
+# Then: bun run build
+```
+
+Plugins live in `../uni-plugins/packages/` (monorepo).
+Registry at `registry/plugins.json` tracks official plugins.
+
 ## Environment Variables
 
 ```bash
