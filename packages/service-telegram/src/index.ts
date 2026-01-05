@@ -8,6 +8,10 @@ import { logoutCommand } from './commands/logout';
 import { chatsCommand } from './commands/chats';
 import { readCommand } from './commands/read';
 import { sendCommand } from './commands/send';
+import { editCommand } from './commands/edit';
+import { deleteCommand } from './commands/delete';
+import { forwardCommand } from './commands/forward';
+import { reactCommand } from './commands/react';
 import { searchCommand } from './commands/search';
 import { contactsCommand } from './commands/contacts';
 import { downloadCommand } from './commands/download';
@@ -23,6 +27,10 @@ const telegramService: UniService = {
     chatsCommand,
     readCommand,
     sendCommand,
+    editCommand,
+    deleteCommand,
+    forwardCommand,
+    reactCommand,
     searchCommand,
     contactsCommand,
     downloadCommand,

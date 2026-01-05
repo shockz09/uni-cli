@@ -464,6 +464,25 @@ uni telegram send me --file ./screenshot.png
 uni telegram send "Work Chat" "Here's the report" -f report.pdf
 ```
 
+### Message Actions
+
+```bash
+# Reply to a message
+uni telegram send @user "Thanks!" --reply 12345
+
+# Edit your message
+uni telegram edit @user 12345 "Fixed typo"
+
+# Delete a message
+uni telegram delete @user 12345
+
+# Forward to another chat
+uni telegram forward @source 12345 @dest
+
+# React to message
+uni telegram react @user 12345 "👍"
+```
+
 ### Media & Contacts
 
 ```bash

@@ -41,7 +41,7 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | `reddit` | Reddit posts | `hot`, `new`, `top`, `search`, `post` |
 | `hn` | Hacker News | `top`, `new`, `best`, `ask`, `show`, `search`, `story` |
 | `wiki` | Wikipedia | (default), `search`, `random`, `full` |
-| `telegram` | Telegram (user API) | `auth`, `chats`, `read`, `send`, `search`, `contacts`, `download` |
+| `telegram` | Telegram (user API) | `auth`, `chats`, `read`, `send`, `edit`, `delete`, `forward`, `react`, `search`, `contacts`, `download` |
 | `linear` | Linear issues & projects | `issues`, `projects`, `teams`, `comments` |
 | `todoist` | Todoist tasks & projects | `tasks`, `projects`, `labels`, `comments` |
 | `trello` | Trello boards & cards **(P)** | `boards`, `lists`, `cards`, `members` |
@@ -800,6 +800,11 @@ uni telegram send @username "Hello!"        # Send message
 uni telegram send +1234567890 "Hi"          # Send to phone
 uni telegram send me --file photo.jpg       # Send file
 uni telegram send me "caption" -f doc.pdf   # File with caption
+uni telegram send me "reply" --reply 123    # Reply to message
+uni telegram edit me 123 "new text"         # Edit message
+uni telegram delete me 123                  # Delete message
+uni telegram forward me 123 @friend         # Forward message
+uni telegram react @user 123 "👍"           # React to message
 ```
 
 ### Search & Contacts

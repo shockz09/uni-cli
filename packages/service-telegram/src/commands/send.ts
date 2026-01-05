@@ -30,6 +30,12 @@ export const sendCommand: Command = {
       type: 'string',
       description: 'File path to send (image, video, document)',
     },
+    {
+      name: 'reply',
+      short: 'r',
+      type: 'string',
+      description: 'Message ID to reply to',
+    },
   ],
   examples: [
     'uni telegram send @username "Hello!"',
@@ -37,6 +43,7 @@ export const sendCommand: Command = {
     'uni telegram send "Family Group" "Dinner at 7?"',
     'uni telegram send me --file photo.jpg',
     'uni telegram send me "Check this out" -f ./screenshot.png',
+    'uni telegram send me "Reply text" --reply 12345',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
@@ -44,6 +51,7 @@ export const sendCommand: Command = {
     const chat = args.chat as string;
     const message = args.message as string | undefined;
     const filePath = flags.file as string | undefined;
+    const replyTo = flags.reply ? parseInt(flags.reply as string, 10) : undefined;
 
     // Must have either message or file
     if (!message && !filePath) {
@@ -108,10 +116,11 @@ export const sendCommand: Command = {
         result = await client.sendFile(entity, {
           file: resolvedPath,
           caption: message,
+          replyTo,
         });
       } else {
         // Send text message
-        result = await client.sendMessage(entity, { message: message! });
+        result = await client.sendMessage(entity, { message: message!, replyTo });
       }
 
       await client.disconnect();

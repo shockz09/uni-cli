@@ -2875,6 +2875,7 @@ Send a message to a chat
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
 | `--file` | -f | string |  | File path to send (image, video, document) |
+| `--reply` | -r | string |  | Message ID to reply to |
 
 **Examples:**
 
@@ -2884,6 +2885,104 @@ uni telegram send +1234567890 "Hi there"
 uni telegram send "Family Group" "Dinner at 7?"
 uni telegram send me --file photo.jpg
 uni telegram send me "Check this out" -f ./screenshot.png
+uni telegram send me "Reply text" --reply 12345
+```
+
+---
+
+### `uni telegram edit`
+
+Edit a sent message
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `chat` | Yes | Chat identifier (@username, phone, ID, or title) |
+| `messageId` | Yes | Message ID to edit |
+| `text` | Yes | New message text |
+
+**Examples:**
+
+```bash
+uni telegram edit me 12345 "Fixed typo"
+uni telegram edit @username 67890 "Updated message"
+```
+
+---
+
+### `uni telegram delete`
+
+Delete a message
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `chat` | Yes | Chat identifier (@username, phone, ID, or title) |
+| `messageId` | Yes | Message ID to delete |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--revoke` | -r | boolean | `true` | Delete for everyone (default: true) |
+
+**Examples:**
+
+```bash
+uni telegram delete me 12345
+uni telegram delete @username 67890
+uni telegram delete me 12345 --no-revoke
+```
+
+---
+
+### `uni telegram forward`
+
+Forward a message to another chat
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `from` | Yes | Source chat identifier |
+| `messageId` | Yes | Message ID to forward |
+| `to` | Yes | Destination chat identifier |
+
+**Examples:**
+
+```bash
+uni telegram forward @source 12345 @dest
+uni telegram forward "Work Group" 67890 me
+```
+
+---
+
+### `uni telegram react`
+
+React to a message with an emoji
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `chat` | Yes | Chat identifier (@username, phone, ID, or title) |
+| `messageId` | Yes | Message ID to react to |
+| `emoji` | Yes | Emoji reaction (e.g., 👍, ❤️, 🔥) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--big` | -b | boolean | `false` | Show bigger reaction animation |
+
+**Examples:**
+
+```bash
+uni telegram react me 12345 "👍"
+uni telegram react @username 67890 "❤️"
+uni telegram react me 12345 "🔥" --big
 ```
 
 ---
