@@ -4,7 +4,7 @@
 
 import type { Command, CommandContext } from '@uni/shared';
 import { c } from '@uni/shared';
-import { linear } from '../api';
+import { linear, linearOAuth } from '../api';
 
 export const commentsCommand: Command = {
   name: 'comments',
@@ -21,8 +21,8 @@ export const commentsCommand: Command = {
         const { output, args, globalFlags } = ctx;
         const identifier = args.identifier as string;
 
-        if (!linear.hasToken()) {
-          output.error('LINEAR_API_KEY not set.');
+        if (!linearOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni linear auth" first.');
           return;
         }
 
@@ -74,8 +74,8 @@ export const commentsCommand: Command = {
         const identifier = args.identifier as string;
         const body = args.body as string;
 
-        if (!linear.hasToken()) {
-          output.error('LINEAR_API_KEY not set.');
+        if (!linearOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni linear auth" first.');
           return;
         }
 

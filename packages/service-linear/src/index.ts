@@ -2,40 +2,40 @@
  * Linear Service - Issues, projects, and teams
  *
  * Commands:
+ *   auth      - Authenticate with Linear (OAuth)
  *   issues    - List, create, update, close, search issues
  *   projects  - List projects
  *   teams     - List teams
  *   comments  - List and add comments
  *
- * Requires: LINEAR_API_KEY environment variable
- * Get your key from: https://linear.app/settings/api
+ * Run `uni linear auth` to authenticate.
  */
 
 import type { UniService } from '@uni/shared';
 import { c } from '@uni/shared';
+import { authCommand } from './commands/auth';
 import { issuesCommand } from './commands/issues';
 import { projectsCommand } from './commands/projects';
 import { teamsCommand } from './commands/teams';
 import { commentsCommand } from './commands/comments';
-import { linear } from './api';
+import { linearOAuth } from './api';
 
 const linearService: UniService = {
   name: 'linear',
   description: 'Linear - issues, projects, and teams',
   version: '0.1.0',
 
-  commands: [issuesCommand, projectsCommand, teamsCommand, commentsCommand],
+  commands: [authCommand, issuesCommand, projectsCommand, teamsCommand, commentsCommand],
 
   auth: {
-    type: 'token',
-    envVar: 'LINEAR_API_KEY',
-    flow: 'manual',
+    type: 'oauth',
+    flow: 'browser',
   },
 
   async setup() {
-    if (!linear.hasToken()) {
-      console.error(c.yellow('Warning: LINEAR_API_KEY not set.'));
-      console.error(c.dim('Get your key from https://linear.app/settings/api'));
+    if (!linearOAuth.isAuthenticated()) {
+      console.error(c.yellow('Not authenticated.'));
+      console.error(c.dim('Run "uni linear auth" to authenticate.'));
     }
   },
 };

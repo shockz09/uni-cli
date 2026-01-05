@@ -4,7 +4,7 @@
 
 import type { Command, CommandContext } from '@uni/shared';
 import { c } from '@uni/shared';
-import { linear } from '../api';
+import { linear, linearOAuth } from '../api';
 
 export const projectsCommand: Command = {
   name: 'projects',
@@ -22,8 +22,8 @@ export const projectsCommand: Command = {
     const { output, flags, globalFlags } = ctx;
     const limit = (flags.limit as number) || 20;
 
-    if (!linear.hasToken()) {
-      output.error('LINEAR_API_KEY not set. Get your key from https://linear.app/settings/api');
+    if (!linearOAuth.isAuthenticated()) {
+      output.error('Not authenticated. Run "uni linear auth" first.');
       return;
     }
 

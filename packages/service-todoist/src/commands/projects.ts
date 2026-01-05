@@ -4,7 +4,7 @@
 
 import type { Command, CommandContext } from '@uni/shared';
 import { c } from '@uni/shared';
-import { todoist } from '../api';
+import { todoist, todoistOAuth } from '../api';
 
 export const projectsCommand: Command = {
   name: 'projects',
@@ -19,8 +19,8 @@ export const projectsCommand: Command = {
       async handler(ctx: CommandContext): Promise<void> {
         const { output, globalFlags } = ctx;
 
-        if (!todoist.hasToken()) {
-          output.error('TODOIST_TOKEN not set.');
+        if (!todoistOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni todoist auth" first.');
           return;
         }
 
@@ -69,8 +69,8 @@ export const projectsCommand: Command = {
         const { output, args, flags, globalFlags } = ctx;
         const name = args.name as string;
 
-        if (!todoist.hasToken()) {
-          output.error('TODOIST_TOKEN not set.');
+        if (!todoistOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni todoist auth" first.');
           return;
         }
 
@@ -110,8 +110,8 @@ export const projectsCommand: Command = {
         const { output, args, globalFlags } = ctx;
         const name = args.name as string;
 
-        if (!todoist.hasToken()) {
-          output.error('TODOIST_TOKEN not set.');
+        if (!todoistOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni todoist auth" first.');
           return;
         }
 

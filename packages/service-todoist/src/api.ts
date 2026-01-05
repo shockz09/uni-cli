@@ -1,12 +1,26 @@
 /**
- * Todoist REST API v2 Client
+ * Todoist REST API v2 Client with OAuth
  *
- * Uses API Token for authentication.
- * Get your token from: https://todoist.com/app/settings/integrations/developer
- * Set TODOIST_TOKEN environment variable or in config.
+ * Uses OAuth for authentication.
+ * Run `uni todoist auth` to authenticate.
  */
 
+import { OAuthClient } from '@uni/shared';
+
 const TODOIST_API = 'https://api.todoist.com/rest/v2';
+
+// Todoist OAuth config with embedded defaults
+export const todoistOAuth = new OAuthClient({
+  name: 'todoist',
+  authUrl: 'https://todoist.com/oauth/authorize',
+  tokenUrl: 'https://todoist.com/oauth/access_token',
+  scopes: ['data:read_write'],
+  defaultClientId: 'a3edd97ce4284cd68a0e027feb835e1f',
+  defaultClientSecret: '23b6590c692f4230a396ca8e30bdf963',
+  envClientId: 'TODOIST_CLIENT_ID',
+  envClientSecret: 'TODOIST_CLIENT_SECRET',
+  supportsRefresh: false, // Todoist tokens don't expire
+});
 
 export interface Task {
   id: string;
@@ -60,24 +74,19 @@ export interface Comment {
 }
 
 export class TodoistClient {
-  private token: string;
-
-  constructor() {
-    this.token = process.env.TODOIST_TOKEN || '';
-  }
-
-  hasToken(): boolean {
-    return Boolean(this.token);
-  }
-
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
+    const token = todoistOAuth.getAccessToken();
+    if (!token) {
+      throw new Error('Not authenticated. Run "uni todoist auth" first.');
+    }
+
     const response = await fetch(`${TODOIST_API}${endpoint}`, {
       ...options,
       headers: {
-        Authorization: `Bearer ${this.token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
         ...options.headers,
       },
@@ -88,7 +97,6 @@ export class TodoistClient {
       throw new Error(`Todoist API error: ${error || response.statusText}`);
     }
 
-    // Handle 204 No Content
     if (response.status === 204) {
       return {} as T;
     }

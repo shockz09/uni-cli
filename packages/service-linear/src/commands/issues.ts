@@ -4,7 +4,7 @@
 
 import type { Command, CommandContext } from '@uni/shared';
 import { c } from '@uni/shared';
-import { linear, type Issue } from '../api';
+import { linear, linearOAuth, type Issue } from '../api';
 
 const priorityLabels: Record<number, string> = {
   0: 'None',
@@ -55,8 +55,8 @@ export const issuesCommand: Command = {
         const filter = (flags.filter as string) || 'open';
         const limit = (flags.limit as number) || 20;
 
-        if (!linear.hasToken()) {
-          output.error('LINEAR_API_KEY not set. Get your key from https://linear.app/settings/api');
+        if (!linearOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni linear auth" first.');
           return;
         }
 
@@ -107,8 +107,8 @@ export const issuesCommand: Command = {
         const { output, args, globalFlags } = ctx;
         const identifier = args.identifier as string;
 
-        if (!linear.hasToken()) {
-          output.error('LINEAR_API_KEY not set.');
+        if (!linearOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni linear auth" first.');
           return;
         }
 
@@ -168,8 +168,8 @@ export const issuesCommand: Command = {
         const description = flags.description as string | undefined;
         const priority = flags.priority as number | undefined;
 
-        if (!linear.hasToken()) {
-          output.error('LINEAR_API_KEY not set.');
+        if (!linearOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni linear auth" first.');
           return;
         }
 
@@ -226,8 +226,8 @@ export const issuesCommand: Command = {
         const { output, args, flags, globalFlags } = ctx;
         const identifier = args.identifier as string;
 
-        if (!linear.hasToken()) {
-          output.error('LINEAR_API_KEY not set.');
+        if (!linearOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni linear auth" first.');
           return;
         }
 
@@ -285,8 +285,8 @@ export const issuesCommand: Command = {
         const { output, args, globalFlags } = ctx;
         const identifier = args.identifier as string;
 
-        if (!linear.hasToken()) {
-          output.error('LINEAR_API_KEY not set.');
+        if (!linearOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni linear auth" first.');
           return;
         }
 
@@ -333,8 +333,8 @@ export const issuesCommand: Command = {
         const query = args.query as string;
         const limit = (flags.limit as number) || 20;
 
-        if (!linear.hasToken()) {
-          output.error('LINEAR_API_KEY not set.');
+        if (!linearOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni linear auth" first.');
           return;
         }
 

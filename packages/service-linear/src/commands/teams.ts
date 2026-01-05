@@ -4,7 +4,7 @@
 
 import type { Command, CommandContext } from '@uni/shared';
 import { c } from '@uni/shared';
-import { linear } from '../api';
+import { linear, linearOAuth } from '../api';
 
 export const teamsCommand: Command = {
   name: 'teams',
@@ -15,8 +15,8 @@ export const teamsCommand: Command = {
   async handler(ctx: CommandContext): Promise<void> {
     const { output, globalFlags } = ctx;
 
-    if (!linear.hasToken()) {
-      output.error('LINEAR_API_KEY not set. Get your key from https://linear.app/settings/api');
+    if (!linearOAuth.isAuthenticated()) {
+      output.error('Not authenticated. Run "uni linear auth" first.');
       return;
     }
 

@@ -4,7 +4,7 @@
 
 import type { Command, CommandContext } from '@uni/shared';
 import { c } from '@uni/shared';
-import { todoist, type Task } from '../api';
+import { todoist, todoistOAuth, type Task } from '../api';
 
 const priorityColors: Record<number, (s: string) => string> = {
   4: c.red,    // p1 = Urgent
@@ -49,8 +49,8 @@ export const tasksCommand: Command = {
         const projectName = flags.project as string | undefined;
         const filter = flags.filter as string | undefined;
 
-        if (!todoist.hasToken()) {
-          output.error('TODOIST_TOKEN not set. Get your token from https://todoist.com/app/settings/integrations/developer');
+        if (!todoistOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni todoist auth" first.');
           return;
         }
 
@@ -113,8 +113,8 @@ export const tasksCommand: Command = {
         const { output, args, flags, globalFlags } = ctx;
         const content = args.content as string;
 
-        if (!todoist.hasToken()) {
-          output.error('TODOIST_TOKEN not set.');
+        if (!todoistOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni todoist auth" first.');
           return;
         }
 
@@ -173,8 +173,8 @@ export const tasksCommand: Command = {
         const { output, args, globalFlags } = ctx;
         const query = args.query as string;
 
-        if (!todoist.hasToken()) {
-          output.error('TODOIST_TOKEN not set.');
+        if (!todoistOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni todoist auth" first.');
           return;
         }
 
@@ -221,8 +221,8 @@ export const tasksCommand: Command = {
         const { output, args, globalFlags } = ctx;
         const query = args.query as string;
 
-        if (!todoist.hasToken()) {
-          output.error('TODOIST_TOKEN not set.');
+        if (!todoistOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni todoist auth" first.');
           return;
         }
 
@@ -277,8 +277,8 @@ export const tasksCommand: Command = {
         const { output, args, flags, globalFlags } = ctx;
         const query = args.query as string;
 
-        if (!todoist.hasToken()) {
-          output.error('TODOIST_TOKEN not set.');
+        if (!todoistOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni todoist auth" first.');
           return;
         }
 

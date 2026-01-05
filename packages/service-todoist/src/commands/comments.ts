@@ -4,7 +4,7 @@
 
 import type { Command, CommandContext } from '@uni/shared';
 import { c } from '@uni/shared';
-import { todoist } from '../api';
+import { todoist, todoistOAuth } from '../api';
 
 export const commentsCommand: Command = {
   name: 'comments',
@@ -21,8 +21,8 @@ export const commentsCommand: Command = {
         const { output, args, globalFlags } = ctx;
         const query = args.task as string;
 
-        if (!todoist.hasToken()) {
-          output.error('TODOIST_TOKEN not set.');
+        if (!todoistOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni todoist auth" first.');
           return;
         }
 
@@ -81,8 +81,8 @@ export const commentsCommand: Command = {
         const query = args.task as string;
         const content = args.content as string;
 
-        if (!todoist.hasToken()) {
-          output.error('TODOIST_TOKEN not set.');
+        if (!todoistOAuth.isAuthenticated()) {
+          output.error('Not authenticated. Run "uni todoist auth" first.');
           return;
         }
 

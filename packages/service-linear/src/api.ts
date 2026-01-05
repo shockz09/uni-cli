@@ -1,12 +1,26 @@
 /**
- * Linear GraphQL API Client
+ * Linear GraphQL API Client with OAuth
  *
- * Uses Personal API Key for authentication.
- * Get your key from: https://linear.app/settings/api
- * Set LINEAR_API_KEY environment variable or in config.
+ * Uses OAuth for authentication.
+ * Run `uni linear auth` to authenticate.
  */
 
+import { OAuthClient } from '@uni/shared';
+
 const LINEAR_API = 'https://api.linear.app/graphql';
+
+// Linear OAuth config with embedded defaults
+export const linearOAuth = new OAuthClient({
+  name: 'linear',
+  authUrl: 'https://linear.app/oauth/authorize',
+  tokenUrl: 'https://api.linear.app/oauth/token',
+  scopes: ['read', 'write'],
+  defaultClientId: 'a2c18107bd856c2dbb9da1845c7af278',
+  defaultClientSecret: '18265e82181b6416deaf584e71ddb26b',
+  envClientId: 'LINEAR_CLIENT_ID',
+  envClientSecret: 'LINEAR_CLIENT_SECRET',
+  supportsRefresh: false, // Linear tokens don't expire
+});
 
 interface GraphQLResponse<T> {
   data?: T;
@@ -64,22 +78,17 @@ export interface WorkflowState {
 }
 
 export class LinearClient {
-  private token: string;
-
-  constructor() {
-    this.token = process.env.LINEAR_API_KEY || '';
-  }
-
-  hasToken(): boolean {
-    return Boolean(this.token);
-  }
-
   private async query<T>(queryStr: string, variables?: Record<string, unknown>): Promise<T> {
+    const token = linearOAuth.getAccessToken();
+    if (!token) {
+      throw new Error('Not authenticated. Run "uni linear auth" first.');
+    }
+
     const response = await fetch(LINEAR_API, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: this.token,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ query: queryStr, variables }),
     });
@@ -97,9 +106,6 @@ export class LinearClient {
     return result.data as T;
   }
 
-  /**
-   * List issues
-   */
   async listIssues(options: { teamId?: string; limit?: number; filter?: string } = {}): Promise<Issue[]> {
     const { teamId, limit = 20, filter } = options;
 
@@ -132,9 +138,6 @@ export class LinearClient {
     return data.issues.nodes;
   }
 
-  /**
-   * Get single issue
-   */
   async getIssue(identifier: string): Promise<Issue> {
     const data = await this.query<{ issue: Issue }>(`
       query Issue($id: String!) {
@@ -158,9 +161,6 @@ export class LinearClient {
     return data.issue;
   }
 
-  /**
-   * Create issue
-   */
   async createIssue(input: {
     teamId: string;
     title: string;
@@ -188,9 +188,6 @@ export class LinearClient {
     return data.issueCreate.issue;
   }
 
-  /**
-   * Update issue
-   */
   async updateIssue(id: string, input: {
     title?: string;
     description?: string;
@@ -216,9 +213,6 @@ export class LinearClient {
     return data.issueUpdate.issue;
   }
 
-  /**
-   * Get workflow states for a team
-   */
   async getWorkflowStates(teamId: string): Promise<WorkflowState[]> {
     const data = await this.query<{ team: { states: { nodes: WorkflowState[] } } }>(`
       query TeamStates($teamId: String!) {
@@ -238,9 +232,6 @@ export class LinearClient {
     return data.team.states.nodes;
   }
 
-  /**
-   * List projects
-   */
   async listProjects(limit = 20): Promise<Project[]> {
     const data = await this.query<{ projects: { nodes: Project[] } }>(`
       query Projects($first: Int) {
@@ -264,9 +255,6 @@ export class LinearClient {
     return data.projects.nodes;
   }
 
-  /**
-   * List teams
-   */
   async listTeams(): Promise<Team[]> {
     const data = await this.query<{ teams: { nodes: Team[] } }>(`
       query Teams {
@@ -285,9 +273,6 @@ export class LinearClient {
     return data.teams.nodes;
   }
 
-  /**
-   * Get comments on an issue
-   */
   async getComments(issueId: string): Promise<Comment[]> {
     const data = await this.query<{ issue: { comments: { nodes: Comment[] } } }>(`
       query IssueComments($id: String!) {
@@ -307,9 +292,6 @@ export class LinearClient {
     return data.issue.comments.nodes;
   }
 
-  /**
-   * Add comment to issue
-   */
   async addComment(issueId: string, body: string): Promise<Comment> {
     const data = await this.query<{ commentCreate: { success: boolean; comment: Comment } }>(`
       mutation CreateComment($input: CommentCreateInput!) {
@@ -328,9 +310,6 @@ export class LinearClient {
     return data.commentCreate.comment;
   }
 
-  /**
-   * Search issues
-   */
   async searchIssues(query: string, limit = 20): Promise<Issue[]> {
     const data = await this.query<{ searchIssues: { nodes: Issue[] } }>(`
       query SearchIssues($query: String!, $first: Int) {
