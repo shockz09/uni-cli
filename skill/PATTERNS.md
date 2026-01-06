@@ -722,6 +722,109 @@ uni todoist tasks add "Define OKRs" -p "Q1 Goals" --priority 4
 
 ---
 
+## Spotify Workflows (Plugin)
+
+### Getting Started
+
+```bash
+# Authenticate (default app embedded, no setup needed)
+uni spotify auth
+
+# Check status
+uni spotify auth --status
+
+# Use your own Spotify app (optional)
+uni spotify auth --setup
+```
+
+### What's Playing
+
+```bash
+# Show currently playing
+uni spotify now
+
+# Live updates
+uni spotify now --watch
+```
+
+### Search Music
+
+```bash
+# Search for tracks
+uni spotify search "Bohemian Rhapsody"
+
+# Search artists
+uni spotify search "Queen" --type artist
+
+# Search albums
+uni spotify search "Abbey Road" --type album
+
+# Search playlists
+uni spotify search "Chill" --type playlist -n 20
+```
+
+### Playback Control (Premium Only)
+
+```bash
+# Play/resume
+uni spotify play
+
+# Search and play
+uni spotify play "Bohemian Rhapsody"
+
+# Play album
+uni spotify play "Abbey Road" --album
+
+# Play playlist
+uni spotify play "Discover Weekly" --playlist
+
+# Pause
+uni spotify pause
+
+# Next/previous
+uni spotify next
+uni spotify prev
+
+# Volume
+uni spotify volume 50
+```
+
+### Queue & Devices
+
+```bash
+# Add to queue
+uni spotify queue "Stairway to Heaven"
+
+# List devices
+uni spotify devices
+
+# Switch device
+uni spotify devices --transfer <device-id>
+```
+
+### Playlists
+
+```bash
+# List your playlists
+uni spotify playlists
+
+# View playlist tracks
+uni spotify playlists <playlist-id>
+```
+
+### Music Flow Ideas
+
+```bash
+# Create a "vibe check" flow
+uni flow add vibe "spotify now" "spotify playlists -n 5"
+
+# Quick play flow
+uni flow add music "spotify play '$1'"
+uni music "jazz vibes"
+```
+
+---
+
 ## Trello Workflows
 
 ### Kanban Board Flow (Plugin)

@@ -243,6 +243,30 @@ Unified duplicated command patterns into shared factories and helpers.
 
 ---
 
+### Phase 25: WhatsApp History & Daemon Improvements (Pending)
+**Spec file**: `specs/phase-25-wa-history.md`
+
+- [ ] `uni wa history <chat>` - Fetch message history from WhatsApp
+- [ ] `messaging-history.set` event listener in daemon
+- [ ] Deduplication and 500 message limit in store
+- [ ] Better error handling for history fetch
+
+**Purpose:** Access old messages for deletion, improve daemon reliability.
+
+---
+
+### Phase 26: Modular Skill Files ✅
+**Spec file**: `specs/phase-26-modular-skills.md`
+
+- [x] Separate skills per service category (uni-wa, uni-telegram, uni-google, etc.)
+- [x] Each skill has own YAML frontmatter with trigger descriptions
+- [x] Symlinked to `~/.claude/skills/`
+- [x] Main SKILL.md reduced from 1100 lines to 100 lines
+
+**Result:** Claude now activates the right skill based on request context.
+
+---
+
 ### Future: Phase 18 (TBD)
 - Plugin development documentation
 - More services (YouTube, Linear, etc.)
@@ -251,14 +275,24 @@ Unified duplicated command patterns into shared factories and helpers.
 
 ---
 
+## Plugins (External)
+
+| Service | Status | Description |
+|---------|--------|-------------|
+| **spotify** | ✅ Working | Search, playlists, playback control (Premium) |
+| **hf** | ✅ Working | HuggingFace models, datasets, inference |
+
+Location: `~/.uni/plugins/`
+
+---
+
 ## Future Services
 
 | Priority | Service | Description |
 |----------|---------|-------------|
 | 1 | **Trello** | Boards, cards |
-| 2 | **Spotify** | Search, queue, control (via Spotify Connect API) |
-| 3 | **YouTube** | Search, download, transcripts (via yt-dlp) |
-| 4 | **Airtable** | Database/spreadsheet hybrid |
+| 2 | **YouTube** | Search, download, transcripts (via yt-dlp) |
+| 3 | **Airtable** | Database/spreadsheet hybrid |
 
 ---
 

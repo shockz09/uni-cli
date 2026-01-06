@@ -1416,7 +1416,8 @@ Search emails (full-text search in subject, body, sender)
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
 | `--limit` | -n | number | `10` | Max results (default: 10) |
-| `--all` | -a | boolean | `false` | Include promotions, social, updates |
+| `--all` | -a | boolean | `true` | Search all mail (default: true for AI agents) |
+| `--primary` | -p | boolean | `false` | Limit to primary inbox only |
 
 **Examples:**
 
@@ -1424,7 +1425,7 @@ Search emails (full-text search in subject, body, sender)
 uni gmail search "flight booking"
 uni gmail search "indigo PNR"
 uni gmail search "invoice" -n 20
-uni gmail search "amazon order" --all
+uni gmail search "newsletter" --primary
 ```
 
 ---
@@ -2881,6 +2882,7 @@ Read messages from a chat
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
 | `--limit` | -n | number | `20` | Number of messages (default: 20) |
+| `--download` | -d | boolean | `false` | Download media for piping (slower) |
 
 **Examples:**
 
@@ -2946,27 +2948,29 @@ uni telegram edit @username 67890 "Updated message"
 
 ### `uni telegram delete`
 
-Delete a message
+Delete messages by ID, range, or text search
 
 **Arguments:**
 
 | Name | Required | Description |
 |------|----------|-------------|
 | `chat` | Yes | Chat identifier (@username, phone, ID, or title) |
-| `messageId` | Yes | Message ID to delete |
+| `query` | Yes | Message ID, range (10645-10649), or text to search |
 
 **Options:**
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
 | `--revoke` | -r | boolean | `true` | Delete for everyone (default: true) |
+| `--limit` | -n | number | `10` | Max messages to delete when searching by text (default: 10) |
 
 **Examples:**
 
 ```bash
 uni telegram delete me 12345
-uni telegram delete @username 67890
-uni telegram delete me 12345 --no-revoke
+uni telegram delete me 10645-10649
+uni telegram delete me "test message"
+uni telegram delete @username 67890 --no-revoke
 ```
 
 ---
@@ -4204,6 +4208,285 @@ Get a story with comments
 ```bash
 uni hn story 12345678
 uni hn story 12345678 -c 20
+```
+
+---
+
+## uni spotify
+
+Spotify - control playback, search, and manage playlists
+
+### `uni spotify auth`
+
+Authenticate with Spotify
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--logout` |  | boolean |  | Log out and remove stored credentials |
+| `--status` |  | boolean |  | Check authentication status |
+| `--setup` |  | boolean |  | Show instructions to use your own Spotify app |
+
+**Examples:**
+
+```bash
+uni spotify auth
+uni spotify auth --status
+uni spotify auth --logout
+uni spotify auth --setup
+```
+
+---
+
+### `uni spotify now`
+
+Show currently playing track
+
+**Aliases:** `np`, `now-playing`, `status`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--watch` | -w | boolean |  | Continuously update (every 5s) |
+
+**Examples:**
+
+```bash
+uni spotify now
+uni spotify np
+uni spotify now --watch
+```
+
+---
+
+### `uni spotify play`
+
+Play/resume playback or play a specific track
+
+**Aliases:** `resume`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | No | Track name, Spotify URI, or search query |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--device` | -d | string |  | Device ID to play on |
+| `--album` | -a | boolean |  | Search for albums instead of tracks |
+| `--playlist` | -p | boolean |  | Search for playlists instead of tracks |
+
+**Examples:**
+
+```bash
+uni spotify play
+uni spotify play "Bohemian Rhapsody"
+uni spotify play "spotify:track:6rqhFgbbKwnb9MLmUQDhG6"
+uni spotify play "Abbey Road" --album
+uni spotify play "Chill Vibes" --playlist
+uni spotify play --device abc123
+```
+
+---
+
+### `uni spotify pause`
+
+Pause playback
+
+**Aliases:** `stop`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--device` | -d | string |  | Device ID |
+
+**Examples:**
+
+```bash
+uni spotify pause
+```
+
+---
+
+### `uni spotify next`
+
+Skip to next track
+
+**Aliases:** `skip`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--device` | -d | string |  | Device ID |
+
+**Examples:**
+
+```bash
+uni spotify next
+uni spotify skip
+```
+
+---
+
+### `uni spotify prev`
+
+Go to previous track
+
+**Aliases:** `previous`, `back`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--device` | -d | string |  | Device ID |
+
+**Examples:**
+
+```bash
+uni spotify prev
+uni spotify previous
+```
+
+---
+
+### `uni spotify search`
+
+Search for tracks, albums, artists, or playlists
+
+**Aliases:** `s`, `find`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Search query |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--type` | -t | string | `track` | Type: track, album, artist, playlist (default: track) |
+| `--limit` | -n | number | `10` | Max results (default: 10) |
+
+**Examples:**
+
+```bash
+uni spotify search "Bohemian Rhapsody"
+uni spotify search "Queen" --type artist
+uni spotify search "Abbey Road" --type album
+uni spotify search "Chill" --type playlist -n 5
+```
+
+---
+
+### `uni spotify queue`
+
+Add track to playback queue
+
+**Aliases:** `q`, `add`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Track name or Spotify URI |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--device` | -d | string |  | Device ID |
+
+**Examples:**
+
+```bash
+uni spotify queue "Bohemian Rhapsody"
+uni spotify queue "spotify:track:6rqhFgbbKwnb9MLmUQDhG6"
+uni spotify q "Stairway to Heaven"
+```
+
+---
+
+### `uni spotify devices`
+
+List available playback devices
+
+**Aliases:** `device`, `d`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--transfer` | -t | string |  | Transfer playback to device ID |
+
+**Examples:**
+
+```bash
+uni spotify devices
+uni spotify devices --transfer abc123
+```
+
+---
+
+### `uni spotify playlists`
+
+List your playlists
+
+**Aliases:** `playlist`, `pl`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | No | Playlist ID to view tracks |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `20` | Max results (default: 20) |
+
+**Examples:**
+
+```bash
+uni spotify playlists
+uni spotify playlists -n 50
+uni spotify playlists 37i9dQZF1DXcBWIGoYBM5M
+```
+
+---
+
+### `uni spotify volume`
+
+Get or set volume (0-100)
+
+**Aliases:** `vol`, `v`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `level` | No | Volume level (0-100) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--device` | -d | string |  | Device ID |
+
+**Examples:**
+
+```bash
+uni spotify volume
+uni spotify volume 50
+uni spotify vol 75
 ```
 
 ---
