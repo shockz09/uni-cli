@@ -1,0 +1,16 @@
+{
+  "name": "@uni/service-wa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node --external @uni/shared --external @whiskeysockets/baileys --external pino --external jimp --external sharp"
+  },
+  "dependencies": {
+    "@uni/shared": "workspace:*",
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "pino": "^9.0.0"
+  }
+}
