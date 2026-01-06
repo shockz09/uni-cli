@@ -3286,6 +3286,263 @@ uni gdocs auth --logout
 
 ---
 
+## uni wa
+
+WhatsApp messaging (Baileys)
+
+### `uni wa auth`
+
+Authenticate with WhatsApp (pairing code)
+
+**Examples:**
+
+```bash
+uni wa auth
+```
+
+---
+
+### `uni wa logout`
+
+Clear WhatsApp session
+
+**Examples:**
+
+```bash
+uni wa logout
+```
+
+---
+
+### `uni wa chats`
+
+List recent chats
+
+**Aliases:** `list`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `20` | Number of chats (default: 20) |
+
+**Examples:**
+
+```bash
+uni wa chats
+uni wa chats -n 10
+```
+
+---
+
+### `uni wa read`
+
+Read messages from a chat
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `chat` | Yes | Chat (phone number, group ID, or "me") |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Number of messages (default: 10) |
+
+**Examples:**
+
+```bash
+uni wa read me
+uni wa read 919876543210
+uni wa read me -n 20
+```
+
+---
+
+### `uni wa send`
+
+Send a message
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `chat` | Yes | Chat (phone number or "me") |
+| `message` | No | Message text |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--file` | -f | string |  | Attach file |
+| `--reply` | -r | string |  | Reply to message ID |
+
+**Examples:**
+
+```bash
+uni wa send me "Hello!"
+uni wa send 919876543210 "Hi"
+uni wa send me -f photo.jpg "Check this"
+```
+
+---
+
+### `uni wa edit`
+
+Edit a sent message
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `chat` | Yes | Chat (phone number or "me") |
+| `messageId` | Yes | Message ID to edit |
+| `newText` | Yes | New message text |
+
+**Examples:**
+
+```bash
+uni wa edit me ABC123 "Fixed typo"
+```
+
+---
+
+### `uni wa delete`
+
+Delete a message
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `chat` | Yes | Chat (phone number or "me") |
+| `messageId` | Yes | Message ID to delete |
+
+**Examples:**
+
+```bash
+uni wa delete me ABC123
+```
+
+---
+
+### `uni wa forward`
+
+Forward a message to another chat
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `fromChat` | Yes | Source chat (phone number or "me") |
+| `toChat` | Yes | Destination chat |
+| `messageId` | Yes | Message ID to forward |
+
+**Examples:**
+
+```bash
+uni wa forward me 919876543210 ABC123
+uni wa forward 919876543210 me XYZ789
+```
+
+---
+
+### `uni wa react`
+
+React to a message with an emoji
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `chat` | Yes | Chat (phone number or "me") |
+| `messageId` | Yes | Message ID to react to |
+| `emoji` | No | Emoji to react with (empty to remove) |
+
+**Examples:**
+
+```bash
+uni wa react me ABC123 "👍"
+uni wa react 919876543210 XYZ789 "❤️"
+uni wa react me ABC123 ""
+```
+
+---
+
+### `uni wa search`
+
+Search messages across chats
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Search query |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--chat` | -c | string |  | Limit to specific chat |
+| `--limit` | -n | number | `20` | Max results (default: 20) |
+
+**Examples:**
+
+```bash
+uni wa search "meeting"
+uni wa search "invoice" -c 919876543210
+uni wa search "flight" -n 50
+```
+
+---
+
+### `uni wa contacts`
+
+List WhatsApp contacts
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `50` | Number of contacts (default: 50) |
+
+**Examples:**
+
+```bash
+uni wa contacts
+uni wa contacts -n 100
+```
+
+---
+
+### `uni wa download`
+
+Download media from a message
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `chat` | Yes | Chat (phone number, group ID, or "me") |
+| `messageId` | Yes | Message ID with media |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--output` | -o | string |  | Output file path (default: current directory) |
+
+**Examples:**
+
+```bash
+uni wa download me ABC123
+uni wa download 919876543210 XYZ789 -o ~/Downloads/photo.jpg
+```
+
+---
+
 ## uni shorturl
 
 URL shortener (is.gd)
