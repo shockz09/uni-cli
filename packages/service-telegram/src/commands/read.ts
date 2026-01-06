@@ -27,6 +27,13 @@ export const readCommand: Command = {
       description: 'Number of messages (default: 20)',
       default: 20,
     },
+    {
+      name: 'download',
+      short: 'd',
+      type: 'boolean',
+      description: 'Download media for piping (slower)',
+      default: false,
+    },
   ],
   examples: [
     'uni telegram read @username',
@@ -78,10 +85,10 @@ export const readCommand: Command = {
 
       const messages = await client.getMessages(entity, { limit });
 
-      // Check if being piped (stdout not a TTY)
-      const isPiped = !process.stdout.isTTY;
+      // Download mode for piping (explicit flag, not TTY detection)
+      const downloadMedia = flags.download as boolean;
 
-      if (isPiped) {
+      if (downloadMedia) {
         // Pipe mode: output JSON lines for forwarding
         spinner.stop();
         const tempDir = path.join(os.tmpdir(), 'uni-pipe');
