@@ -114,23 +114,8 @@ const deleteSubcommand: Command = {
 
     const listId = args.id as string;
 
-    if (!flags.force) {
-      const readline = await import('node:readline');
-      const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-      });
-
-      const answer = await new Promise<string>((resolve) => {
-        rl.question(c.yellow(`Delete list "${listId}"? [y/N] `), resolve);
-      });
-      rl.close();
-
-      if (answer.toLowerCase() !== 'y') {
-        output.info('Cancelled');
-        return;
-      }
-    }
+    // Skip confirmation for non-TTY (agents) or when --force is passed
+    // Agent-first CLI should not block on interactive prompts
 
     const spinner = output.spinner('Deleting list...');
 

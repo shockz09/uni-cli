@@ -118,23 +118,22 @@ export const projectsCommand: Command = {
         const spinner = output.spinner('Deleting project...');
 
         try {
-          let projectId = name;
+          // Try to find by name first, then use input as ID
+          const projects = await todoist.listProjects();
+          const project = projects.find(p =>
+            p.name.toLowerCase() === name.toLowerCase() || p.id === name
+          );
 
-          if (!/^\d+$/.test(name)) {
-            const projects = await todoist.listProjects();
-            const project = projects.find(p => p.name.toLowerCase() === name.toLowerCase());
-            if (!project) {
-              spinner.fail(`Project "${name}" not found`);
-              return;
-            }
-            projectId = project.id;
+          if (!project) {
+            spinner.fail(`Project "${name}" not found`);
+            return;
           }
 
-          await todoist.deleteProject(projectId);
+          await todoist.deleteProject(project.id);
           spinner.success('Project deleted');
 
           if (globalFlags.json) {
-            output.json({ success: true, projectId });
+            output.json({ success: true, projectId: project.id });
             return;
           }
 
