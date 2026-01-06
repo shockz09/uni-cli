@@ -22,6 +22,7 @@ const UNI_DIR = path.join(HOME, '.uni');
 const AUTH_DIR = path.join(UNI_DIR, 'tokens', 'whatsapp');
 const SOCKET_PATH = path.join(UNI_DIR, 'wa.sock');
 const PID_FILE = path.join(UNI_DIR, 'wa.pid');
+const STORE_FILE = path.join(UNI_DIR, 'wa-store.json');
 const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
 if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR, { recursive: true });
@@ -33,6 +34,20 @@ let idleTimer = null;
 let server = null;
 let isConnected = false;
 let isConnecting = false;
+
+// Simple message store - stores messages by JID
+const messageStore = {};
+
+// Load persisted store if exists
+try {
+  const data = fs.readFileSync(STORE_FILE, 'utf-8');
+  Object.assign(messageStore, JSON.parse(data));
+} catch {}
+
+// Save store every 30 seconds
+setInterval(() => {
+  try { fs.writeFileSync(STORE_FILE, JSON.stringify(messageStore)); } catch {}
+}, 30_000);
 
 // Reset idle timer on activity
 function resetIdleTimer() {
@@ -86,10 +101,24 @@ async function connect() {
       keys: makeCacheableSignalKeyStore(state.keys, logger),
     },
     printQRInTerminal: false,
-    syncFullHistory: false,
+    syncFullHistory: true, // Enable full history sync for message reading
   });
 
   sock.ev.on('creds.update', saveCreds);
+
+  // Store incoming messages
+  sock.ev.on('messages.upsert', ({ messages }) => {
+    for (const msg of messages) {
+      const jid = msg.key.remoteJid;
+      if (!jid) continue;
+      if (!messageStore[jid]) messageStore[jid] = [];
+      // Keep only last 100 messages per chat
+      messageStore[jid].push(msg);
+      if (messageStore[jid].length > 100) {
+        messageStore[jid] = messageStore[jid].slice(-100);
+      }
+    }
+  });
 
   sock.ev.on('connection.update', (update) => {
     const { connection, lastDisconnect } = update;
@@ -205,6 +234,38 @@ async function handleCommand(cmd) {
         return {
           ok: true,
           chats: groups.map(g => ({ id: g.id, name: g.subject }))
+        };
+      }
+
+      case 'read': {
+        const jid = parseJid(cmd.chat, myJid);
+        const limit = cmd.limit || 20;
+
+        // Get messages from store
+        const chatMessages = messageStore[jid];
+        if (!chatMessages || chatMessages.length === 0) {
+          return {
+            ok: true,
+            messages: [],
+            note: 'No messages in store. Messages are collected while daemon runs.'
+          };
+        }
+
+        // Get latest N messages, newest first
+        const latest = chatMessages.slice(-limit).reverse();
+
+        return {
+          ok: true,
+          messages: latest.map(m => ({
+            id: m.key?.id,
+            text: m.message?.conversation ||
+                  m.message?.extendedTextMessage?.text ||
+                  '',
+            fromMe: m.key?.fromMe || false,
+            timestamp: m.messageTimestamp,
+            hasMedia: !!(m.message?.imageMessage || m.message?.videoMessage ||
+                        m.message?.documentMessage || m.message?.audioMessage)
+          }))
         };
       }
 

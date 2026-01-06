@@ -1,6 +1,6 @@
 /**
  * uni wa read - Read messages from a chat
- * Note: Reading history requires daemon to have synced messages
+ * Note: Messages are collected while daemon runs
  */
 
 import type { Command, CommandContext } from '@uni/shared';
@@ -44,7 +44,38 @@ export const readCommand: Command = {
       return;
     }
 
-    // For now, reading is limited - Baileys needs history sync
-    console.log(c.dim('Note: Message history requires sync. Recent messages may not be available immediately.'));
+    if (globalFlags.json) {
+      output.json(result.messages || []);
+      return;
+    }
+
+    const messages = result.messages || [];
+
+    if (messages.length === 0) {
+      console.log(c.dim('No messages found.'));
+      if (result.note) {
+        console.log(c.dim(result.note));
+      }
+      return;
+    }
+
+    console.log('');
+    for (const msg of messages) {
+      // Handle timestamp - can be number or Long object
+      let ts = msg.timestamp;
+      if (ts && typeof ts === 'object' && 'low' in ts) {
+        ts = ts.low;
+      }
+      const date = ts ? new Date(Number(ts) * 1000) : null;
+      const time = date && !isNaN(date.getTime()) ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      const dateStr = date && !isNaN(date.getTime()) ? date.toLocaleDateString() : '';
+      const sender = msg.fromMe ? 'You' : chat;
+      const mediaIndicator = msg.hasMedia ? c.dim(' [media]') : '';
+      const text = msg.text || c.dim('(no text)');
+
+      console.log(`${c.dim(`${dateStr} ${time}`)} ${c.cyan(sender)}${mediaIndicator}`);
+      console.log(`  ${text.slice(0, 500)}${text.length > 500 ? '...' : ''}`);
+      console.log('');
+    }
   },
 };
