@@ -28,14 +28,15 @@ export function createGoogleServiceSetup(
   client: GoogleAuthClient
 ): () => Promise<void> {
   return async () => {
-    // Skip warnings during doc generation
-    if (process.env.UNI_SKIP_SETUP_WARNINGS) return;
+    // If already authenticated, service works - no warning needed
+    if (client.isAuthenticated()) return;
 
-    if (!client.hasCredentials()) {
-      console.error(c.yellow('Warning: Google credentials not configured.'));
-      console.error(c.yellow('Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.'));
-    } else if (!client.isAuthenticated()) {
+    // Not authenticated - check if they can authenticate
+    if (client.hasCredentials()) {
       console.error(c.yellow(`Warning: Not authenticated. Run "uni ${serviceKey} auth".`));
+    } else {
+      console.error(c.yellow('Warning: Google credentials not configured.'));
+      console.error(c.yellow('Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, then run auth.'));
     }
   };
 }

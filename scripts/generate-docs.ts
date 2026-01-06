@@ -3,9 +3,6 @@
  * Generate REFERENCE.md from command definitions
  */
 
-// Suppress setup warnings during doc generation
-process.env.UNI_SKIP_SETUP_WARNINGS = '1';
-
 import { registry } from '../packages/cli/src/core/registry';
 
 async function generateReference(): Promise<string> {
