@@ -8,7 +8,7 @@ import { parseArgs, parseCommandArgs } from './parser';
 import { registry } from './registry';
 import { config } from './config';
 import { history } from './history';
-import { flow, runCommands, substituteArgs } from './flow';
+import { flow, runCommands, substituteArgs, readCommandsFromFile, expandCommandBraces } from './flow';
 import { createLLMClient, type LLMProvider, detectProvider, getSupportedProviders, getProviderName, isConfigured, getModelForProvider, testProvider } from './llm';
 import { getModels, getProvider, listProviders, type ProviderInfo } from './llm-providers';
 import { createOutputFormatter } from './output';
@@ -1469,11 +1469,23 @@ Command: uni slack send general "hello"`;
     output: ReturnType<typeof createOutputFormatter>
   ): Promise<void> {
     // Collect all commands from args
-    const commands = [
+    let commands = [
       parsed.command,
       parsed.subcommand,
       ...parsed.args
     ].filter(Boolean) as string[];
+
+    // Handle --file flag
+    const filePath = parsed.flags.file || parsed.flags.f;
+    if (filePath && typeof filePath === 'string') {
+      try {
+        const fileCommands = await readCommandsFromFile(filePath);
+        commands = [...commands, ...fileCommands];
+      } catch (error) {
+        console.error(`${c.red('Error:')} Failed to read file: ${filePath}`);
+        return;
+      }
+    }
 
     if (commands.length === 0) {
       console.log(`
@@ -1483,25 +1495,42 @@ ${c.bold('Usage:')}
   uni run "cmd1" "cmd2" "cmd3"
 
 ${c.bold('Options:')}
-  -p, --parallel   Run commands in parallel
-  -n, --dry-run    Show commands without executing
-  --json           Output results as JSON
+  -p, --parallel     Run commands in parallel
+  -n, --dry-run      Show commands without executing
+  -f, --file <path>  Read commands from file (one per line)
+  -r, --retry <n>    Retry failed commands n times (exponential backoff)
+  --json             Output results as JSON
+
+${c.bold('Brace Expansion:')}
+  uni run "wa send me hello{1..5}"     # Expands to 5 commands
+  uni run "cmd {a,b,c}"                # Expands to cmd a, cmd b, cmd c
+
+${c.bold('Conditionals:')}
+  uni run "cmd1 && cmd2"               # Run cmd2 only if cmd1 succeeds
+  uni run "cmd1 || cmd2"               # Run cmd2 only if cmd1 fails
 
 ${c.bold('Examples:')}
   uni run "gh pr list" "gcal list"
   uni run -p "gh pr list" "gcal list" "exa search 'news'"
-  uni run --dry-run "gh pr create" "slack send general 'PR ready'"
+  uni run --file batch.txt
+  uni run --retry 3 "flaky-command"
+  uni run "wa send me test{1..10}"
 `);
       return;
     }
 
+    // Expand brace patterns
+    commands = expandCommandBraces(commands);
+
     const isDryRun = parsed.flags['dry-run'] || parsed.flags.n;
     const isParallel = parsed.flags.parallel || parsed.flags.p;
+    const retryCount = parseInt(String(parsed.flags.retry || parsed.flags.r || '0'), 10);
 
     const results = await runCommands(commands, {
       dryRun: !!isDryRun,
       parallel: !!isParallel,
       json: parsed.globalFlags.json,
+      retry: retryCount,
     });
 
     if (parsed.globalFlags.json) {

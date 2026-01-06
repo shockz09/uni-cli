@@ -358,6 +358,59 @@ Run commands that depend on each other:
 uni run "gtasks add 'Review feature'" "slack send dev 'New task created'"
 ```
 
+### Brace Expansion
+
+Send multiple messages or run batches efficiently:
+
+```bash
+# Send 5 numbered messages
+uni run "wa send me update{1..5}"
+
+# Test multiple endpoints
+uni run "weather {London,Paris,Tokyo}"
+
+# Notify multiple channels
+uni run "slack send {general,dev,design} 'Announcement'"
+```
+
+### Conditional Execution
+
+Chain commands based on success/failure:
+
+```bash
+# Only notify if calendar add succeeds
+uni run "gcal add 'Meeting' && slack send dev 'Meeting scheduled'"
+
+# Fallback on failure
+uni run "weather London || telegram send me 'Weather check failed'"
+```
+
+### Batch from File
+
+Read commands from a file:
+
+```bash
+# Create a batch file
+cat > daily.txt << 'EOF'
+# Morning routine
+gcal list
+gtasks list
+gmail list --unread
+EOF
+
+# Execute batch
+uni run --file daily.txt
+```
+
+### Retry on Failure
+
+Retry flaky commands with exponential backoff:
+
+```bash
+# Retry up to 3 times (waits 1s, 2s, 4s between attempts)
+uni run --retry 3 "external-api-command"
+```
+
 ---
 
 ## Multi-Service Workflows

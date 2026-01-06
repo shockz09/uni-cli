@@ -562,6 +562,32 @@ uni run -p "cmd1" "cmd2" "cmd3"         # Parallel
 uni run --dry-run "cmd1" "cmd2"         # Preview only
 ```
 
+### Brace Expansion
+
+```bash
+uni run "wa send me hello{1..5}"        # Expands to 5 messages
+uni run "telegram send me {a,b,c}"      # Expands to 3 messages
+```
+
+### From File
+
+```bash
+uni run --file batch.txt                # One command per line, # for comments
+```
+
+### Retry on Failure
+
+```bash
+uni run --retry 3 "flaky-command"       # Retry up to 3 times (exponential backoff)
+```
+
+### Conditionals
+
+```bash
+uni run "cmd1 && cmd2"                  # Run cmd2 only if cmd1 succeeds
+uni run "cmd1 || cmd2"                  # Run cmd2 only if cmd1 fails
+```
+
 ---
 
 ## Saved Flows (uni flow)
