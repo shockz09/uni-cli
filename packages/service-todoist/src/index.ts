@@ -33,10 +33,7 @@ const todoistService: UniService = {
   },
 
   async setup() {
-    if (!todoistOAuth.isAuthenticated()) {
-      console.error(c.yellow('Not authenticated.'));
-      console.error(c.dim('Run "uni todoist auth" to authenticate.'));
-    }
+    // Auth check done in each command handler
   },
 };
 

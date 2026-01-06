@@ -33,10 +33,7 @@ const linearService: UniService = {
   },
 
   async setup() {
-    if (!linearOAuth.isAuthenticated()) {
-      console.error(c.yellow('Not authenticated.'));
-      console.error(c.dim('Run "uni linear auth" to authenticate.'));
-    }
+    // Auth check done in each command handler
   },
 };
 
