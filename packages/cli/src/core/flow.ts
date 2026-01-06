@@ -285,29 +285,81 @@ export async function runSequential(commands: string[], options: RunOptions = {}
       continue; // Skip - previous command succeeded
     }
 
-    // If this command receives piped input, append it to the command
-    let finalCommand = command;
+    // If this command receives piped input, handle it
     if (pipe && lastOutput) {
-      // Escape the output for shell and append as argument
-      const escapedOutput = lastOutput.replace(/'/g, "'\\''");
-      finalCommand = `${command} '${escapedOutput}'`;
+      // Check for __PIPE__ format (structured pipe data)
+      const pipeLines = lastOutput.split('\n').filter(line => line.startsWith('__PIPE__'));
+
+      if (pipeLines.length > 0) {
+        // Structured pipe mode - execute command for each item
+        console.log(`\n${c.dim('─')} ${c.cyan(command)} ${c.dim(`(piping ${pipeLines.length} items)`)}`);
+
+        let allSuccess = true;
+        for (const line of pipeLines) {
+          try {
+            const data = JSON.parse(line.replace('__PIPE__', ''));
+            let itemCommand: string;
+
+            if (data.type === 'file') {
+              // File: use --file flag
+              const caption = data.caption ? ` '${data.caption.replace(/'/g, "'\\''")}'` : '';
+              itemCommand = `${command} --file '${data.path}'${caption}`;
+            } else {
+              // Text: append as argument
+              const escapedContent = data.content.replace(/'/g, "'\\''");
+              itemCommand = `${command} '${escapedContent}'`;
+            }
+
+            if (options.dryRun) {
+              console.log(`${c.dim('  →')} ${data.type === 'file' ? `[file] ${data.path}` : `[text] ${data.content.slice(0, 50)}...`}`);
+            } else {
+              const result = await executeCommand(itemCommand, options.retry, shouldCaptureForPipe);
+              results.push(result);
+              if (!result.success) allSuccess = false;
+            }
+          } catch {
+            // Failed to parse, skip
+          }
+        }
+
+        lastSuccess = allSuccess;
+        lastOutput = undefined;
+        continue;
+      } else {
+        // Plain text pipe - append as argument (legacy mode)
+        const escapedOutput = lastOutput.replace(/'/g, "'\\''");
+        const finalCommand = `${command} '${escapedOutput}'`;
+
+        if (options.dryRun) {
+          console.log(`${c.dim('→')} ${command} '<piped output>'`);
+          results.push({ command: finalCommand, success: true, duration: 0 });
+          lastSuccess = true;
+          lastOutput = '<dry-run output>';
+        } else {
+          console.log(`\n${c.dim('─')} ${c.cyan(command)}${c.dim(' (piped)')}`);
+          const result = await executeCommand(finalCommand, options.retry, shouldCaptureForPipe);
+          results.push(result);
+          lastSuccess = result.success;
+          lastOutput = result.output;
+        }
+        continue;
+      }
     }
 
+    // Regular command (no pipe input)
     if (options.dryRun) {
-      const displayCmd = pipe && lastOutput ? `${command} '<piped output>'` : command;
-      console.log(`${c.dim('→')} ${displayCmd}`);
-      results.push({ command: finalCommand, success: true, duration: 0 });
+      console.log(`${c.dim('→')} ${command}`);
+      results.push({ command, success: true, duration: 0 });
       lastSuccess = true;
       lastOutput = '<dry-run output>';
     } else {
-      console.log(`\n${c.dim('─')} ${c.cyan(command)}${pipe ? c.dim(' (piped)') : ''}`);
-      const result = await executeCommand(finalCommand, options.retry, shouldCaptureForPipe);
+      console.log(`\n${c.dim('─')} ${c.cyan(command)}`);
+      const result = await executeCommand(command, options.retry, shouldCaptureForPipe);
       results.push(result);
       lastSuccess = result.success;
       lastOutput = result.output;
 
       // Stop on first failure only for 'always' condition (no chaining)
-      // For && and || chains, we continue to evaluate the chain
       if (!result.success && condition === 'always') {
         break;
       }

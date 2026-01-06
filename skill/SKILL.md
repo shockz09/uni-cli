@@ -596,6 +596,17 @@ uni run "stocks AAPL | telegram send me" # Pipe stocks to Telegram
 uni run "gcal list | slack send general" # Pipe calendar to Slack
 ```
 
+### Smart Forwarding
+
+Forward messages (including media) between services:
+
+```bash
+# Forward last 5 TG messages to WhatsApp (text + images)
+uni run "telegram read me --limit 5 | wa send me"
+
+# Each message sent separately, media auto-downloaded and forwarded
+```
+
 ---
 
 ## Saved Flows (uni flow)

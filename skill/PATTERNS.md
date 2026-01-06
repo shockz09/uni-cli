@@ -430,6 +430,23 @@ uni run "gcal list | slack send team"
 uni run "exa search 'AI news' | telegram send me"
 ```
 
+### Smart Message Forwarding
+
+Forward messages between services (including media):
+
+```bash
+# Forward Telegram saved messages to WhatsApp
+uni run "telegram read me --limit 5 | wa send me"
+
+# Forward to Slack
+uni run "telegram read @channel --limit 10 | slack send general"
+
+# How it works:
+# - Each message forwarded separately
+# - Media (images, files) auto-downloaded and sent
+# - Text messages sent as-is
+```
+
 ---
 
 ## Multi-Service Workflows

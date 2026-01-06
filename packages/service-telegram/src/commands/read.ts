@@ -5,6 +5,9 @@
 import type { Command, CommandContext } from '@uni/shared';
 import { c } from '@uni/shared';
 import { createClient, isAuthenticated } from '../client';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 export const readCommand: Command = {
   name: 'read',
@@ -75,8 +78,65 @@ export const readCommand: Command = {
 
       const messages = await client.getMessages(entity, { limit });
 
-      await client.disconnect();
+      // Check if being piped (stdout not a TTY)
+      const isPiped = !process.stdout.isTTY;
 
+      if (isPiped) {
+        // Pipe mode: output JSON lines for forwarding
+        spinner.stop();
+        const tempDir = path.join(os.tmpdir(), 'uni-pipe');
+        if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir, { recursive: true });
+        }
+
+        // Process messages oldest first
+        for (const msg of [...messages].reverse()) {
+          if (msg.media) {
+            // Download media to temp file
+            try {
+              const buffer = await client.downloadMedia(msg, {});
+              if (buffer && Buffer.isBuffer(buffer) && buffer.length > 0) {
+                // Determine filename and extension
+                let ext = 'bin';
+                const mediaDoc = msg.media as { document?: { mimeType?: string } };
+                const mediaPhoto = msg.media as { photo?: unknown };
+
+                if (mediaDoc.document?.mimeType) {
+                  const parts = mediaDoc.document.mimeType.split('/');
+                  ext = parts[1] || 'bin';
+                } else if (mediaPhoto.photo) {
+                  ext = 'jpg';
+                }
+
+                const filename = `tg_${msg.id}_${Date.now()}.${ext}`;
+                const filePath = path.join(tempDir, filename);
+                fs.writeFileSync(filePath, buffer);
+
+                // Output JSON line for file
+                const pipeData = {
+                  type: 'file',
+                  path: filePath,
+                  caption: msg.text || undefined,
+                };
+                console.log(`__PIPE__${JSON.stringify(pipeData)}`);
+              }
+            } catch {
+              // If media download fails, just output text if any
+              if (msg.text) {
+                console.log(`__PIPE__${JSON.stringify({ type: 'text', content: msg.text })}`);
+              }
+            }
+          } else if (msg.text) {
+            // Text-only message
+            console.log(`__PIPE__${JSON.stringify({ type: 'text', content: msg.text })}`);
+          }
+        }
+
+        await client.disconnect();
+        return;
+      }
+
+      await client.disconnect();
       spinner.success(`${messages.length} messages`);
 
       if (globalFlags.json) {
