@@ -588,6 +588,14 @@ uni run "cmd1 && cmd2"                  # Run cmd2 only if cmd1 succeeds
 uni run "cmd1 || cmd2"                  # Run cmd2 only if cmd1 fails
 ```
 
+### Piping
+
+```bash
+uni run "weather London | wa send me"   # Pipe output to WhatsApp
+uni run "stocks AAPL | telegram send me" # Pipe stocks to Telegram
+uni run "gcal list | slack send general" # Pipe calendar to Slack
+```
+
 ---
 
 ## Saved Flows (uni flow)

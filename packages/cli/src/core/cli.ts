@@ -1509,12 +1509,18 @@ ${c.bold('Conditionals:')}
   uni run "cmd1 && cmd2"               # Run cmd2 only if cmd1 succeeds
   uni run "cmd1 || cmd2"               # Run cmd2 only if cmd1 fails
 
+${c.bold('Piping:')}
+  uni run "cmd1 | cmd2"                # Pipe cmd1 output to cmd2 as argument
+  uni run "weather London | wa send me"
+  uni run "stocks AAPL | telegram send me"
+
 ${c.bold('Examples:')}
   uni run "gh pr list" "gcal list"
   uni run -p "gh pr list" "gcal list" "exa search 'news'"
   uni run --file batch.txt
   uni run --retry 3 "flaky-command"
   uni run "wa send me test{1..10}"
+  uni run "weather Tokyo | telegram send me"
 `);
       return;
     }

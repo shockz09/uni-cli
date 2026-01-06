@@ -411,6 +411,25 @@ Retry flaky commands with exponential backoff:
 uni run --retry 3 "external-api-command"
 ```
 
+### Piping Output
+
+Send command output to messaging services:
+
+```bash
+# Send weather to yourself
+uni run "weather London | telegram send me"
+uni run "weather Tokyo | wa send me"
+
+# Send stock info
+uni run "stocks AAPL | slack send trading"
+
+# Send calendar to team
+uni run "gcal list | slack send team"
+
+# Chain multiple pipes
+uni run "exa search 'AI news' | telegram send me"
+```
+
 ---
 
 ## Multi-Service Workflows

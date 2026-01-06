@@ -12,6 +12,7 @@ export interface FlowResult {
   error?: string;
   duration: number;
   attempts?: number;
+  output?: string; // Captured stdout (for piping)
 }
 
 export interface RunOptions {
@@ -81,22 +82,25 @@ export function expandCommandBraces(commands: string[]): string[] {
 }
 
 /**
- * Parse conditional operators (&& and ||) in commands
- * Returns array of { command, condition } objects
+ * Parse conditional and pipe operators (&&, ||, |) in commands
+ * Returns array of { command, condition, pipe } objects
  */
 export interface ConditionalCommand {
   command: string;
   condition: 'always' | 'on-success' | 'on-failure';
+  pipe?: boolean; // If true, previous command's output is piped to this one
 }
 
 export function parseConditionals(commands: string[]): ConditionalCommand[] {
   const result: ConditionalCommand[] = [];
 
   for (const cmd of commands) {
-    // Split by && and || while preserving the operator
-    const parts = cmd.split(/(\s*&&\s*|\s*\|\|\s*)/);
+    // Split by &&, ||, and | while preserving the operator
+    // Note: | must be checked carefully to not conflict with ||
+    const parts = cmd.split(/(\s*&&\s*|\s*\|\|\s*|\s*\|\s*(?!\|))/);
 
     let condition: 'always' | 'on-success' | 'on-failure' = 'always';
+    let pipe = false;
 
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i].trim();
@@ -104,11 +108,17 @@ export function parseConditionals(commands: string[]): ConditionalCommand[] {
 
       if (part === '&&') {
         condition = 'on-success';
+        pipe = false;
       } else if (part === '||') {
         condition = 'on-failure';
+        pipe = false;
+      } else if (part === '|') {
+        condition = 'on-success'; // Pipe only runs if previous succeeds
+        pipe = true;
       } else {
-        result.push({ command: part, condition });
+        result.push({ command: part, condition, pipe });
         condition = 'always'; // Reset for next independent command
+        pipe = false;
       }
     }
   }
@@ -137,6 +147,14 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * Strip ANSI escape codes from a string
+ */
+export function stripAnsi(str: string): string {
+  // eslint-disable-next-line no-control-regex
+  return str.replace(/\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g, '');
+}
+
+/**
  * Substitute positional arguments ($1, $2, etc.) in commands
  */
 export function substituteArgs(commands: string[], args: string[]): string[] {
@@ -153,8 +171,10 @@ export function substituteArgs(commands: string[], args: string[]): string[] {
 
 /**
  * Execute a single uni command by spawning a subprocess
+ * @param command - The command to execute
+ * @param captureOutput - If true, capture output for piping instead of printing
  */
-async function executeCommandOnce(command: string): Promise<FlowResult> {
+async function executeCommandOnce(command: string, captureOutput: boolean = false): Promise<FlowResult> {
   const start = Date.now();
 
   try {
@@ -164,8 +184,11 @@ async function executeCommandOnce(command: string): Promise<FlowResult> {
     // Get the path to the uni CLI
     const uniPath = path.join(process.cwd(), 'packages/cli/src/main.ts');
 
+    // Use shell to properly handle quoted arguments
+    const fullCommand = `bun run ${uniPath} ${command}`;
+
     return new Promise((resolve) => {
-      const child = spawn('bun', ['run', uniPath, ...command.split(/\s+/)], {
+      const child = spawn('sh', ['-c', fullCommand], {
         stdio: 'pipe',
         cwd: process.cwd(),
       });
@@ -175,7 +198,9 @@ async function executeCommandOnce(command: string): Promise<FlowResult> {
 
       child.stdout?.on('data', (data) => {
         stdout += data.toString();
-        process.stdout.write(data);
+        if (!captureOutput) {
+          process.stdout.write(data);
+        }
       });
 
       child.stderr?.on('data', (data) => {
@@ -189,6 +214,7 @@ async function executeCommandOnce(command: string): Promise<FlowResult> {
           success: code === 0,
           error: code !== 0 ? stderr || `Exit code ${code}` : undefined,
           duration: Date.now() - start,
+          output: captureOutput ? stripAnsi(stdout.trim()) : undefined,
         });
       });
 
@@ -214,12 +240,12 @@ async function executeCommandOnce(command: string): Promise<FlowResult> {
 /**
  * Execute a command with retry and exponential backoff
  */
-async function executeCommand(command: string, retry: number = 0): Promise<FlowResult> {
+async function executeCommand(command: string, retry: number = 0, captureOutput: boolean = false): Promise<FlowResult> {
   const maxAttempts = retry + 1;
   let lastResult: FlowResult | null = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    lastResult = await executeCommandOnce(command);
+    lastResult = await executeCommandOnce(command, captureOutput);
 
     if (lastResult.success || attempt === maxAttempts) {
       lastResult.attempts = attempt;
@@ -236,7 +262,7 @@ async function executeCommand(command: string, retry: number = 0): Promise<FlowR
 }
 
 /**
- * Run multiple commands sequentially with conditional support
+ * Run multiple commands sequentially with conditional and pipe support
  */
 export async function runSequential(commands: string[], options: RunOptions = {}): Promise<FlowResult[]> {
   const results: FlowResult[] = [];
@@ -244,8 +270,13 @@ export async function runSequential(commands: string[], options: RunOptions = {}
   // Parse conditionals from commands
   const conditionalCommands = parseConditionals(commands);
   let lastSuccess = true;
+  let lastOutput: string | undefined;
 
-  for (const { command, condition } of conditionalCommands) {
+  for (let i = 0; i < conditionalCommands.length; i++) {
+    const { command, condition, pipe } = conditionalCommands[i];
+    const nextCmd = conditionalCommands[i + 1];
+    const shouldCaptureForPipe = nextCmd?.pipe === true;
+
     // Check if we should run this command based on condition
     if (condition === 'on-success' && !lastSuccess) {
       continue; // Skip - previous command failed
@@ -254,15 +285,26 @@ export async function runSequential(commands: string[], options: RunOptions = {}
       continue; // Skip - previous command succeeded
     }
 
+    // If this command receives piped input, append it to the command
+    let finalCommand = command;
+    if (pipe && lastOutput) {
+      // Escape the output for shell and append as argument
+      const escapedOutput = lastOutput.replace(/'/g, "'\\''");
+      finalCommand = `${command} '${escapedOutput}'`;
+    }
+
     if (options.dryRun) {
-      console.log(`${c.dim('→')} ${command}`);
-      results.push({ command, success: true, duration: 0 });
+      const displayCmd = pipe && lastOutput ? `${command} '<piped output>'` : command;
+      console.log(`${c.dim('→')} ${displayCmd}`);
+      results.push({ command: finalCommand, success: true, duration: 0 });
       lastSuccess = true;
+      lastOutput = '<dry-run output>';
     } else {
-      console.log(`\n${c.dim('─')} ${c.cyan(command)}`);
-      const result = await executeCommand(command, options.retry);
+      console.log(`\n${c.dim('─')} ${c.cyan(command)}${pipe ? c.dim(' (piped)') : ''}`);
+      const result = await executeCommand(finalCommand, options.retry, shouldCaptureForPipe);
       results.push(result);
       lastSuccess = result.success;
+      lastOutput = result.output;
 
       // Stop on first failure only for 'always' condition (no chaining)
       // For && and || chains, we continue to evaluate the chain
