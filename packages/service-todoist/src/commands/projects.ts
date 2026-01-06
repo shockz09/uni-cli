@@ -90,8 +90,7 @@ export const projectsCommand: Command = {
           }
 
           console.log('');
-          console.log(c.green('✓') + ` Created: ${project.name}`);
-          console.log(c.dim(`  ${project.url}`));
+          console.log(c.green('✓') + ` Created: ${project.name}  ${c.dim(`[${project.id}]`)}`);
           console.log('');
         } catch (error) {
           spinner.fail('Failed to create project');
