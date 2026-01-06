@@ -31,6 +31,7 @@ const notionService: UniService = {
   },
 
   async setup() {
+    if (process.env.UNI_SKIP_SETUP_WARNINGS) return;
     if (!notion.hasToken()) {
       console.error(c.yellow('Warning: NOTION_TOKEN not set.'));
     }

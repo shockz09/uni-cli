@@ -28,6 +28,9 @@ export function createGoogleServiceSetup(
   client: GoogleAuthClient
 ): () => Promise<void> {
   return async () => {
+    // Skip warnings during doc generation
+    if (process.env.UNI_SKIP_SETUP_WARNINGS) return;
+
     if (!client.hasCredentials()) {
       console.error(c.yellow('Warning: Google credentials not configured.'));
       console.error(c.yellow('Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.'));

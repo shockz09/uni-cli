@@ -1,6 +1,6 @@
 # uni-cli Project Status
 
-> Last updated: 2026-01-04
+> Last updated: 2026-01-06
 
 ## Completed Phases
 
@@ -92,12 +92,11 @@
 
 ---
 
-## Current Services (19 total)
+## Current Services (26 total)
 
 | Service | Status | Auth Method |
 |---------|--------|-------------|
 | exa | ✅ Working | MCP (free) or EXA_API_KEY |
-| gh | ✅ Working | `gh auth login` |
 | gcal | ✅ Working | Google OAuth |
 | gtasks | ✅ Working | Google OAuth |
 | gcontacts | ✅ Working | Google OAuth |
@@ -108,13 +107,21 @@
 | gdocs | ✅ Working | Google OAuth |
 | gslides | ✅ Working | Google OAuth |
 | gforms | ✅ Working | Google OAuth |
-| gkeep | ✅ Built | Google OAuth (Workspace only) |
-| slack | ✅ Built | SLACK_BOT_TOKEN |
-| notion | ✅ Built | NOTION_TOKEN |
-| weather | ✅ Built | None (free API) |
-| currency | ✅ Built | None (free API) |
-| qrcode | ✅ Built | None (local) |
-| shorturl | ✅ Built | None (free API) |
+| slack | ✅ Working | SLACK_BOT_TOKEN |
+| notion | ✅ Working | NOTION_TOKEN |
+| linear | ✅ Working | LINEAR_API_KEY |
+| todoist | ✅ Working | TODOIST_API_KEY |
+| telegram | ✅ Working | Telegram Bot Token |
+| wa | ✅ Working | WhatsApp pairing code |
+| stocks | ✅ Working | None (Yahoo Finance) |
+| weather | ✅ Working | None (free API) |
+| currency | ✅ Working | None (free API) |
+| qrcode | ✅ Working | None (local) |
+| shorturl | ✅ Working | None (free API) |
+| arxiv | ✅ Working | None (free API) |
+| hn | ✅ Working | None (free API) |
+| reddit | ✅ Working | None (free API) |
+| wiki | ✅ Working | None (free API) |
 
 ---
 
@@ -244,21 +251,14 @@ Unified duplicated command patterns into shared factories and helpers.
 
 ---
 
-## Extension Services (Prioritized)
-
-These will be optional `uni install` packages:
+## Future Services
 
 | Priority | Service | Description |
 |----------|---------|-------------|
-| 1 | **Linear** | Issues, projects (popular with devs) |
-| 2 | **Todoist** | Task management |
-| 3 | **Trello** | Boards, cards |
-| 4 | **Spotify** | Search, queue, control (via Spotify Connect API) |
-| 5 | **YouTube** | Search, download, transcripts (via yt-dlp) |
-
-### Other Ideas
-- Translator
-- Airtable
+| 1 | **Trello** | Boards, cards |
+| 2 | **Spotify** | Search, queue, control (via Spotify Connect API) |
+| 3 | **YouTube** | Search, download, transcripts (via yt-dlp) |
+| 4 | **Airtable** | Database/spreadsheet hybrid |
 
 ---
 

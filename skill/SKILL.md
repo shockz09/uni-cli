@@ -42,6 +42,7 @@ A unified CLI that wraps multiple services (APIs, MCPs, CLIs) into a single, dis
 | `hn` | Hacker News | `top`, `new`, `best`, `ask`, `show`, `search`, `story` |
 | `wiki` | Wikipedia | (default), `search`, `random`, `full` |
 | `telegram` | Telegram (user API) | `auth`, `chats`, `read`, `send`, `edit`, `delete`, `forward`, `react`, `search`, `contacts`, `download` |
+| `wa` | WhatsApp (Baileys) | `auth`, `send`, `edit`, `delete`, `react`, `forward`, `chats`, `status`, `stop` |
 | `linear` | Linear issues & projects | `issues`, `projects`, `teams`, `comments` |
 | `todoist` | Todoist tasks & projects | `tasks`, `projects`, `labels`, `comments` |
 | `trello` | Trello boards & cards **(P)** | `boards`, `lists`, `cards`, `members` |
@@ -821,6 +822,44 @@ uni telegram contacts "john"                # Search contacts
 ```bash
 uni telegram download @username 12345       # Download media
 uni telegram download "Group" 67890 -o ./   # Specify output
+```
+
+---
+
+## WhatsApp Service
+
+WhatsApp messaging via Baileys (unofficial API). Uses daemon architecture for fast commands (~35ms).
+
+### Setup
+```bash
+# Authenticate with pairing code:
+uni wa auth
+
+# Logout
+uni wa logout
+```
+
+### Daemon Status
+```bash
+uni wa status                               # Check daemon/connection status
+uni wa stop                                 # Stop daemon manually
+```
+
+### Messages
+```bash
+uni wa send me "Hello!"                     # Send to self
+uni wa send 919876543210 "Hi"               # Send to phone number
+uni wa send me -f photo.jpg "Check this"   # Send file with caption
+uni wa edit me ABC123 "Fixed typo"          # Edit message
+uni wa delete me ABC123                     # Delete message
+uni wa react me ABC123 "👍"                 # React to message
+uni wa forward me 919876543210 ABC123       # Forward message
+```
+
+### Chats
+```bash
+uni wa chats                                # List recent chats
+uni wa chats -n 50                          # More results
 ```
 
 ---

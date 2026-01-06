@@ -33,6 +33,7 @@ const slackService: UniService = {
   },
 
   async setup() {
+    if (process.env.UNI_SKIP_SETUP_WARNINGS) return;
     if (!slack.hasToken()) {
       console.error(c.yellow('Warning: SLACK_BOT_TOKEN not set.'));
     }

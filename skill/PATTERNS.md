@@ -498,6 +498,75 @@ uni telegram download "Group Name" 12345 -o ./downloads
 
 ---
 
+## WhatsApp Workflows
+
+### Getting Started
+
+```bash
+# Authenticate with pairing code
+uni wa auth
+
+# Check daemon status
+uni wa status
+
+# Logout
+uni wa logout
+```
+
+### Sending Messages
+
+```bash
+# Send to self (notes to self)
+uni wa send me "Remember to buy milk"
+
+# Send to phone number
+uni wa send 919876543210 "Hello!"
+
+# Send with file
+uni wa send me -f photo.jpg "Check this out"
+```
+
+### Message Actions
+
+```bash
+# Edit sent message (need message ID from send output)
+uni wa edit me ABC123 "Fixed typo"
+
+# Delete message
+uni wa delete me ABC123
+
+# React to message
+uni wa react me ABC123 "👍"
+
+# Forward message
+uni wa forward me 919876543210 ABC123
+```
+
+### Chats
+
+```bash
+# List recent chats
+uni wa chats
+
+# List more chats
+uni wa chats -n 50
+```
+
+### Daemon Control
+
+```bash
+# First command auto-starts daemon (~12s)
+# Subsequent commands are fast (~35ms)
+
+# Check status
+uni wa status
+
+# Stop daemon manually (auto-stops after 30min idle)
+uni wa stop
+```
+
+---
+
 ## Linear Workflows
 
 ### Daily Issue Triage
