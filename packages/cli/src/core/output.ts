@@ -125,12 +125,26 @@ export function createOutputFormatter(flags: GlobalFlags): OutputFormatter {
     },
 
     spinner(msg: string): Spinner {
-      // Simple spinner for TTY, no-op for non-TTY
+      // Non-TTY: no animation but still show success/fail messages
       if (!isTTY() || forceJson || quiet) {
         return {
           update: () => {},
-          success: () => {},
-          fail: () => {},
+          success: (successMsg?: string) => {
+            if (!quiet) {
+              if (forceJson) {
+                console.log(JSON.stringify({ status: 'success', message: successMsg || msg }));
+              } else {
+                console.log(`${c.success(c.symbols.success)} ${successMsg || msg}`);
+              }
+            }
+          },
+          fail: (failMsg?: string) => {
+            if (forceJson) {
+              console.error(JSON.stringify({ status: 'error', message: failMsg || msg }));
+            } else {
+              console.error(`${c.error(c.symbols.error)} ${failMsg || msg}`);
+            }
+          },
           stop: () => {},
         };
       }
