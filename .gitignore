@@ -7,6 +7,9 @@ dist/
 # Plan/spec files
 specs/
 
+# Developer knowledge (local only)
+skill/dev-knowledge/
+
 # OS files
 .DS_Store
 
