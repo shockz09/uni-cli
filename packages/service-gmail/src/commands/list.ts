@@ -112,7 +112,7 @@ export const listCommand: Command = {
         const fromName = fromMatch ? fromMatch[1].replace(/"/g, '') : from;
 
         console.log(`${marker}${c.bold(subject)}`);
-        console.log(`   ${c.cyan(fromName)}  ${c.dim(date)}`);
+        console.log(`   ${c.cyan(fromName)}  ${c.dim(date)}  ${c.dim(`[${email.id}]`)}`);
         console.log(`   ${c.dim(`${email.snippet?.slice(0, 80)}...`)}`);
         console.log('');
       }

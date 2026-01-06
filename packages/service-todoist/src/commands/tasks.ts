@@ -19,7 +19,7 @@ function formatTask(task: Task): void {
   const due = task.due ? c.dim(` (${task.due.string})`) : '';
   const labels = task.labels.length ? c.magenta(` [${task.labels.join(', ')}]`) : '';
 
-  console.log(`${checkbox} ${priorityColor(task.content)}${due}${labels}`);
+  console.log(`${checkbox} ${priorityColor(task.content)}${due}${labels}  ${c.dim(`[${task.id}]`)}`);
   if (task.description) {
     console.log(c.dim(`  ${task.description.substring(0, 60)}${task.description.length > 60 ? '...' : ''}`));
   }

@@ -29,7 +29,14 @@ export const searchCommand: Command = {
       name: 'all',
       short: 'a',
       type: 'boolean',
-      description: 'Include promotions, social, updates',
+      description: 'Search all mail (default: true for AI agents)',
+      default: true,
+    },
+    {
+      name: 'primary',
+      short: 'p',
+      type: 'boolean',
+      description: 'Limit to primary inbox only',
       default: false,
     },
   ],
@@ -37,7 +44,7 @@ export const searchCommand: Command = {
     'uni gmail search "flight booking"',
     'uni gmail search "indigo PNR"',
     'uni gmail search "invoice" -n 20',
-    'uni gmail search "amazon order" --all',
+    'uni gmail search "newsletter" --primary',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
@@ -62,8 +69,8 @@ export const searchCommand: Command = {
       // By default, Gmail searches subject, body, and sender
       let query = searchQuery;
 
-      // Restrict to primary inbox unless --all
-      if (!flags.all) {
+      // Restrict to primary inbox if --primary flag is set
+      if (flags.primary) {
         query = `${query} category:primary`;
       }
 
@@ -74,7 +81,6 @@ export const searchCommand: Command = {
 
       if (messages.length === 0) {
         spinner.success('No emails found');
-        console.log(c.dim(`\nTry: uni gmail search "${searchQuery}" --all`));
         return;
       }
 

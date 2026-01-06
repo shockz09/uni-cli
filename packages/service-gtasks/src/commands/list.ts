@@ -84,7 +84,7 @@ export const listCommand: Command = {
             : ` ${c.dim(`(${dueDate.toLocaleDateString()})`)}`;
         }
 
-        console.log(`  ${checkbox} ${title}${due}`);
+        console.log(`  ${checkbox} ${title}${due}  ${c.dim(`[${task.id}]`)}`);
         if (task.notes) {
           console.log(`    ${c.dim(`${task.notes.slice(0, 60)}${task.notes.length > 60 ? '...' : ''}`)}`);
         }

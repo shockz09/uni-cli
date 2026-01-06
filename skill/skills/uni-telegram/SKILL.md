@@ -49,7 +49,10 @@ uni telegram send me "reply" --reply 123   # Reply to message
 
 ```bash
 uni telegram edit me 123 "new text"     # Edit message
-uni telegram delete me 123              # Delete message
+uni telegram delete me 123              # Delete single message
+uni telegram delete me 100-110          # Delete range of messages
+uni telegram delete me "test msg"       # Delete by text search
+uni telegram delete me "test" -n 5      # Delete up to 5 matches
 uni telegram forward me 123 @friend     # Forward message
 uni telegram react @user 123 "👍"       # React to message
 ```

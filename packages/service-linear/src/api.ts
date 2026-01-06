@@ -94,6 +94,11 @@ export class LinearClient {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        // Clear invalid token
+        linearOAuth.logout();
+        throw new Error('Linear token expired or invalid. Run "uni linear auth" to re-authenticate.');
+      }
       throw new Error(`Linear API error: ${response.statusText}`);
     }
 
