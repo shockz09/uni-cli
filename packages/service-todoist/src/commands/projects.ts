@@ -41,9 +41,8 @@ export const projectsCommand: Command = {
             const favorite = project.is_favorite ? c.yellow(' ★') : '';
             const shared = project.is_shared ? c.cyan(' [shared]') : '';
 
-            console.log(`${c.bold(project.name)}${inbox}${favorite}${shared}`);
+            console.log(`${c.bold(project.name)}${inbox}${favorite}${shared}  ${c.dim(`[${project.id}]`)}`);
             console.log(c.dim(`  ${project.comment_count} comments | ${project.view_style} view`));
-            console.log(c.dim(`  ${project.url}`));
             console.log('');
           }
         } catch (error) {
