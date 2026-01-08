@@ -4622,3 +4622,259 @@ uni hf infer gpt2 "Once upon a time" --max-tokens 50
 
 ---
 
+## uni stripe
+
+Stripe - payments, subscriptions, invoices, and more
+
+### `uni stripe auth`
+
+Configure Stripe API key
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `key` | No | Stripe secret key (sk_test_... or sk_live_...) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` |  | boolean |  | Check authentication status |
+| `--logout` |  | boolean |  | Remove stored credentials |
+
+**Examples:**
+
+```bash
+uni stripe auth sk_test_xxx
+uni stripe auth --status
+uni stripe auth --logout
+```
+
+---
+
+### `uni stripe balance`
+
+Check account balance
+
+**Aliases:** `bal`
+
+**Examples:**
+
+```bash
+uni stripe balance
+uni stripe bal
+```
+
+---
+
+### `uni stripe payments`
+
+List recent payments
+
+**Aliases:** `pay`, `p`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | No | Payment ID to view details |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Number of payments to show (default: 10) |
+
+**Examples:**
+
+```bash
+uni stripe payments
+uni stripe payments -n 20
+uni stripe payments pi_xxx
+```
+
+---
+
+### `uni stripe link`
+
+Create or list payment links
+
+**Aliases:** `links`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `amount` | No | Amount in dollars (e.g., 50 or 49.99) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--description` | -d | string |  | Payment description |
+| `--currency` | -c | string | `usd` | Currency code (default: usd) |
+| `--list` | -l | boolean |  | List existing payment links |
+| `--limit` | -n | number | `10` | Number of links to list (default: 10) |
+
+**Examples:**
+
+```bash
+uni stripe link 50
+uni stripe link 99.99 -d "Consulting hour"
+uni stripe link 100 --currency eur
+uni stripe link --list
+```
+
+---
+
+### `uni stripe customers`
+
+List or create customers
+
+**Aliases:** `customer`, `cust`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `email` | No | Email to create customer or customer ID to view |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--name` | -n | string |  | Customer name (for create) |
+| `--limit` |  | number | `10` | Number of customers to list (default: 10) |
+
+**Examples:**
+
+```bash
+uni stripe customers
+uni stripe customers john@example.com -n "John Doe"
+uni stripe customers cus_xxx
+```
+
+---
+
+### `uni stripe invoices`
+
+List or create invoices
+
+**Aliases:** `invoice`, `inv`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `action` | No | Action: list, create, send |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--customer` | -c | string |  | Customer ID (for create) |
+| `--amount` | -a | number |  | Amount in dollars (for create) |
+| `--description` | -d | string |  | Invoice description |
+| `--limit` | -n | number | `10` | Number of invoices to list (default: 10) |
+
+**Examples:**
+
+```bash
+uni stripe invoices
+uni stripe invoices create -c cus_xxx -a 100 -d "Consulting"
+uni stripe invoices send in_xxx
+```
+
+---
+
+### `uni stripe refunds`
+
+List or create refunds
+
+**Aliases:** `refund`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `paymentId` | No | Payment Intent ID to refund (pi_xxx) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--amount` | -a | number |  | Partial refund amount in dollars |
+| `--reason` | -r | string |  | Reason: duplicate, fraudulent, requested_by_customer |
+| `--limit` | -n | number | `10` | Number of refunds to list (default: 10) |
+
+**Examples:**
+
+```bash
+uni stripe refunds
+uni stripe refunds pi_xxx
+uni stripe refunds pi_xxx -a 25
+uni stripe refunds pi_xxx -r requested_by_customer
+```
+
+---
+
+### `uni stripe subs`
+
+List or manage subscriptions
+
+**Aliases:** `subscriptions`, `sub`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `action` | No | Action: list (default), cancel, view |
+| `id` | No | Subscription ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `10` | Number of subscriptions to list (default: 10) |
+
+**Examples:**
+
+```bash
+uni stripe subs
+uni stripe subs sub_xxx
+uni stripe subs cancel sub_xxx
+```
+
+---
+
+### `uni stripe products`
+
+List or create products
+
+**Aliases:** `product`, `prod`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `name` | No | Product name (to create) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--description` | -d | string |  | Product description |
+| `--prices` | -p | boolean |  | Show prices for products |
+| `--limit` | -n | number | `10` | Number of products to list (default: 10) |
+
+**Examples:**
+
+```bash
+uni stripe products
+uni stripe products --prices
+uni stripe products "Pro Plan" -d "Full access to all features"
+```
+
+---
+

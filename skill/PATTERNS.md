@@ -825,6 +825,86 @@ uni music "jazz vibes"
 
 ---
 
+## Stripe Workflows (Plugin)
+
+### Getting Started
+
+```bash
+# Set API key
+uni stripe auth sk_test_xxx
+
+# Or use environment variable
+export STRIPE_SECRET_KEY="sk_test_xxx"
+
+# Check status
+uni stripe auth --status
+```
+
+### Check Balance
+
+```bash
+uni stripe balance
+```
+
+### Create Payment Links
+
+```bash
+# Quick payment link
+uni stripe link 50                    # $50 link
+uni stripe link 99.99 -d "Service"    # With description
+uni stripe link 100 -c eur            # Different currency
+
+# List existing links
+uni stripe link --list
+```
+
+### Manage Payments
+
+```bash
+# List recent payments
+uni stripe payments
+
+# View specific payment
+uni stripe payments pi_xxx
+
+# Process refund
+uni stripe refunds pi_xxx
+uni stripe refunds pi_xxx -a 25       # Partial refund
+```
+
+### Customers & Invoices
+
+```bash
+# Create customer
+uni stripe customers john@example.com -n "John Doe"
+
+# Create and send invoice
+uni stripe invoices create -c cus_xxx -a 100 -d "Consulting"
+uni stripe invoices send in_xxx
+```
+
+### Subscriptions
+
+```bash
+# List subscriptions
+uni stripe subs
+
+# Cancel subscription
+uni stripe subs cancel sub_xxx
+```
+
+### Products
+
+```bash
+# List products with prices
+uni stripe products --prices
+
+# Create product
+uni stripe products "Pro Plan" -d "Full access"
+```
+
+---
+
 ## Trello Workflows
 
 ### Kanban Board Flow (Plugin)
