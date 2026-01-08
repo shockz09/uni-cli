@@ -174,18 +174,75 @@ export function substituteArgs(commands: string[], args: string[]): string[] {
  * @param command - The command to execute
  * @param captureOutput - If true, capture output for piping instead of printing
  */
+/**
+ * Extract pipeable value from JSON output
+ * Looks for common fields: url, link, message, content, result, data
+ */
+function extractPipeValue(jsonStr: string): string | null {
+  // Priority order for pipe-friendly fields
+  const pipeFields = ['url', 'link', 'secureUrl', 'displayUrl'];
+
+  try {
+    // Try to find JSON objects in the output (handles pretty-printed JSON)
+    // Match both single-line and multi-line JSON objects
+    const jsonMatches = jsonStr.match(/\{[^{}]*\}|\{[\s\S]*?\n\}/g);
+
+    if (jsonMatches) {
+      // Check all JSON objects, prioritize ones with url/link fields
+      for (const field of pipeFields) {
+        for (const match of jsonMatches) {
+          try {
+            const obj = JSON.parse(match);
+            if (obj[field] && typeof obj[field] === 'string') {
+              return obj[field];
+            }
+          } catch {
+            continue;
+          }
+        }
+      }
+    }
+
+    // Fallback: try to parse entire string as JSON
+    const parsed = JSON.parse(jsonStr);
+    for (const field of pipeFields) {
+      if (parsed[field] && typeof parsed[field] === 'string') {
+        return parsed[field];
+      }
+    }
+  } catch {
+    // Not JSON or parsing failed
+  }
+
+  // Last resort: look for URL pattern in the output
+  const urlMatch = jsonStr.match(/https?:\/\/[^\s"'<>]+/);
+  if (urlMatch) {
+    return urlMatch[0];
+  }
+
+  return null;
+}
+
 async function executeCommandOnce(command: string, captureOutput: boolean = false): Promise<FlowResult> {
   const start = Date.now();
 
   try {
     const { spawn } = await import('node:child_process');
     const path = await import('node:path');
+    const nodeUrl = await import('node:url');
 
-    // Get the path to the uni CLI
-    const uniPath = path.join(process.cwd(), 'packages/cli/src/main.ts');
+    // Get the path to the uni CLI - use import.meta.url to get absolute path
+    const __dirname = path.dirname(nodeUrl.fileURLToPath(import.meta.url));
+    const uniPath = path.resolve(__dirname, '../../dist/uni');
+
+    // If capturing for pipe, add --json flag for clean output
+    let finalCommand = command;
+    if (captureOutput && !command.includes('--json')) {
+      finalCommand = `${command} --json`;
+    }
 
     // Use shell to properly handle quoted arguments
-    const fullCommand = `bun run ${uniPath} ${command}`;
+    const fullCommand = `${uniPath} ${finalCommand}`;
 
     return new Promise((resolve) => {
       const child = spawn('sh', ['-c', fullCommand], {
@@ -209,12 +266,19 @@ async function executeCommandOnce(command: string, captureOutput: boolean = fals
       });
 
       child.on('close', (code) => {
+        // For piped output, try to extract the meaningful value from JSON
+        let pipeOutput: string | undefined;
+        if (captureOutput) {
+          const extracted = extractPipeValue(stdout);
+          pipeOutput = extracted || stripAnsi(stdout.trim());
+        }
+
         resolve({
           command,
           success: code === 0,
           error: code !== 0 ? stderr || `Exit code ${code}` : undefined,
           duration: Date.now() - start,
-          output: captureOutput ? stripAnsi(stdout.trim()) : undefined,
+          output: pipeOutput,
         });
       });
 

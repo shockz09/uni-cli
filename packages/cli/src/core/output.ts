@@ -2,6 +2,7 @@
  * Adaptive output formatting
  * - Human-readable by default
  * - JSON only when --json flag is passed
+ * - Pipe-friendly: only outputs result value when stdout is piped
  */
 
 import type { OutputFormatter, Spinner, GlobalFlags } from '@uni/shared';
@@ -12,10 +13,30 @@ export function createOutputFormatter(flags: GlobalFlags): OutputFormatter {
   const forceJson = flags.json;
   const verbose = flags.verbose;
   const quiet = flags.quiet;
+  const piped = !isTTY();
+
+  // Track pipe result - commands call pipe() to set their pipeable output
+  let pipeResult: string | null = null;
 
   return {
     isJsonMode(): boolean {
       return forceJson;
+    },
+
+    isPiped(): boolean {
+      return piped && !forceJson; // Don't use pipe mode if --json is explicitly set
+    },
+
+    pipe(value: string): void {
+      if (piped && !forceJson) {
+        pipeResult = value;
+        // Output immediately for piped mode
+        console.log(value);
+      }
+    },
+
+    getPipeResult(): string | null {
+      return pipeResult;
     },
 
     json(data: unknown): void {
@@ -81,6 +102,7 @@ export function createOutputFormatter(flags: GlobalFlags): OutputFormatter {
     },
 
     success(msg: string): void {
+      if (piped && pipeResult) return; // Suppress if pipe output was set
       if (forceJson) {
         console.log(JSON.stringify({ status: 'success', message: msg }));
         return;
@@ -91,6 +113,7 @@ export function createOutputFormatter(flags: GlobalFlags): OutputFormatter {
     },
 
     error(msg: string): void {
+      // Always show errors, even when piped
       if (forceJson) {
         console.error(JSON.stringify({ status: 'error', message: msg }));
         return;
@@ -99,6 +122,7 @@ export function createOutputFormatter(flags: GlobalFlags): OutputFormatter {
     },
 
     warn(msg: string): void {
+      if (piped && pipeResult) return; // Suppress if pipe output was set
       if (forceJson) {
         console.log(JSON.stringify({ status: 'warning', message: msg }));
         return;
@@ -109,6 +133,7 @@ export function createOutputFormatter(flags: GlobalFlags): OutputFormatter {
     },
 
     info(msg: string): void {
+      if (piped && pipeResult) return; // Suppress if pipe output was set
       if (forceJson) {
         console.log(JSON.stringify({ status: 'info', message: msg }));
         return;
@@ -119,17 +144,19 @@ export function createOutputFormatter(flags: GlobalFlags): OutputFormatter {
     },
 
     debug(msg: string): void {
+      if (piped) return; // Suppress debug in pipe mode
       if (verbose && !quiet) {
         console.log(`${c.muted('[debug]')} ${c.muted(msg)}`);
       }
     },
 
     spinner(msg: string): Spinner {
-      // Non-TTY: no animation but still show success/fail messages
+      // Non-TTY: no animation, suppress if piped with result
       if (!isTTY() || forceJson || quiet) {
         return {
           update: () => {},
           success: (successMsg?: string) => {
+            if (piped && pipeResult) return; // Suppress if pipe output was set
             if (!quiet) {
               if (forceJson) {
                 console.log(JSON.stringify({ status: 'success', message: successMsg || msg }));
@@ -139,6 +166,7 @@ export function createOutputFormatter(flags: GlobalFlags): OutputFormatter {
             }
           },
           fail: (failMsg?: string) => {
+            // Always show errors
             if (forceJson) {
               console.error(JSON.stringify({ status: 'error', message: failMsg || msg }));
             } else {

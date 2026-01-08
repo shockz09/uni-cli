@@ -182,6 +182,15 @@ export interface OutputFormatter {
   /** Check if output should be JSON (only when --json flag is passed) */
   isJsonMode(): boolean;
 
+  /** Check if stdout is being piped (not a TTY) */
+  isPiped(): boolean;
+
+  /** Output a value for piping - suppresses other output when piped */
+  pipe(value: string): void;
+
+  /** Get the pipe result if set */
+  getPipeResult(): string | null;
+
   /** Output JSON data */
   json(data: unknown): void;
 
