@@ -280,6 +280,7 @@ Unified duplicated command patterns into shared factories and helpers.
 | Service | Status | Description |
 |---------|--------|-------------|
 | **spotify** | ✅ Working | Search, playlists, playback control (Premium) |
+| **stripe** | ✅ Working | Payments, subscriptions, invoices, payment links |
 | **hf** | ✅ Working | HuggingFace models, datasets, inference |
 
 Location: `~/.uni/plugins/`
