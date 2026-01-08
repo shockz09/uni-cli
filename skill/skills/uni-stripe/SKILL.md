@@ -58,9 +58,9 @@ uni stripe customers cus_xxx      # View specific customer
 ## Invoices
 
 ```bash
-uni stripe invoices               # List invoices
-uni stripe invoices create -c cus_xxx -a 100 -d "Service"
-uni stripe invoices send in_xxx   # Send invoice
+uni stripe invoices                              # List invoices
+uni stripe invoices create --customer cus_xxx -a 100 -d "Service"
+uni stripe invoices send in_xxx                  # Send invoice
 ```
 
 ## Refunds
