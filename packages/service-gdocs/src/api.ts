@@ -279,6 +279,35 @@ export class GoogleDocsClient extends GoogleAuthClient {
   }
 
   /**
+   * Clear all document content
+   */
+  async clearContent(documentId: string): Promise<void> {
+    const doc = await this.getDocument(documentId);
+    const endIndex = doc.body?.content?.slice(-1)[0]?.endIndex || 1;
+
+    if (endIndex <= 2) {
+      // Document is already empty
+      return;
+    }
+
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [
+          {
+            deleteContentRange: {
+              range: {
+                startIndex: 1,
+                endIndex: endIndex - 1,
+              },
+            },
+          },
+        ],
+      }),
+    });
+  }
+
+  /**
    * Insert image from URL
    */
   async insertImage(documentId: string, imageUrl: string, width = 400, position?: string): Promise<void> {

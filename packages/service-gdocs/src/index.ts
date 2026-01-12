@@ -11,6 +11,8 @@ import { appendCommand } from './commands/append';
 import { replaceCommand } from './commands/replace';
 import { insertCommand } from './commands/insert';
 import { findCommand } from './commands/find';
+import { clearCommand } from './commands/clear';
+import { importCommand } from './commands/import';
 import { shareCommand } from './commands/share';
 import { exportCommand } from './commands/export';
 import { deleteCommand } from './commands/delete';
@@ -31,6 +33,8 @@ const gdocsService: UniService = {
     replaceCommand,
     insertCommand,
     findCommand,
+    clearCommand,
+    importCommand,
     shareCommand,
     exportCommand,
     deleteCommand,

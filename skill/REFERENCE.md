@@ -1183,6 +1183,33 @@ uni gslides delete-slide ID -s 1 --force
 
 ---
 
+### `uni gslides clear-slide`
+
+Clear all content from a slide
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--slide` | -s | number |  | Slide number to clear (default: last slide) |
+| `--force` | -f | boolean |  | Skip confirmation |
+
+**Examples:**
+
+```bash
+uni gslides clear-slide ID
+uni gslides clear-slide ID --slide 2
+uni gslides clear-slide ID -s 1 --force
+```
+
+---
+
 ### `uni gslides replace-text`
 
 Replace text throughout the presentation
@@ -1207,6 +1234,32 @@ Replace text throughout the presentation
 uni gslides replace-text ID "old text" "new text"
 uni gslides replace-text ID "TODO" "DONE"
 uni gslides replace-text ID "2024" "2025" --case
+```
+
+---
+
+### `uni gslides copy`
+
+Create a copy of a presentation
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--name` | -n | string |  | Name for the copy (default: "Copy of <original>" |
+
+**Examples:**
+
+```bash
+uni gslides copy ID
+uni gslides copy ID --name "Q2 Review"
+uni gslides copy ID -n "Template Copy"
 ```
 
 ---
@@ -3426,6 +3479,59 @@ Find text in document, optionally replace
 uni gdocs find 1abc123XYZ "old text"
 uni gdocs find 1abc123XYZ "TODO" --replace "DONE"
 uni gdocs find 1abc123XYZ "Error" --case
+```
+
+---
+
+### `uni gdocs clear`
+
+Clear all content from document
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--force` | -f | boolean |  | Skip confirmation |
+
+**Examples:**
+
+```bash
+uni gdocs clear 1abc123XYZ
+uni gdocs clear 1abc123XYZ --force
+```
+
+---
+
+### `uni gdocs import`
+
+Import content from text file into document
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `file` | Yes | File path to import (.txt, .md) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--append` | -a | boolean |  | Append to existing content (default: replace) |
+| `--at` |  | string |  | Insert position: "start", "end", or index (default: end for append) |
+
+**Examples:**
+
+```bash
+uni gdocs import ID notes.txt
+uni gdocs import ID readme.md --append
+uni gdocs import ID content.txt --at start
 ```
 
 ---

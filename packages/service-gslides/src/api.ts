@@ -340,6 +340,39 @@ export class GoogleSlidesClient extends GoogleAuthClient {
   }
 
   /**
+   * Copy/duplicate a presentation
+   */
+  async copyPresentation(presentationId: string, name?: string): Promise<string> {
+    const body: Record<string, unknown> = {};
+    if (name) {
+      body.name = name;
+    }
+
+    const response = await this.apiRequest<{ id: string }>(DRIVE_API, `/files/${presentationId}/copy`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+
+    return response.id;
+  }
+
+  /**
+   * Clear all elements from a slide
+   */
+  async clearSlide(presentationId: string, elementIds: string[]): Promise<void> {
+    if (elementIds.length === 0) return;
+
+    const requests = elementIds.map(objectId => ({
+      deleteObject: { objectId },
+    }));
+
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({ requests }),
+    });
+  }
+
+  /**
    * Replace text throughout presentation
    */
   async replaceText(presentationId: string, oldText: string, newText: string, matchCase = false): Promise<number> {
