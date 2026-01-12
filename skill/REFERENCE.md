@@ -3644,7 +3644,7 @@ Get spreadsheet data
 | `--data` | -d | boolean |  | Dump all sheet data |
 | `--tsv` |  | boolean |  | Output as TSV (for piping) |
 | `--cells` |  | boolean |  | JSON output as cell-keyed object (e.g., {"A1": "value"}) |
-| `--filter` | -f | string |  | Filter rows (e.g., "C>100", "A=foo") |
+| `--filter` | -f | string |  | Filter rows (e.g., "C>100", "A=foo AND B<50", "A=x OR A=y") |
 
 **Examples:**
 
@@ -3654,6 +3654,7 @@ uni gsheets get 1abc123XYZ A1:B10
 uni gsheets get 1abc123XYZ --data
 uni gsheets get 1abc123XYZ --data --tsv > data.tsv
 uni gsheets get 1abc123XYZ A1:D100 --filter "C>100"
+uni gsheets get 1abc123XYZ A1:D100 --filter "B>50 AND C<100"
 uni gsheets get 1abc123XYZ A1:D100 --json --cells
 ```
 
@@ -3930,6 +3931,7 @@ Add comparison formulas between columns
 | `--sheet` | -s | string |  | Sheet name (default: first sheet) |
 | `--type` | -t | string |  | Comparison type: diff, percent, change (default: percent) |
 | `--header` | -h | string |  | Header for new column (default: "Change") |
+| `--direction` | -d | string |  | higher = higher is better (TPS), lower = lower is better (latency). Default: lower |
 
 **Examples:**
 
@@ -3937,7 +3939,8 @@ Add comparison formulas between columns
 uni gsheets compare ID A1:B10
 uni gsheets compare ID A1:B10 --type diff --header "Difference"
 uni gsheets compare ID C1:D20 --type percent --header "% Change"
-uni gsheets compare ID --sheet "Data" E1:F50
+uni gsheets compare ID A1:B10 --direction higher
+uni gsheets compare ID --sheet "Data" E1:F50 --direction lower
 ```
 
 ---
@@ -3969,6 +3972,172 @@ uni gsheets import ID data.csv
 uni gsheets import ID data.tsv --range B2
 uni gsheets import ID export.csv --sheet "Import" --append
 uni gsheets import ID data.txt --delimiter pipe
+```
+
+---
+
+### `uni gsheets export`
+
+Export spreadsheet data to CSV/TSV file
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `output` | Yes | Output file path (e.g., data.csv) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+| `--range` | -r | string |  | Range to export (default: all data) |
+| `--format` | -f | string |  | Format: csv, tsv (default: auto from filename) |
+
+**Examples:**
+
+```bash
+uni gsheets export 1abc123XYZ data.csv
+uni gsheets export 1abc123XYZ data.tsv --sheet "Sales"
+uni gsheets export 1abc123XYZ output.csv --range A1:D100
+uni gsheets export 1abc123XYZ data.txt --format csv
+```
+
+---
+
+### `uni gsheets delete`
+
+Delete a spreadsheet (moves to trash)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--force` | -f | boolean |  | Skip confirmation |
+
+**Examples:**
+
+```bash
+uni gsheets delete 1abc123XYZ
+uni gsheets delete 1abc123XYZ --force
+```
+
+---
+
+### `uni gsheets rename`
+
+Rename a spreadsheet
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `newName` | Yes | New name for the spreadsheet |
+
+**Examples:**
+
+```bash
+uni gsheets rename 1abc123XYZ "New Name"
+uni gsheets rename 1abc123XYZ "Budget 2025"
+```
+
+---
+
+### `uni gsheets sort`
+
+Sort data in a range by column
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Range to sort (e.g., A1:D100) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+| `--col` | -c | string |  | Column to sort by (e.g., B). Default: first column |
+| `--desc` |  | boolean |  | Sort descending (default: ascending) |
+| `--header` |  | boolean |  | First row is header (exclude from sort) |
+
+**Examples:**
+
+```bash
+uni gsheets sort ID A1:D100 --col B
+uni gsheets sort ID A1:Z50 --col C --desc
+uni gsheets sort ID A1:D100 --col B --header
+uni gsheets sort ID --sheet "Data" A1:E200 --col A
+```
+
+---
+
+### `uni gsheets stats`
+
+Calculate statistics (sum, avg, min, max, count) for a range
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Range to analyze (e.g., B2:B100) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets stats ID B2:B100
+uni gsheets stats ID C1:C500 --sheet "Sales"
+uni gsheets stats ID "Revenue!D2:D1000"
+```
+
+---
+
+### `uni gsheets find`
+
+Find text in spreadsheet, optionally replace
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `search` | Yes | Text to search for |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+| `--range` | -r | string |  | Range to search (default: all) |
+| `--replace` |  | string |  | Replace matches with this text |
+| `--case` |  | boolean |  | Case-sensitive search |
+| `--whole` |  | boolean |  | Match whole cell only |
+
+**Examples:**
+
+```bash
+uni gsheets find ID "old text"
+uni gsheets find ID "error" --sheet "Logs"
+uni gsheets find ID "old" --replace "new"
+uni gsheets find ID "TODO" --case --whole
+uni gsheets find ID "2024" --range A1:A100 --replace "2025"
 ```
 
 ---

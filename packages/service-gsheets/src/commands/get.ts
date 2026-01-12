@@ -19,50 +19,96 @@ function colToLetter(col: number): string {
   return letter;
 }
 
-/**
- * Parse filter expression: "C>100", "A=foo", "B!=bar"
- */
-function parseFilter(filter: string): { col: string; op: string; value: string } | null {
-  const match = filter.match(/^([A-Z]+)(>=|<=|!=|=|>|<)(.+)$/i);
-  if (!match) return null;
-  return { col: match[1].toUpperCase(), op: match[2], value: match[3] };
+interface FilterCondition {
+  col: string;
+  op: string;
+  value: string;
+}
+
+interface CompoundFilter {
+  conditions: FilterCondition[];
+  operators: ('AND' | 'OR')[];
 }
 
 /**
- * Apply filter to rows
+ * Parse filter expression: "C>100", "A=foo AND B<50", "A=x OR B=y"
+ */
+function parseFilter(filter: string): CompoundFilter | null {
+  // Split by AND/OR while preserving the operators
+  const parts = filter.split(/\s+(AND|OR)\s+/i);
+  const conditions: FilterCondition[] = [];
+  const operators: ('AND' | 'OR')[] = [];
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i].trim();
+    if (part.toUpperCase() === 'AND' || part.toUpperCase() === 'OR') {
+      operators.push(part.toUpperCase() as 'AND' | 'OR');
+    } else {
+      const match = part.match(/^([A-Z]+)(>=|<=|!=|=|>|<)(.+)$/i);
+      if (!match) return null;
+      conditions.push({ col: match[1].toUpperCase(), op: match[2], value: match[3] });
+    }
+  }
+
+  if (conditions.length === 0) return null;
+  return { conditions, operators };
+}
+
+/**
+ * Evaluate a single condition against a row
+ */
+function evaluateCondition(row: string[], condition: FilterCondition, startCol: number): boolean {
+  const colIndex = condition.col.charCodeAt(0) - 'A'.charCodeAt(0) - startCol;
+  if (colIndex < 0 || colIndex >= row.length) return false;
+
+  const cellValue = row[colIndex] || '';
+  const numValue = parseFloat(cellValue);
+  const filterNum = parseFloat(condition.value);
+  const isNumeric = !isNaN(numValue) && !isNaN(filterNum);
+
+  switch (condition.op) {
+    case '=':
+      return isNumeric ? numValue === filterNum : cellValue.toLowerCase() === condition.value.toLowerCase();
+    case '!=':
+      return isNumeric ? numValue !== filterNum : cellValue.toLowerCase() !== condition.value.toLowerCase();
+    case '>':
+      return isNumeric && numValue > filterNum;
+    case '<':
+      return isNumeric && numValue < filterNum;
+    case '>=':
+      return isNumeric && numValue >= filterNum;
+    case '<=':
+      return isNumeric && numValue <= filterNum;
+    default:
+      return true;
+  }
+}
+
+/**
+ * Apply compound filter to rows (supports AND/OR)
  */
 function applyFilter(
   values: string[][],
-  filter: { col: string; op: string; value: string },
+  filter: CompoundFilter,
   startCol: number
 ): string[][] {
-  const colIndex = filter.col.charCodeAt(0) - 'A'.charCodeAt(0) - startCol;
-  if (colIndex < 0) return values;
-
   // Keep header row
   const header = values[0];
   const filtered = values.slice(1).filter(row => {
-    const cellValue = row[colIndex] || '';
-    const numValue = parseFloat(cellValue);
-    const filterNum = parseFloat(filter.value);
-    const isNumeric = !isNaN(numValue) && !isNaN(filterNum);
+    // Evaluate first condition
+    let result = evaluateCondition(row, filter.conditions[0], startCol);
 
-    switch (filter.op) {
-      case '=':
-        return isNumeric ? numValue === filterNum : cellValue.toLowerCase() === filter.value.toLowerCase();
-      case '!=':
-        return isNumeric ? numValue !== filterNum : cellValue.toLowerCase() !== filter.value.toLowerCase();
-      case '>':
-        return isNumeric && numValue > filterNum;
-      case '<':
-        return isNumeric && numValue < filterNum;
-      case '>=':
-        return isNumeric && numValue >= filterNum;
-      case '<=':
-        return isNumeric && numValue <= filterNum;
-      default:
-        return true;
+    // Apply remaining conditions with AND/OR
+    for (let i = 0; i < filter.operators.length; i++) {
+      const nextResult = evaluateCondition(row, filter.conditions[i + 1], startCol);
+      if (filter.operators[i] === 'AND') {
+        result = result && nextResult;
+      } else {
+        result = result || nextResult;
+      }
     }
+
+    return result;
   });
 
   return [header, ...filtered];
@@ -94,7 +140,7 @@ export const getCommand: Command = {
     { name: 'data', short: 'd', type: 'boolean', description: 'Dump all sheet data' },
     { name: 'tsv', type: 'boolean', description: 'Output as TSV (for piping)' },
     { name: 'cells', type: 'boolean', description: 'JSON output as cell-keyed object (e.g., {"A1": "value"})' },
-    { name: 'filter', short: 'f', type: 'string', description: 'Filter rows (e.g., "C>100", "A=foo")' },
+    { name: 'filter', short: 'f', type: 'string', description: 'Filter rows (e.g., "C>100", "A=foo AND B<50", "A=x OR A=y")' },
   ],
   examples: [
     'uni gsheets get 1abc123XYZ',
@@ -102,6 +148,7 @@ export const getCommand: Command = {
     'uni gsheets get 1abc123XYZ --data',
     'uni gsheets get 1abc123XYZ --data --tsv > data.tsv',
     'uni gsheets get 1abc123XYZ A1:D100 --filter "C>100"',
+    'uni gsheets get 1abc123XYZ A1:D100 --filter "B>50 AND C<100"',
     'uni gsheets get 1abc123XYZ A1:D100 --json --cells',
   ],
 

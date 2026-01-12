@@ -285,6 +285,48 @@ export class GoogleSheetsClient extends GoogleAuthClient {
   }
 
   /**
+   * Rename a spreadsheet
+   */
+  async renameSpreadsheet(spreadsheetId: string, newTitle: string): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateSpreadsheetProperties: {
+            properties: { title: newTitle },
+            fields: 'title',
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Sort a range by column
+   */
+  async sortRange(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    sortColumn: number,
+    descending: boolean
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          sortRange: {
+            range,
+            sortSpecs: [{
+              dimensionIndex: sortColumn,
+              sortOrder: descending ? 'DESCENDING' : 'ASCENDING',
+            }],
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
    * Add a new sheet (tab) to spreadsheet
    */
   async addSheet(spreadsheetId: string, title: string): Promise<{ sheetId: number; title: string }> {

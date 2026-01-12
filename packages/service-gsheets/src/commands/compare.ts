@@ -41,12 +41,14 @@ export const compareCommand: Command = {
     { name: 'sheet', short: 's', type: 'string', description: 'Sheet name (default: first sheet)' },
     { name: 'type', short: 't', type: 'string', description: 'Comparison type: diff, percent, change (default: percent)' },
     { name: 'header', short: 'h', type: 'string', description: 'Header for new column (default: "Change")' },
+    { name: 'direction', short: 'd', type: 'string', description: 'higher = higher is better (TPS), lower = lower is better (latency). Default: lower' },
   ],
   examples: [
     'uni gsheets compare ID A1:B10',
     'uni gsheets compare ID A1:B10 --type diff --header "Difference"',
     'uni gsheets compare ID C1:D20 --type percent --header "% Change"',
-    'uni gsheets compare ID --sheet "Data" E1:F50',
+    'uni gsheets compare ID A1:B10 --direction higher',
+    'uni gsheets compare ID --sheet "Data" E1:F50 --direction lower',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
@@ -62,6 +64,8 @@ export const compareCommand: Command = {
     const sheetName = flags.sheet as string | undefined;
     const compType = (flags.type as string) || 'percent';
     const headerText = (flags.header as string) || 'Change';
+    const direction = (flags.direction as string)?.toLowerCase() || 'lower';
+    const higherIsBetter = direction === 'higher' || direction === 'higher-is-better';
 
     // Parse range
     const cellPart = rangeStr.includes('!') ? rangeStr.split('!')[1] : rangeStr;
@@ -105,25 +109,29 @@ export const compareCommand: Command = {
       const col2 = colToLetter(startCol + 1);  // Always the next column, not endCol
       const resultCol = colToLetter(endCol + 1);
 
-      // Build formula based on type
-      // For improvement metrics (lower is better, like latency), use (old-new)/old
-      // This shows positive % when new value is lower (improved)
+      // Build formula based on type and direction
+      // higherIsBetter: (new-old)/old → positive when new > old (e.g., TPS)
+      // lowerIsBetter:  (old-new)/old → positive when new < old (e.g., latency)
       let formulaTemplate: string;
       switch (compType) {
         case 'diff':
-          // Simple difference: new - old
-          formulaTemplate = `=${col2}{ROW}-${col1}{ROW}`;
+          // Simple difference
+          formulaTemplate = higherIsBetter
+            ? `=${col2}{ROW}-${col1}{ROW}`
+            : `=${col1}{ROW}-${col2}{ROW}`;
           break;
         case 'change':
           // Absolute change with sign
-          formulaTemplate = `=IF(${col1}{ROW}=0,"N/A",${col2}{ROW}-${col1}{ROW})`;
+          formulaTemplate = higherIsBetter
+            ? `=IF(${col1}{ROW}=0,"N/A",${col2}{ROW}-${col1}{ROW})`
+            : `=IF(${col1}{ROW}=0,"N/A",${col1}{ROW}-${col2}{ROW})`;
           break;
         case 'percent':
         default:
-          // Percentage improvement: (old - new) / old * 100
-          // Positive = improvement (new is smaller/better)
-          // Negative = regression (new is larger/worse)
-          formulaTemplate = `=IF(${col1}{ROW}=0,"N/A",ROUND((${col1}{ROW}-${col2}{ROW})/${col1}{ROW}*100,1)&"%")`;
+          // Percentage change - positive means improvement
+          formulaTemplate = higherIsBetter
+            ? `=IF(${col1}{ROW}=0,"N/A",ROUND((${col2}{ROW}-${col1}{ROW})/${col1}{ROW}*100,1)&"%")`
+            : `=IF(${col1}{ROW}=0,"N/A",ROUND((${col1}{ROW}-${col2}{ROW})/${col1}{ROW}*100,1)&"%")`;
           break;
       }
 
@@ -146,6 +154,7 @@ export const compareCommand: Command = {
           resultColumn: resultCol,
           resultRange,
           formulaType: compType,
+          direction: higherIsBetter ? 'higher' : 'lower',
           rowCount: values.length - 1,
         });
         return;
@@ -154,7 +163,7 @@ export const compareCommand: Command = {
       if (!output.isPiped()) {
         console.log('');
         console.log(`${c.green('Added:')} "${headerText}" column at ${resultCol}`);
-        console.log(c.dim(`Formula type: ${compType}`));
+        console.log(c.dim(`Formula type: ${compType}, direction: ${higherIsBetter ? 'higher is better' : 'lower is better'}`));
         console.log(c.dim(`Rows: ${startRow + 1} to ${endRow}`));
         console.log('');
       }
