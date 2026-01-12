@@ -1099,6 +1099,118 @@ uni gslides add-text <id> "Title" --slide 1
 
 ---
 
+### `uni gslides add-image`
+
+Add an image to a slide
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `url` | Yes | Image URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--slide` | -s | number |  | Slide number (default: last slide) |
+| `--width` | -w | number |  | Image width in points (default: 300) |
+| `--height` | -h | number |  | Image height in points (default: auto) |
+| `--x` |  | number |  | X position in points (default: 100) |
+| `--y` |  | number |  | Y position in points (default: 100) |
+
+**Examples:**
+
+```bash
+uni gslides add-image ID "https://example.com/image.png"
+uni gslides add-image ID "https://example.com/logo.png" --slide 1
+uni gslides add-image ID "https://example.com/chart.png" --width 400 --x 50 --y 200
+```
+
+---
+
+### `uni gslides duplicate-slide`
+
+Duplicate an existing slide
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--slide` | -s | number |  | Slide number to duplicate (default: last slide) |
+
+**Examples:**
+
+```bash
+uni gslides duplicate-slide ID
+uni gslides duplicate-slide ID --slide 1
+uni gslides duplicate-slide ID -s 3
+```
+
+---
+
+### `uni gslides delete-slide`
+
+Delete a slide from presentation
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--slide` | -s | number |  | Slide number to delete (default: last slide) |
+| `--force` | -f | boolean |  | Skip confirmation |
+
+**Examples:**
+
+```bash
+uni gslides delete-slide ID
+uni gslides delete-slide ID --slide 2
+uni gslides delete-slide ID -s 1 --force
+```
+
+---
+
+### `uni gslides replace-text`
+
+Replace text throughout the presentation
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `old` | Yes | Text to find |
+| `new` | Yes | Replacement text |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--case` | -c | boolean |  | Case-sensitive replacement |
+
+**Examples:**
+
+```bash
+uni gslides replace-text ID "old text" "new text"
+uni gslides replace-text ID "TODO" "DONE"
+uni gslides replace-text ID "2024" "2025" --case
+```
+
+---
+
 ### `uni gslides share`
 
 Share a presentation with someone
@@ -1147,6 +1259,51 @@ Export presentation to PDF, PPTX, or other formats
 ```bash
 uni gslides export <id> pdf
 uni gslides export <id> pptx -o presentation.pptx
+```
+
+---
+
+### `uni gslides delete`
+
+Delete a presentation (moves to trash)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--force` | -f | boolean |  | Skip confirmation |
+
+**Examples:**
+
+```bash
+uni gslides delete 1abc123XYZ
+uni gslides delete 1abc123XYZ --force
+```
+
+---
+
+### `uni gslides rename`
+
+Rename a presentation
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `title` | Yes | New title |
+
+**Examples:**
+
+```bash
+uni gslides rename 1abc123XYZ "New Title"
+uni gslides rename 1abc123XYZ "Q1 Review 2025"
 ```
 
 ---
@@ -3214,6 +3371,65 @@ uni gdocs replace 1abc123XYZ "TODO" "DONE"
 
 ---
 
+### `uni gdocs insert`
+
+Insert text at position or insert image from URL
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `content` | Yes | Text to insert or image URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--at` | -a | string |  | Position: "start", "end", or index number (default: end) |
+| `--image` | -i | boolean |  | Insert as image (content should be URL) |
+| `--width` | -w | number |  | Image width in points (default: 400) |
+
+**Examples:**
+
+```bash
+uni gdocs insert ID "New paragraph at end"
+uni gdocs insert ID "Header text" --at start
+uni gdocs insert ID "Middle text" --at 100
+uni gdocs insert ID "https://example.com/image.png" --image
+uni gdocs insert ID "https://example.com/logo.png" --image --width 200
+```
+
+---
+
+### `uni gdocs find`
+
+Find text in document, optionally replace
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `text` | Yes | Text to find |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--replace` | -r | string |  | Replace with this text |
+| `--case` | -c | boolean |  | Case-sensitive search |
+
+**Examples:**
+
+```bash
+uni gdocs find 1abc123XYZ "old text"
+uni gdocs find 1abc123XYZ "TODO" --replace "DONE"
+uni gdocs find 1abc123XYZ "Error" --case
+```
+
+---
+
 ### `uni gdocs share`
 
 Share document with email
@@ -3263,6 +3479,51 @@ Export document to file
 uni gdocs export 1abc123XYZ pdf
 uni gdocs export 1abc123XYZ pdf --output report.pdf
 uni gdocs export 1abc123XYZ txt --output notes.txt
+```
+
+---
+
+### `uni gdocs delete`
+
+Delete a document (moves to trash)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--force` | -f | boolean |  | Skip confirmation |
+
+**Examples:**
+
+```bash
+uni gdocs delete 1abc123XYZ
+uni gdocs delete 1abc123XYZ --force
+```
+
+---
+
+### `uni gdocs rename`
+
+Rename a document
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `title` | Yes | New title |
+
+**Examples:**
+
+```bash
+uni gdocs rename 1abc123XYZ "New Title"
+uni gdocs rename 1abc123XYZ "Meeting Notes - Q1"
 ```
 
 ---

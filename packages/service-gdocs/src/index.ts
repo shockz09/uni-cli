@@ -9,8 +9,12 @@ import { getCommand } from './commands/get';
 import { createCommand } from './commands/create';
 import { appendCommand } from './commands/append';
 import { replaceCommand } from './commands/replace';
+import { insertCommand } from './commands/insert';
+import { findCommand } from './commands/find';
 import { shareCommand } from './commands/share';
 import { exportCommand } from './commands/export';
+import { deleteCommand } from './commands/delete';
+import { renameCommand } from './commands/rename';
 import { authCommand } from './commands/auth';
 import { gdocs } from './api';
 
@@ -19,7 +23,20 @@ const gdocsService: UniService = {
   description: 'Google Docs - documents',
   version: '0.1.0',
 
-  commands: [listCommand, getCommand, createCommand, appendCommand, replaceCommand, shareCommand, exportCommand, authCommand],
+  commands: [
+    listCommand,
+    getCommand,
+    createCommand,
+    appendCommand,
+    replaceCommand,
+    insertCommand,
+    findCommand,
+    shareCommand,
+    exportCommand,
+    deleteCommand,
+    renameCommand,
+    authCommand,
+  ],
 
   auth: {
     type: 'oauth',

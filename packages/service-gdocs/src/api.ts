@@ -212,6 +212,109 @@ export class GoogleDocsClient extends GoogleAuthClient {
   }
 
   /**
+   * Rename a document
+   */
+  async renameDocument(documentId: string, newTitle: string): Promise<void> {
+    await this.apiRequest(DRIVE_API, `/files/${documentId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name: newTitle }),
+    });
+  }
+
+  /**
+   * Replace text with case sensitivity option
+   */
+  async replaceText(documentId: string, oldText: string, newText: string, matchCase = true): Promise<number> {
+    const response = await this.request<{ replies: Array<{ replaceAllText?: { occurrencesChanged: number } }> }>(
+      `/documents/${documentId}:batchUpdate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          requests: [
+            {
+              replaceAllText: {
+                containsText: { text: oldText, matchCase },
+                replaceText: newText,
+              },
+            },
+          ],
+        }),
+      }
+    );
+
+    return response.replies?.[0]?.replaceAllText?.occurrencesChanged || 0;
+  }
+
+  /**
+   * Insert text at a position
+   */
+  async insertText(documentId: string, text: string, position?: string): Promise<void> {
+    let insertIndex: number;
+
+    if (position === 'start') {
+      insertIndex = 1;
+    } else if (!position || position === 'end') {
+      const doc = await this.getDocument(documentId);
+      insertIndex = (doc.body?.content?.slice(-1)[0]?.endIndex || 2) - 1;
+    } else {
+      insertIndex = parseInt(position, 10);
+      if (isNaN(insertIndex)) {
+        throw new Error('Invalid position. Use "start", "end", or a number.');
+      }
+    }
+
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [
+          {
+            insertText: {
+              location: { index: insertIndex },
+              text,
+            },
+          },
+        ],
+      }),
+    });
+  }
+
+  /**
+   * Insert image from URL
+   */
+  async insertImage(documentId: string, imageUrl: string, width = 400, position?: string): Promise<void> {
+    let insertIndex: number;
+
+    if (position === 'start') {
+      insertIndex = 1;
+    } else if (!position || position === 'end') {
+      const doc = await this.getDocument(documentId);
+      insertIndex = (doc.body?.content?.slice(-1)[0]?.endIndex || 2) - 1;
+    } else {
+      insertIndex = parseInt(position, 10);
+      if (isNaN(insertIndex)) {
+        throw new Error('Invalid position. Use "start", "end", or a number.');
+      }
+    }
+
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [
+          {
+            insertInlineImage: {
+              location: { index: insertIndex },
+              uri: imageUrl,
+              objectSize: {
+                width: { magnitude: width, unit: 'PT' },
+              },
+            },
+          },
+        ],
+      }),
+    });
+  }
+
+  /**
    * Export document to different format
    */
   async exportDocument(documentId: string, mimeType: string): Promise<ArrayBuffer> {

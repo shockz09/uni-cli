@@ -9,8 +9,14 @@ import { getCommand } from './commands/get';
 import { createCommand } from './commands/create';
 import { addSlideCommand } from './commands/add-slide';
 import { addTextCommand } from './commands/add-text';
+import { addImageCommand } from './commands/add-image';
+import { duplicateSlideCommand } from './commands/duplicate-slide';
+import { deleteSlideCommand } from './commands/delete-slide';
+import { replaceTextCommand } from './commands/replace-text';
 import { shareCommand } from './commands/share';
 import { exportCommand } from './commands/export';
+import { deleteCommand } from './commands/delete';
+import { renameCommand } from './commands/rename';
 import { authCommand } from './commands/auth';
 import { gslides } from './api';
 
@@ -25,8 +31,14 @@ const gslidesService: UniService = {
     createCommand,
     addSlideCommand,
     addTextCommand,
+    addImageCommand,
+    duplicateSlideCommand,
+    deleteSlideCommand,
+    replaceTextCommand,
     shareCommand,
     exportCommand,
+    deleteCommand,
+    renameCommand,
     authCommand,
   ],
 

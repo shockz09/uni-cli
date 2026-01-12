@@ -244,6 +244,126 @@ export class GoogleSlidesClient extends GoogleAuthClient {
   }
 
   /**
+   * Rename a presentation
+   */
+  async renamePresentation(presentationId: string, newTitle: string): Promise<void> {
+    await this.apiRequest(DRIVE_API, `/files/${presentationId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name: newTitle }),
+    });
+  }
+
+  /**
+   * Duplicate a slide
+   */
+  async duplicateSlide(presentationId: string, slideObjectId: string): Promise<string> {
+    const response = await this.request<{ replies: Array<{ duplicateObject?: { objectId: string } }> }>(
+      `/presentations/${presentationId}:batchUpdate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          requests: [
+            {
+              duplicateObject: {
+                objectId: slideObjectId,
+              },
+            },
+          ],
+        }),
+      }
+    );
+
+    return response.replies?.[0]?.duplicateObject?.objectId || '';
+  }
+
+  /**
+   * Delete a slide
+   */
+  async deleteSlide(presentationId: string, slideObjectId: string): Promise<void> {
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [
+          {
+            deleteObject: {
+              objectId: slideObjectId,
+            },
+          },
+        ],
+      }),
+    });
+  }
+
+  /**
+   * Add image to a slide
+   */
+  async addImage(
+    presentationId: string,
+    slideId: string,
+    imageUrl: string,
+    options: { width?: number; height?: number; x?: number; y?: number } = {}
+  ): Promise<void> {
+    const { width = 300, height, x = 100, y = 100 } = options;
+    const imageId = `image_${Date.now()}`;
+
+    const size: Record<string, unknown> = {
+      width: { magnitude: width, unit: 'PT' },
+    };
+    if (height) {
+      size.height = { magnitude: height, unit: 'PT' };
+    }
+
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [
+          {
+            createImage: {
+              objectId: imageId,
+              url: imageUrl,
+              elementProperties: {
+                pageObjectId: slideId,
+                size,
+                transform: {
+                  scaleX: 1,
+                  scaleY: 1,
+                  translateX: x,
+                  translateY: y,
+                  unit: 'PT',
+                },
+              },
+            },
+          },
+        ],
+      }),
+    });
+  }
+
+  /**
+   * Replace text throughout presentation
+   */
+  async replaceText(presentationId: string, oldText: string, newText: string, matchCase = false): Promise<number> {
+    const response = await this.request<{ replies: Array<{ replaceAllText?: { occurrencesChanged: number } }> }>(
+      `/presentations/${presentationId}:batchUpdate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          requests: [
+            {
+              replaceAllText: {
+                containsText: { text: oldText, matchCase },
+                replaceText: newText,
+              },
+            },
+          ],
+        }),
+      }
+    );
+
+    return response.replies?.[0]?.replaceAllText?.occurrencesChanged || 0;
+  }
+
+  /**
    * Extract text from slides
    */
   extractSlideText(presentation: Presentation): string[] {
