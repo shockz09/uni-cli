@@ -3641,7 +3641,10 @@ Get spreadsheet data
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
 | `--sheet` | -s | string |  | Sheet name (default: first sheet) |
-| `--data` | -d | boolean |  | Include all data |
+| `--data` | -d | boolean |  | Dump all sheet data |
+| `--tsv` |  | boolean |  | Output as TSV (for piping) |
+| `--cells` |  | boolean |  | JSON output as cell-keyed object (e.g., {"A1": "value"}) |
+| `--filter` | -f | string |  | Filter rows (e.g., "C>100", "A=foo") |
 
 **Examples:**
 
@@ -3649,7 +3652,9 @@ Get spreadsheet data
 uni gsheets get 1abc123XYZ
 uni gsheets get 1abc123XYZ A1:B10
 uni gsheets get 1abc123XYZ --data
-uni gsheets get "https://docs.google.com/spreadsheets/d/1abc123XYZ/edit"
+uni gsheets get 1abc123XYZ --data --tsv > data.tsv
+uni gsheets get 1abc123XYZ A1:D100 --filter "C>100"
+uni gsheets get 1abc123XYZ A1:D100 --json --cells
 ```
 
 ---
@@ -3675,7 +3680,7 @@ uni gsheets create "Project Tracker"
 
 ### `uni gsheets set`
 
-Set cell value
+Set cell value(s)
 
 **Arguments:**
 
@@ -3683,7 +3688,7 @@ Set cell value
 |------|----------|-------------|
 | `id` | Yes | Spreadsheet ID or URL |
 | `range` | Yes | Cell or range (e.g., A1, B2:C5) |
-| `value` | Yes | Value to set (or comma-separated values for range) |
+| `value` | Yes | Value(s) - use | for columns, \n for rows |
 
 **Options:**
 
@@ -3694,24 +3699,54 @@ Set cell value
 **Examples:**
 
 ```bash
-uni gsheets set 1abc123XYZ A1 "Hello"
-uni gsheets set 1abc123XYZ B2 "=SUM(A1:A10)"
-uni gsheets set 1abc123XYZ A1 100
-uni gsheets set 1abc123XYZ --sheet "Data" A1 "Value"
+uni gsheets set ID A1 "Hello"
+uni gsheets set ID B2 "=SUM(A1:A10)"
+uni gsheets set ID A1:C1 "Name | Age | Email"
+uni gsheets set ID A1:B3 "Header1|Header2\nVal1|Val2\nVal3|Val4"
+uni gsheets set ID --sheet "Data" A1 "Value"
 ```
 
 ---
 
 ### `uni gsheets append`
 
-Append row to spreadsheet
+Append row(s) to spreadsheet
 
 **Arguments:**
 
 | Name | Required | Description |
 |------|----------|-------------|
 | `id` | Yes | Spreadsheet ID or URL |
-| `values` | Yes | Comma-separated values or multiple arguments |
+| `values` | Yes | Values separated by | or , (use \n for multiple rows) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+| `--range` | -r | string |  | Starting range (default: A:A) |
+
+**Examples:**
+
+```bash
+uni gsheets append ID "Name | Age | Email"
+uni gsheets append ID "John,Doe,john@example.com"
+uni gsheets append ID "Row1|Data|Here\nRow2|More|Data"
+uni gsheets append ID --sheet "Data" "Item | 100 | In Stock"
+```
+
+---
+
+### `uni gsheets clear`
+
+Clear cell values in a range (keeps formatting)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Cell range to clear (e.g., A1:Z100) |
 
 **Options:**
 
@@ -3722,23 +3757,23 @@ Append row to spreadsheet
 **Examples:**
 
 ```bash
-uni gsheets append 1abc123XYZ "John,Doe,john@example.com"
-uni gsheets append 1abc123XYZ "Item,100,In Stock"
-uni gsheets append 1abc123XYZ --sheet "Data" "Row,Data,Here"
+uni gsheets clear ID A1:Z100
+uni gsheets clear ID B2:D50 --sheet "Data"
+uni gsheets clear ID A:A
 ```
 
 ---
 
 ### `uni gsheets share`
 
-Share spreadsheet with email
+Share spreadsheet (with email or publicly)
 
 **Arguments:**
 
 | Name | Required | Description |
 |------|----------|-------------|
 | `id` | Yes | Spreadsheet ID or URL |
-| `email` | Yes | Email address to share with |
+| `target` | Yes | Email address or "anyone" for public link |
 
 **Options:**
 
@@ -3749,8 +3784,191 @@ Share spreadsheet with email
 **Examples:**
 
 ```bash
-uni gsheets share 1abc123XYZ colleague@company.com
-uni gsheets share 1abc123XYZ viewer@example.com --role reader
+uni gsheets share ID colleague@company.com
+uni gsheets share ID viewer@example.com --role reader
+uni gsheets share ID anyone
+uni gsheets share ID anyone --role reader
+```
+
+---
+
+### `uni gsheets copy`
+
+Duplicate a sheet within the spreadsheet
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `newName` | Yes | Name for the copy |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Source sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets copy ID "Sheet1 Copy"
+uni gsheets copy ID "Backup" --sheet "Data"
+uni gsheets copy ID "Template Copy" -s "Template"
+```
+
+---
+
+### `uni gsheets sheets`
+
+Manage worksheets (tabs) in a spreadsheet
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `action` | No | Action: list (default), add, rename, delete |
+| `name` | No | Sheet name (for add/rename) or sheet ID (for delete) |
+| `newName` | No | New name (for rename only) |
+
+**Examples:**
+
+```bash
+uni gsheets sheets ID
+uni gsheets sheets ID list
+uni gsheets sheets ID add "New Sheet"
+uni gsheets sheets ID rename "Sheet1" "Data"
+uni gsheets sheets ID delete 123456789
+```
+
+---
+
+### `uni gsheets format`
+
+Apply formatting to cells
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Cell range (e.g., A1:B10) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+| `--bold` | -b | boolean |  | Make text bold |
+| `--italic` | -i | boolean |  | Make text italic |
+| `--size` |  | string |  | Font size (e.g., 12) |
+| `--bg` |  | string |  | Background color (name or hex) |
+| `--color` | -c | string |  | Text color (name or hex) |
+| `--header-row` |  | boolean |  | Format first row as header (bold, blue bg, white text) |
+| `--alternating` |  | boolean |  | Apply alternating row colors (zebra striping) |
+
+**Examples:**
+
+```bash
+uni gsheets format ID A1:B1 --bold
+uni gsheets format ID A1:C10 --bg yellow
+uni gsheets format ID D1:D100 --color red --italic
+uni gsheets format ID A1 --bold --size 14 --bg "#4285f4" --color white
+uni gsheets format ID A1:D20 --header-row --alternating
+uni gsheets format ID A1:Z100 --header-row
+```
+
+---
+
+### `uni gsheets chart`
+
+Create a chart from data range
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Data range for values (e.g., B1:B10) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+| `--type` | -t | string |  | Chart type: bar, line, pie, column (default: column) |
+| `--title` |  | string |  | Chart title |
+| `--labels` | -l | string |  | Labels/x-axis range (e.g., A1:A10) |
+
+**Examples:**
+
+```bash
+uni gsheets chart ID B1:B10 --labels A1:A10
+uni gsheets chart ID B1:C20 --labels A1:A20 --type bar --title "Sales"
+uni gsheets chart ID --sheet "Data" E1:E50 -l D1:D50 --type line
+uni gsheets chart ID B1:B5 --labels A1:A5 --type pie --title "Distribution"
+```
+
+---
+
+### `uni gsheets compare`
+
+Add comparison formulas between columns
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Data range with 2+ columns (e.g., A1:B10) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+| `--type` | -t | string |  | Comparison type: diff, percent, change (default: percent) |
+| `--header` | -h | string |  | Header for new column (default: "Change") |
+
+**Examples:**
+
+```bash
+uni gsheets compare ID A1:B10
+uni gsheets compare ID A1:B10 --type diff --header "Difference"
+uni gsheets compare ID C1:D20 --type percent --header "% Change"
+uni gsheets compare ID --sheet "Data" E1:F50
+```
+
+---
+
+### `uni gsheets import`
+
+Import CSV/TSV file into spreadsheet
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `file` | Yes | Path to CSV or TSV file |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+| `--range` | -r | string |  | Starting cell (default: A1) |
+| `--delimiter` | -d | string |  | Delimiter: comma, tab, pipe (default: auto-detect) |
+| `--append` | -a | boolean |  | Append to existing data instead of overwriting |
+
+**Examples:**
+
+```bash
+uni gsheets import ID data.csv
+uni gsheets import ID data.tsv --range B2
+uni gsheets import ID export.csv --sheet "Import" --append
+uni gsheets import ID data.txt --delimiter pipe
 ```
 
 ---
@@ -4212,6 +4430,76 @@ uni hn story 12345678 -c 20
 
 ---
 
+## uni sendgrid
+
+SendGrid - transactional email
+
+### `uni sendgrid auth`
+
+Configure SendGrid API key
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `apiKey` | No | SendGrid API Key (SG.xxx) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--from` | -f | string |  | Default from email address |
+| `--name` | -n | string |  | Default from name |
+| `--status` | -s | boolean |  | Check current auth status |
+| `--logout` |  | boolean |  | Remove stored credentials |
+
+**Examples:**
+
+```bash
+uni sendgrid auth SG.xxx -f sender@example.com
+uni sendgrid auth SG.xxx -f sender@example.com -n "My App"
+uni sendgrid auth --status
+uni sendgrid auth --logout
+```
+
+---
+
+### `uni sendgrid send`
+
+Send an email
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `to` | Yes | Recipient email address(es), comma-separated |
+| `subject` | Yes | Email subject |
+| `body` | No | Email body (text) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--from` | -f | string |  | From email (default: SENDGRID_FROM) |
+| `--name` | -n | string |  | From name |
+| `--html` |  | string |  | HTML body (instead of text) |
+| `--cc` |  | string |  | CC recipients (comma-separated) |
+| `--bcc` |  | string |  | BCC recipients (comma-separated) |
+| `--reply-to` |  | string |  | Reply-to address |
+| `--template` | -t | string |  | Dynamic template ID (d-xxx) |
+| `--data` | -d | string |  | JSON data for dynamic template |
+
+**Examples:**
+
+```bash
+uni sendgrid send user@example.com "Hello" "This is the message"
+uni sendgrid send user@example.com "Welcome" --html "<h1>Welcome!</h1>"
+uni sendgrid send user@example.com "Invite" -t d-xxx -d '{"name":"John"}'
+uni sendgrid send "a@test.com,b@test.com" "Newsletter" "Content here"
+```
+
+---
+
 ## uni spotify
 
 Spotify - control playback, search, and manage playlists
@@ -4491,6 +4779,533 @@ uni spotify vol 75
 
 ---
 
+## uni ntfy
+
+Ntfy - Push notifications
+
+### `uni ntfy send`
+
+Send a push notification
+
+**Aliases:** `push`, `notify`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `message` | Yes | Notification message |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--topic` | -t | string |  | Topic to publish to |
+| `--title` | -T | string |  | Notification title |
+| `--priority` | -p | string |  | Priority: min, low, default, high, urgent |
+| `--tags` |  | string |  | Comma-separated tags (emoji shortcodes) |
+| `--click` | -c | string |  | URL to open on click |
+| `--icon` | -i | string |  | Icon URL |
+| `--delay` | -d | string |  | Delay delivery (e.g., 30m, 1h) |
+
+**Examples:**
+
+```bash
+uni ntfy send "Hello world" -t mytopic
+uni ntfy send "Build done!" -T "CI Alert" -p high --tags tada
+uni ntfy send "Check this" -c "https://example.com"
+```
+
+---
+
+### `uni ntfy config`
+
+Configure ntfy settings
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--topic` | -t | string |  | Default topic |
+| `--server` | -s | string |  | Server URL (default: ntfy.sh) |
+| `--username` | -u | string |  | Username for auth |
+| `--password` | -p | string |  | Password for auth |
+| `--status` |  | boolean |  | Show current config |
+| `--logout` |  | boolean |  | Remove stored config |
+
+**Examples:**
+
+```bash
+uni ntfy config -t mytopic
+uni ntfy config -s https://ntfy.example.com -t alerts
+uni ntfy config --status
+```
+
+---
+
+## uni cloudinary
+
+Cloudinary - Image/video hosting
+
+### `uni cloudinary auth`
+
+Configure Cloudinary credentials
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `cloudName` | No | Cloud name |
+| `apiKey` | No | API key |
+| `apiSecret` | No | API secret |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` | -s | boolean |  | Check current auth status |
+| `--logout` |  | boolean |  | Remove stored credentials |
+
+**Examples:**
+
+```bash
+uni cloudinary auth my-cloud-name API_KEY API_SECRET
+uni cloudinary auth --status
+uni cloudinary auth --logout
+```
+
+---
+
+### `uni cloudinary upload`
+
+Upload an image or video
+
+**Aliases:** `up`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `source` | Yes | File path or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--folder` | -f | string |  | Folder to upload to |
+| `--name` | -n | string |  | Public ID (name) |
+| `--type` | -t | string |  | Resource type: image, video, raw, auto |
+
+**Examples:**
+
+```bash
+uni cloudinary upload ./photo.jpg
+uni cloudinary upload ./video.mp4 -f uploads
+uni cloudinary upload https://example.com/img.png -n my-image
+```
+
+---
+
+### `uni cloudinary url`
+
+Generate a transformed image URL
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `publicId` | Yes | Public ID of the image |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--width` | -w | string |  | Width in pixels |
+| `--height` | -h | string |  | Height in pixels |
+| `--crop` | -c | string |  | Crop mode: fill, fit, scale, thumb |
+
+**Examples:**
+
+```bash
+uni cloudinary url my-image
+uni cloudinary url folder/my-image -w 300 -h 200
+uni cloudinary url avatar -w 100 -c thumb
+```
+
+---
+
+### `uni cloudinary delete`
+
+Delete an asset
+
+**Aliases:** `rm`, `del`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `publicId` | Yes | Public ID of the asset |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--type` | -t | string |  | Resource type: image, video, raw |
+
+**Examples:**
+
+```bash
+uni cloudinary delete my-image
+uni cloudinary delete folder/my-video -t video
+```
+
+---
+
+## uni imgbb
+
+imgbb - Image hosting
+
+### `uni imgbb auth`
+
+Configure imgbb API key
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `apiKey` | No | imgbb API key |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` | -s | boolean |  | Check current auth status |
+| `--logout` |  | boolean |  | Remove stored credentials |
+
+**Examples:**
+
+```bash
+uni imgbb auth YOUR_API_KEY
+uni imgbb auth --status
+uni imgbb auth --logout
+```
+
+---
+
+### `uni imgbb upload`
+
+Upload an image
+
+**Aliases:** `up`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `image` | Yes | Image file path, URL, or base64 |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--name` | -n | string |  | Custom image name |
+| `--expiration` | -e | string |  | Auto-delete after seconds (60-15552000) |
+
+**Examples:**
+
+```bash
+uni imgbb upload ./screenshot.png
+uni imgbb upload https://example.com/image.jpg
+uni imgbb upload ./temp.png -e 3600
+```
+
+---
+
+## uni vonage
+
+Vonage - SMS messaging
+
+### `uni vonage auth`
+
+Configure Vonage credentials
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `apiKey` | No | Vonage API Key |
+| `apiSecret` | No | Vonage API Secret |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--phone` | -p | string |  | Your Vonage phone number |
+| `--status` | -s | boolean |  | Check current auth status |
+| `--logout` |  | boolean |  | Remove stored credentials |
+
+**Examples:**
+
+```bash
+uni vonage auth API_KEY API_SECRET -p 15551234567
+uni vonage auth --status
+uni vonage auth --logout
+```
+
+---
+
+### `uni vonage send`
+
+Send an SMS message
+
+**Aliases:** `sms`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `to` | Yes | Recipient phone number |
+| `message` | Yes | Message text |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--from` | -f | string |  | From phone number |
+
+**Examples:**
+
+```bash
+uni vonage send 15559876543 "Hello from Vonage!"
+uni vonage send 15559876543 "Test" -f 15551234567
+```
+
+---
+
+## uni pushover
+
+Pushover - push notifications
+
+### `uni pushover auth`
+
+Configure Pushover credentials
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `userKey` | No | Your Pushover User Key |
+| `apiToken` | No | Your Application API Token |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--status` | -s | boolean |  | Check current auth status |
+| `--logout` |  | boolean |  | Remove stored credentials |
+
+**Examples:**
+
+```bash
+uni pushover auth USER_KEY API_TOKEN
+uni pushover auth --status
+uni pushover auth --logout
+```
+
+---
+
+### `uni pushover send`
+
+Send a push notification
+
+**Aliases:** `push`, `notify`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `message` | Yes | Notification message |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--title` | -t | string |  | Notification title |
+| `--url` | -u | string |  | URL to include |
+| `--url-title` |  | string |  | Title for the URL |
+| `--priority` | -p | number |  | Priority: -2 (lowest) to 2 (emergency) |
+| `--sound` |  | string |  | Sound name (pushover, bike, bugle, etc.) |
+| `--device` | -d | string |  | Specific device name |
+
+**Examples:**
+
+```bash
+uni pushover send "Build complete!"
+uni pushover send "Server down!" -t "Alert" -p 1
+uni pushover send "Check this" -u "https://example.com"
+```
+
+---
+
+## uni airtable
+
+Airtable - bases, tables, and records
+
+### `uni airtable auth`
+
+Configure Airtable API key
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `apiKey` | No | Airtable Personal Access Token (pat...) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--base` | -b | string |  | Default base ID (app...) |
+| `--status` | -s | boolean |  | Check current auth status |
+| `--logout` |  | boolean |  | Remove stored credentials |
+
+**Examples:**
+
+```bash
+uni airtable auth patXXX.XXXX
+uni airtable auth patXXX.XXXX -b appXXXXX
+uni airtable auth --status
+uni airtable auth --logout
+```
+
+---
+
+### `uni airtable bases`
+
+List accessible bases
+
+**Aliases:** `base`
+
+**Examples:**
+
+```bash
+uni airtable bases
+```
+
+---
+
+### `uni airtable tables`
+
+List tables in a base
+
+**Aliases:** `table`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `baseId` | No | Base ID (appXXX) or use default |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--fields` | -f | boolean |  | Show field definitions |
+
+**Examples:**
+
+```bash
+uni airtable tables appXXXXX
+uni airtable tables appXXXXX --fields
+```
+
+---
+
+### `uni airtable records`
+
+List, create, update, or delete records
+
+**Aliases:** `record`, `r`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `table` | Yes | Table ID or name |
+| `action` | No | Action: list, get, create, update, delete |
+| `recordId` | No | Record ID (for get/update/delete) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--base` | -b | string |  | Base ID (uses default if not specified) |
+| `--data` | -d | string |  | JSON data for create/update |
+| `--filter` | -f | string |  | Filter formula for list |
+| `--view` | -v | string |  | View name for list |
+| `--limit` | -n | number | `100` | Max records to return (default: 100) |
+
+**Examples:**
+
+```bash
+uni airtable records Tasks -b appXXX
+uni airtable records tblXXX get recXXX -b appXXX
+uni airtable records tblXXX create -b appXXX -d '{"Name":"New Task"}'
+uni airtable records tblXXX update recXXX -b appXXX -d '{"Status":"Done"}'
+uni airtable records tblXXX delete recXXX -b appXXX
+```
+
+---
+
+## uni 0x0
+
+0x0.st - The null pointer
+
+### `uni 0x0 upload`
+
+Upload a file to 0x0.st
+
+**Aliases:** `up`, `share`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `file` | Yes | File path to upload |
+
+**Examples:**
+
+```bash
+uni 0x0 upload ./image.png
+uni 0x0 share ./document.pdf
+```
+
+---
+
+### `uni 0x0 paste`
+
+Paste text content to 0x0.st
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `text` | Yes | Text to paste |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--name` | -n | string |  | Filename (default: paste.txt) |
+
+**Examples:**
+
+```bash
+uni 0x0 paste "Hello world"
+uni 0x0 paste "console.log(1)" -n code.js
+```
+
+---
+
 ## uni hf
 
 HuggingFace - models, datasets, spaces, and inference
@@ -4618,6 +5433,463 @@ Run inference on a HuggingFace model (requires HF_TOKEN)
 uni hf infer gpt2 "Hello, my name is"
 uni hf infer bigscience/bloom-560m "The meaning of life is"
 uni hf infer gpt2 "Once upon a time" --max-tokens 50
+```
+
+---
+
+## uni trello
+
+Trello - boards, lists, cards, and members
+
+### `uni trello boards`
+
+Manage boards
+
+**Aliases:** `board`, `b`
+
+**Subcommands:**
+
+#### `uni trello boards list`
+
+List boards
+
+```bash
+uni trello boards list
+```
+
+#### `uni trello boards create`
+
+Create a board
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | Board name |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--description` | -d | string | Board description |
+
+```bash
+uni trello boards create "My Project"
+uni trello boards create "Sprint Board" -d "Q1 Sprint planning"
+```
+
+#### `uni trello boards close`
+
+Close (archive) a board
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | Board name or ID |
+
+```bash
+uni trello boards close "Old Project"
+```
+
+---
+
+### `uni trello lists`
+
+Manage lists in a board
+
+**Aliases:** `list`, `l`
+
+**Subcommands:**
+
+#### `uni trello lists list`
+
+List lists in a board
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+
+```bash
+uni trello lists list "My Project"
+```
+
+#### `uni trello lists create`
+
+Create a list in a board
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+| `name` | Yes | List name |
+
+```bash
+uni trello lists create "My Project" "To Do"
+```
+
+#### `uni trello lists archive`
+
+Archive a list
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+| `name` | Yes | List name |
+
+```bash
+uni trello lists archive "My Project" "Done"
+```
+
+---
+
+### `uni trello cards`
+
+Manage cards
+
+**Aliases:** `card`, `c`
+
+**Subcommands:**
+
+#### `uni trello cards list`
+
+List cards in a board or list
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--list` | -l | string | Filter by list name |
+
+```bash
+uni trello cards list "My Project"
+uni trello cards list "My Project" --list "To Do"
+```
+
+#### `uni trello cards create`
+
+Create a card
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+| `list` | Yes | List name |
+| `name` | Yes | Card name |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--description` | -d | string | Card description |
+| `--due` |  | string | Due date (YYYY-MM-DD) |
+
+```bash
+uni trello cards create "My Project" "To Do" "Fix login bug"
+uni trello cards create "Sprint" "Backlog" "Add dark mode" -d "Users want dark mode" --due 2026-01-15
+```
+
+#### `uni trello cards move`
+
+Move a card to another list
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+| `card` | Yes | Card name (partial match) |
+| `list` | Yes | Destination list name |
+
+```bash
+uni trello cards move "My Project" "Fix bug" "Done"
+```
+
+#### `uni trello cards archive`
+
+Archive a card
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+| `card` | Yes | Card name (partial match) |
+
+```bash
+uni trello cards archive "My Project" "Old task"
+```
+
+#### `uni trello cards delete`
+
+Delete a card permanently
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `board` | Yes | Board name or ID |
+| `card` | Yes | Card name (partial match) |
+
+```bash
+uni trello cards delete "My Project" "Test card"
+```
+
+---
+
+### `uni trello members`
+
+List board members
+
+**Aliases:** `member`, `m`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `board` | Yes | Board name or ID |
+
+**Examples:**
+
+```bash
+uni trello members "My Project"
+```
+
+---
+
+## uni asana
+
+Asana - Task management
+
+### `uni asana auth`
+
+Configure Asana credentials
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `token` | No | Personal Access Token |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--workspace` | -w | string |  | Default workspace GID |
+| `--status` | -s | boolean |  | Check current auth status |
+| `--logout` |  | boolean |  | Remove stored credentials |
+
+**Examples:**
+
+```bash
+uni asana auth YOUR_ACCESS_TOKEN
+uni asana auth YOUR_TOKEN -w 1234567890
+uni asana auth --status
+```
+
+---
+
+### `uni asana workspaces`
+
+List workspaces
+
+**Aliases:** `ws`
+
+**Examples:**
+
+```bash
+uni asana workspaces
+```
+
+---
+
+### `uni asana projects`
+
+List projects in a workspace
+
+**Aliases:** `proj`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `workspaceGid` | No | Workspace GID (uses default if not specified) |
+
+**Examples:**
+
+```bash
+uni asana projects
+uni asana projects 1234567890
+```
+
+---
+
+### `uni asana tasks`
+
+List or manage tasks in a project
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `projectGid` | Yes | Project GID |
+| `action` | No | Action: list (default), add, done, delete |
+| `taskArg` | No | Task name (for add) or GID (for done/delete) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--notes` | -n | string |  | Task notes (for add) |
+| `--due` | -d | string |  | Due date YYYY-MM-DD (for add) |
+| `--assignee` | -a | string |  | Assignee GID or "me" (for add) |
+| `--all` |  | boolean |  | Show completed tasks too |
+
+**Examples:**
+
+```bash
+uni asana tasks 1234567890
+uni asana tasks 1234567890 add "New task"
+uni asana tasks 1234567890 add "Important" -d 2025-01-15 -n "Details here"
+uni asana tasks 1234567890 done 9876543210
+uni asana tasks 1234567890 delete 9876543210
+```
+
+---
+
+## uni resend
+
+Resend - modern email API
+
+### `uni resend auth`
+
+Configure Resend API key
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `apiKey` | No | Resend API Key (re_xxx) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--from` | -f | string |  | Default from email |
+| `--status` | -s | boolean |  | Check current auth status |
+| `--logout` |  | boolean |  | Remove stored credentials |
+
+**Examples:**
+
+```bash
+uni resend auth re_xxx -f sender@example.com
+uni resend auth --status
+uni resend auth --logout
+```
+
+---
+
+### `uni resend send`
+
+Send an email
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `to` | Yes | Recipient email (comma-separated for multiple) |
+| `subject` | Yes | Email subject |
+| `body` | No | Email body (text) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--from` | -f | string |  | From email |
+| `--html` |  | string |  | HTML body |
+| `--cc` |  | string |  | CC recipients |
+| `--bcc` |  | string |  | BCC recipients |
+| `--reply-to` |  | string |  | Reply-to address |
+
+**Examples:**
+
+```bash
+uni resend send user@example.com "Hello" "Message body"
+uni resend send user@example.com "Welcome" --html "<h1>Hi!</h1>"
+uni resend send "a@test.com,b@test.com" "News" "Content"
+```
+
+---
+
+## uni twilio
+
+Twilio - SMS messaging
+
+### `uni twilio auth`
+
+Configure Twilio credentials
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `accountSid` | No | Twilio Account SID (ACXXXXXXX) |
+| `authToken` | No | Twilio Auth Token |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--phone` | -p | string |  | Your Twilio phone number (+1XXXYYYZZZZ) |
+| `--status` | -s | boolean |  | Check current auth status |
+| `--logout` |  | boolean |  | Remove stored credentials |
+
+**Examples:**
+
+```bash
+uni twilio auth ACXXX authtoken123 -p +15551234567
+uni twilio auth --status
+uni twilio auth --logout
+```
+
+---
+
+### `uni twilio send`
+
+Send an SMS message
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `to` | Yes | Recipient phone number (+1XXXYYYZZZZ) |
+| `message` | Yes | Message text |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--from` | -f | string |  | From phone number (default: TWILIO_PHONE_NUMBER) |
+
+**Examples:**
+
+```bash
+uni twilio send +15551234567 "Hello from uni CLI!"
+uni twilio send +15551234567 "Meeting at 3pm" -f +15559876543
+```
+
+---
+
+### `uni twilio messages`
+
+List or view messages
+
+**Aliases:** `msg`, `sms`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `sid` | No | Message SID to view details |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number | `20` | Number of messages to list (default: 20) |
+
+**Examples:**
+
+```bash
+uni twilio messages
+uni twilio messages -n 50
+uni twilio messages SM1234567890abcdef
 ```
 
 ---
@@ -4773,7 +6045,7 @@ List or create invoices
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
-| `--customer` | -c | string |  | Customer ID (for create) |
+| `--customer` |  | string |  | Customer ID (for create) |
 | `--amount` | -a | number |  | Amount in dollars (for create) |
 | `--description` | -d | string |  | Invoice description |
 | `--limit` | -n | number | `10` | Number of invoices to list (default: 10) |
@@ -4782,7 +6054,7 @@ List or create invoices
 
 ```bash
 uni stripe invoices
-uni stripe invoices create -c cus_xxx -a 100 -d "Consulting"
+uni stripe invoices create --customer cus_xxx -a 100 -d "Consulting"
 uni stripe invoices send in_xxx
 ```
 

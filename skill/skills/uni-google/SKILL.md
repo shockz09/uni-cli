@@ -62,13 +62,52 @@ uni gdrive delete <id>                  # Delete
 ## Sheets (gsheets)
 
 ```bash
+# Basic operations
 uni gsheets list                        # List spreadsheets
-uni gsheets get <id>                    # Get data
-uni gsheets get <id> --range "A1:C10"   # Specific range
-uni gsheets create "Budget 2025"        # Create
-uni gsheets set <id> A1 "Hello"         # Set cell
-uni gsheets append <id> "A:A" "New row" # Append
-uni gsheets share <id> user@email.com
+uni gsheets get <id>                    # Spreadsheet info
+uni gsheets get <id> A1:C10             # Get range data
+uni gsheets get <id> --data             # Dump all data
+uni gsheets get <id> --data --tsv       # Export as TSV
+uni gsheets get <id> A1:D100 --filter "C>100"  # Filter rows
+uni gsheets get <id> A1:B10 --json --cells     # Cell-keyed JSON
+
+# Write data
+uni gsheets create "Budget 2025"        # Create spreadsheet
+uni gsheets set <id> A1 "Hello"         # Set single cell
+uni gsheets set <id> A1:C1 "Col1|Col2|Col3"    # Batch write row
+uni gsheets set <id> A1:B3 "H1|H2\nV1|V2\nV3|V4"  # Multi-row
+uni gsheets append <id> "Name|Age|Email"       # Append row
+uni gsheets clear <id> A1:Z100          # Clear range (keeps formatting)
+
+# Sheet management
+uni gsheets sheets <id>                 # List sheets/tabs
+uni gsheets sheets <id> add "New Tab"   # Add sheet
+uni gsheets sheets <id> rename "Old" "New"     # Rename
+uni gsheets sheets <id> delete <sheetId>       # Delete sheet
+uni gsheets copy <id> "Backup"          # Duplicate sheet
+
+# Sharing
+uni gsheets share <id> user@email.com   # Share with user
+uni gsheets share <id> anyone           # Public link (editable)
+uni gsheets share <id> anyone --role reader    # Public read-only
+
+# Formatting
+uni gsheets format <id> A1:B1 --bold    # Bold text
+uni gsheets format <id> A1:C10 --bg yellow     # Background color
+uni gsheets format <id> A1:Z100 --header-row --alternating  # Auto-format
+
+# Charts
+uni gsheets chart <id> B1:B10 --labels A1:A10  # Column chart
+uni gsheets chart <id> B1:C20 --labels A1:A20 --type bar --title "Sales"
+# Types: bar, line, pie, column
+
+# Comparison formulas
+uni gsheets compare <id> A1:B10         # Add % change column
+uni gsheets compare <id> A1:B10 --type diff --header "Difference"
+
+# Import data
+uni gsheets import <id> data.csv        # Import CSV
+uni gsheets import <id> data.tsv --append      # Append TSV
 ```
 
 ## Docs (gdocs)

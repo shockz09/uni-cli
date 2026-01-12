@@ -1,14 +1,36 @@
 /**
- * uni gsheets append - Append row to spreadsheet
+ * uni gsheets append - Append row(s) to spreadsheet
  */
 
 import type { Command, CommandContext } from '@uni/shared';
 import { c } from '@uni/shared';
 import { gsheets, extractSpreadsheetId } from '../api';
 
+/**
+ * Parse values string into rows and columns
+ * Supports: pipe (|), comma (,), and tab delimiters
+ * Newlines (\n) separate rows
+ */
+function parseValues(valuesStr: string): string[][] {
+  // Detect delimiter: prefer pipe, then tab, then comma
+  let delimiter = ',';
+  if (valuesStr.includes('|')) {
+    delimiter = '|';
+  } else if (valuesStr.includes('\t')) {
+    delimiter = '\t';
+  }
+
+  // Split by newlines for multiple rows
+  const lines = valuesStr.split(/\\n|\n/).filter(line => line.trim());
+
+  return lines.map(line =>
+    line.split(delimiter).map(v => v.trim())
+  );
+}
+
 export const appendCommand: Command = {
   name: 'append',
-  description: 'Append row to spreadsheet',
+  description: 'Append row(s) to spreadsheet',
   args: [
     {
       name: 'id',
@@ -17,7 +39,7 @@ export const appendCommand: Command = {
     },
     {
       name: 'values',
-      description: 'Comma-separated values or multiple arguments',
+      description: 'Values separated by | or , (use \\n for multiple rows)',
       required: true,
     },
   ],
@@ -28,11 +50,18 @@ export const appendCommand: Command = {
       type: 'string',
       description: 'Sheet name (default: first sheet)',
     },
+    {
+      name: 'range',
+      short: 'r',
+      type: 'string',
+      description: 'Starting range (default: A:A)',
+    },
   ],
   examples: [
-    'uni gsheets append 1abc123XYZ "John,Doe,john@example.com"',
-    'uni gsheets append 1abc123XYZ "Item,100,In Stock"',
-    'uni gsheets append 1abc123XYZ --sheet "Data" "Row,Data,Here"',
+    'uni gsheets append ID "Name | Age | Email"',
+    'uni gsheets append ID "John,Doe,john@example.com"',
+    'uni gsheets append ID "Row1|Data|Here\\nRow2|More|Data"',
+    'uni gsheets append ID --sheet "Data" "Item | 100 | In Stock"',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
@@ -46,32 +75,44 @@ export const appendCommand: Command = {
     const spreadsheetId = extractSpreadsheetId(args.id as string);
     const valuesStr = args.values as string;
     const sheetName = flags.sheet as string | undefined;
+    const rangeArg = flags.range as string | undefined;
 
-    // Parse comma-separated values
-    const rowValues = valuesStr.split(',').map(v => v.trim());
-    const range = sheetName ? `${sheetName}!A:A` : 'A:A';
+    // Parse values with delimiter detection
+    const rows = parseValues(valuesStr);
+    const range = rangeArg
+      ? (sheetName ? `${sheetName}!${rangeArg}` : rangeArg)
+      : (sheetName ? `${sheetName}!A:A` : 'A:A');
 
-    const spinner = output.spinner('Appending row...');
+    const spinner = output.spinner(`Appending ${rows.length} row(s)...`);
 
     try {
-      await gsheets.appendRows(spreadsheetId, range, [rowValues]);
+      await gsheets.appendRows(spreadsheetId, range, rows);
 
-      spinner.success('Row appended');
+      output.pipe(`${rows.length}`);
+      spinner.success(`${rows.length} row(s) appended`);
 
       if (globalFlags.json) {
         output.json({
           spreadsheetId,
-          values: rowValues,
+          rowsAppended: rows.length,
+          values: rows,
           success: true,
         });
         return;
       }
 
-      console.log('');
-      console.log(`${c.green('Appended row:')} ${rowValues.join(' | ')}`);
-      console.log('');
+      if (!output.isPiped()) {
+        console.log('');
+        for (const row of rows.slice(0, 5)) {
+          console.log(`${c.green('+')} ${row.join(' | ')}`);
+        }
+        if (rows.length > 5) {
+          console.log(c.dim(`... and ${rows.length - 5} more rows`));
+        }
+        console.log('');
+      }
     } catch (error) {
-      spinner.fail('Failed to append row');
+      spinner.fail('Failed to append row(s)');
       throw error;
     }
   },
