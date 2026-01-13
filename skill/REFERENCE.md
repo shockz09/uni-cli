@@ -4265,9 +4265,13 @@ Create a chart from data range
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
 | `--sheet` | -s | string |  | Sheet name (default: first sheet) |
-| `--type` | -t | string |  | Chart type: bar, line, pie, column (default: column) |
+| `--type` | -t | string |  | Chart type: bar, line, pie, column, area, scatter (default: column) |
 | `--title` |  | string |  | Chart title |
 | `--labels` | -l | string |  | Labels/x-axis range (e.g., A1:A10) |
+| `--position` | -p | string |  | Anchor cell for chart position (e.g., I2) |
+| `--width` | -w | number |  | Chart width in pixels (default: 600) |
+| `--height` | -h | number |  | Chart height in pixels (default: 371) |
+| `--legend` |  | string |  | Legend position: top, bottom, left, right, none (default: bottom) |
 
 **Examples:**
 
@@ -4276,6 +4280,87 @@ uni gsheets chart ID B1:B10 --labels A1:A10
 uni gsheets chart ID B1:C20 --labels A1:A20 --type bar --title "Sales"
 uni gsheets chart ID --sheet "Data" E1:E50 -l D1:D50 --type line
 uni gsheets chart ID B1:B5 --labels A1:A5 --type pie --title "Distribution"
+uni gsheets chart ID B1:C10 --position I2 --width 800 --height 400
+uni gsheets chart ID B1:B10 --sheet "Charts" --legend right --title "Revenue"
+```
+
+---
+
+### `uni gsheets charts`
+
+List all charts in a spreadsheet
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Filter by sheet name |
+
+**Examples:**
+
+```bash
+uni gsheets charts ID
+uni gsheets charts ID --sheet "Dashboard"
+```
+
+---
+
+### `uni gsheets chart-delete`
+
+Delete a chart from spreadsheet
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `chartId` | Yes | Chart ID to delete (use "charts" command to list) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--force` | -f | boolean |  | Skip confirmation |
+
+**Examples:**
+
+```bash
+uni gsheets chart-delete ID 123456789
+uni gsheets chart-delete ID 123456789 --force
+```
+
+---
+
+### `uni gsheets chart-move`
+
+Move or resize an existing chart
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `chartId` | Yes | Chart ID to move |
+| `position` | Yes | New anchor cell (e.g., I2) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--width` | -w | number |  | New width in pixels |
+| `--height` | -h | number |  | New height in pixels |
+
+**Examples:**
+
+```bash
+uni gsheets chart-move ID 123456789 I2
+uni gsheets chart-move ID 123456789 A20 --width 800 --height 400
 ```
 
 ---

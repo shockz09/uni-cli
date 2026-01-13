@@ -36,6 +36,26 @@ export interface Sheet {
       columnCount: number;
     };
   };
+  charts?: Array<{
+    chartId: number;
+    spec?: {
+      title?: string;
+      basicChart?: {
+        chartType?: string;
+      };
+    };
+    position?: {
+      overlayPosition?: {
+        anchorCell?: {
+          sheetId: number;
+          rowIndex: number;
+          columnIndex: number;
+        };
+        widthPixels?: number;
+        heightPixels?: number;
+      };
+    };
+  }>;
 }
 
 export interface DriveFile {
@@ -104,7 +124,7 @@ export class GoogleSheetsClient extends GoogleAuthClient {
    */
   async getSpreadsheet(spreadsheetId: string): Promise<Spreadsheet> {
     return this.request<Spreadsheet>(
-      `/spreadsheets/${spreadsheetId}?fields=spreadsheetId,properties,sheets.properties,spreadsheetUrl`
+      `/spreadsheets/${spreadsheetId}?fields=spreadsheetId,properties,sheets.properties,sheets.charts,spreadsheetUrl`
     );
   }
 
@@ -430,43 +450,95 @@ export class GoogleSheetsClient extends GoogleAuthClient {
   }
 
   /**
-   * Create a basic chart
+   * Create a chart with full positioning and styling options
    */
   async createChart(
     spreadsheetId: string,
     sheetId: number,
     dataRange: { startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
-    chartType: 'BAR' | 'LINE' | 'PIE' | 'COLUMN' = 'COLUMN',
+    chartType: string = 'COLUMN',
     title?: string,
-    labelsRange?: { startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number }
+    labelsRange?: { startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    options?: {
+      anchorCell?: { rowIndex: number; columnIndex: number };
+      width?: number;
+      height?: number;
+      legendPosition?: string;
+    }
   ): Promise<number> {
-    // Build series from all columns in dataRange
-    const series = [];
-    for (let col = dataRange.startColumnIndex; col < dataRange.endColumnIndex; col++) {
-      series.push({
-        series: {
-          sourceRange: {
-            sources: [{
-              sheetId,
-              startRowIndex: dataRange.startRowIndex,
-              endRowIndex: dataRange.endRowIndex,
-              startColumnIndex: col,
-              endColumnIndex: col + 1,
-            }],
+    const { anchorCell, width = 600, height = 371, legendPosition = 'BOTTOM_LEGEND' } = options || {};
+
+    // Determine anchor cell position
+    const anchor = anchorCell || { rowIndex: 0, columnIndex: dataRange.endColumnIndex + 1 };
+
+    // Build chart spec based on type
+    let spec: Record<string, unknown>;
+
+    if (chartType === 'PIE') {
+      // Pie charts use pieChart spec
+      spec = {
+        title,
+        pieChart: {
+          legendPosition,
+          domain: labelsRange ? {
+            sourceRange: {
+              sources: [{ sheetId, ...labelsRange }],
+            },
+          } : undefined,
+          series: {
+            sourceRange: {
+              sources: [{
+                sheetId,
+                startRowIndex: dataRange.startRowIndex,
+                endRowIndex: dataRange.endRowIndex,
+                startColumnIndex: dataRange.startColumnIndex,
+                endColumnIndex: dataRange.startColumnIndex + 1,
+              }],
+            },
           },
         },
-        targetAxis: 'LEFT_AXIS',
-      });
-    }
+      };
+    } else {
+      // Bar/Column/Line/Area/Scatter use basicChart spec
+      // Bar charts need BOTTOM_AXIS, others use LEFT_AXIS
+      const targetAxis = chartType === 'BAR' ? 'BOTTOM_AXIS' : 'LEFT_AXIS';
 
-    // Build domain (labels/x-axis) - use provided labelsRange or none
-    const domains = labelsRange ? [{
-      domain: {
-        sourceRange: {
-          sources: [{ sheetId, ...labelsRange }],
+      const series = [];
+      for (let col = dataRange.startColumnIndex; col < dataRange.endColumnIndex; col++) {
+        series.push({
+          series: {
+            sourceRange: {
+              sources: [{
+                sheetId,
+                startRowIndex: dataRange.startRowIndex,
+                endRowIndex: dataRange.endRowIndex,
+                startColumnIndex: col,
+                endColumnIndex: col + 1,
+              }],
+            },
+          },
+          targetAxis,
+        });
+      }
+
+      const domains = labelsRange ? [{
+        domain: {
+          sourceRange: {
+            sources: [{ sheetId, ...labelsRange }],
+          },
         },
-      },
-    }] : [];
+      }] : [];
+
+      spec = {
+        title,
+        basicChart: {
+          chartType,
+          legendPosition,
+          domains,
+          series,
+        },
+      };
+    }
 
     const response = await this.request<{
       replies: Array<{ addChart: { chart: { chartId: number } } }>;
@@ -476,18 +548,12 @@ export class GoogleSheetsClient extends GoogleAuthClient {
         requests: [{
           addChart: {
             chart: {
-              spec: {
-                title,
-                basicChart: {
-                  chartType,
-                  legendPosition: 'BOTTOM_LEGEND',
-                  domains,
-                  series,
-                },
-              },
+              spec,
               position: {
                 overlayPosition: {
-                  anchorCell: { sheetId, rowIndex: 0, columnIndex: dataRange.endColumnIndex + 1 },
+                  anchorCell: { sheetId, ...anchor },
+                  widthPixels: width,
+                  heightPixels: height,
                 },
               },
             },
@@ -496,6 +562,105 @@ export class GoogleSheetsClient extends GoogleAuthClient {
       }),
     });
     return response.replies[0].addChart.chart.chartId;
+  }
+
+  /**
+   * List all charts in a spreadsheet
+   */
+  async listCharts(spreadsheetId: string): Promise<Array<{
+    chartId: number;
+    title?: string;
+    chartType?: string;
+    sheetId: number;
+    sheetName: string;
+    position?: { row: number; col: number };
+    size?: { width?: number; height?: number };
+  }>> {
+    const spreadsheet = await this.getSpreadsheet(spreadsheetId);
+    const charts: Array<{
+      chartId: number;
+      title?: string;
+      chartType?: string;
+      sheetId: number;
+      sheetName: string;
+      position?: { row: number; col: number };
+      size?: { width?: number; height?: number };
+    }> = [];
+
+    for (const sheet of spreadsheet.sheets || []) {
+      const sheetCharts = sheet.charts || [];
+      for (const chart of sheetCharts) {
+        const pos = chart.position?.overlayPosition?.anchorCell;
+        const overlay = chart.position?.overlayPosition;
+        charts.push({
+          chartId: chart.chartId,
+          title: chart.spec?.title,
+          chartType: chart.spec?.basicChart?.chartType,
+          sheetId: sheet.properties.sheetId,
+          sheetName: sheet.properties.title,
+          position: pos ? { row: pos.rowIndex + 1, col: pos.columnIndex + 1 } : undefined,
+          size: overlay ? { width: overlay.widthPixels, height: overlay.heightPixels } : undefined,
+        });
+      }
+    }
+
+    return charts;
+  }
+
+  /**
+   * Delete a chart
+   */
+  async deleteChart(spreadsheetId: string, chartId: number): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteEmbeddedObject: {
+            objectId: chartId,
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Move/resize a chart
+   */
+  async moveChart(
+    spreadsheetId: string,
+    chartId: number,
+    sheetId: number,
+    anchorCell: { rowIndex: number; columnIndex: number },
+    width?: number,
+    height?: number
+  ): Promise<void> {
+    const overlayPosition: Record<string, unknown> = {
+      anchorCell: { sheetId, ...anchorCell },
+    };
+
+    // Build fields list based on what we're updating
+    const fields = ['anchorCell'];
+    if (width) {
+      overlayPosition.widthPixels = width;
+      fields.push('widthPixels');
+    }
+    if (height) {
+      overlayPosition.heightPixels = height;
+      fields.push('heightPixels');
+    }
+
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateEmbeddedObjectPosition: {
+            objectId: chartId,
+            newPosition: { overlayPosition },
+            fields: fields.join(','),
+          },
+        }],
+      }),
+    });
   }
 }
 

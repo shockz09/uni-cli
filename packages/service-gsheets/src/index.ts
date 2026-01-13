@@ -13,6 +13,9 @@ import { shareCommand } from './commands/share';
 import { sheetsCommand } from './commands/sheets';
 import { formatCommand } from './commands/format';
 import { chartCommand } from './commands/chart';
+import { chartsCommand } from './commands/charts';
+import { chartDeleteCommand } from './commands/chart-delete';
+import { chartMoveCommand } from './commands/chart-move';
 import { clearCommand } from './commands/clear';
 import { copyCommand } from './commands/copy';
 import { importCommand } from './commands/import';
@@ -43,6 +46,9 @@ const gsheetsService: UniService = {
     sheetsCommand,
     formatCommand,
     chartCommand,
+    chartsCommand,
+    chartDeleteCommand,
+    chartMoveCommand,
     compareCommand,
     importCommand,
     exportCommand,
