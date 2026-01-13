@@ -124,7 +124,7 @@ export class GoogleSheetsClient extends GoogleAuthClient {
    */
   async getSpreadsheet(spreadsheetId: string): Promise<Spreadsheet> {
     return this.request<Spreadsheet>(
-      `/spreadsheets/${spreadsheetId}?fields=spreadsheetId,properties,sheets.properties,sheets.charts,spreadsheetUrl`
+      `/spreadsheets/${spreadsheetId}?fields=spreadsheetId,properties,sheets.properties,sheets.charts,sheets.conditionalFormats,spreadsheetUrl`
     );
   }
 
@@ -692,25 +692,102 @@ export class GoogleSheetsClient extends GoogleAuthClient {
   }
 
   /**
+   * Set the same note on multiple cells in a range
+   */
+  async setNoteRange(
+    spreadsheetId: string,
+    sheetId: number,
+    startRowIndex: number,
+    endRowIndex: number,
+    startColumnIndex: number,
+    endColumnIndex: number,
+    note: string
+  ): Promise<void> {
+    const numRows = endRowIndex - startRowIndex;
+    const numCols = endColumnIndex - startColumnIndex;
+
+    // Build rows array with the same note for each cell
+    const rows = [];
+    for (let r = 0; r < numRows; r++) {
+      const values = [];
+      for (let c = 0; c < numCols; c++) {
+        values.push({ note: note || null });
+      }
+      rows.push({ values });
+    }
+
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateCells: {
+            range: {
+              sheetId,
+              startRowIndex,
+              endRowIndex,
+              startColumnIndex,
+              endColumnIndex,
+            },
+            rows,
+            fields: 'note',
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
    * Get a note from a cell
    */
   async getNote(spreadsheetId: string, sheetName: string, rowIndex: number, columnIndex: number): Promise<string | null> {
-    // Need to use a different endpoint to get cell data including notes
-    // Range format needs sheet name (not sheetId), properly encoded
+    const notes = await this.getNotesRange(spreadsheetId, sheetName, rowIndex, rowIndex + 1, columnIndex, columnIndex + 1);
+    return notes[0]?.[0] || null;
+  }
+
+  /**
+   * Get notes from a range of cells
+   * Returns 2D array of notes (null for cells without notes)
+   */
+  async getNotesRange(
+    spreadsheetId: string,
+    sheetName: string,
+    startRowIndex: number,
+    endRowIndex: number,
+    startColumnIndex: number,
+    endColumnIndex: number
+  ): Promise<(string | null)[][]> {
     const encodedSheetName = encodeURIComponent(`'${sheetName}'`);
+    // Use R1C1 notation for the range
+    const rangeNotation = `R${startRowIndex + 1}C${startColumnIndex + 1}:R${endRowIndex}C${endColumnIndex}`;
+
     const response = await this.request<{
       sheets: Array<{
         data: Array<{
-          rowData: Array<{
-            values: Array<{
+          rowData?: Array<{
+            values?: Array<{
               note?: string;
             }>;
           }>;
         }>;
       }>;
-    }>(`/spreadsheets/${spreadsheetId}?ranges=${encodedSheetName}!R${rowIndex + 1}C${columnIndex + 1}&fields=sheets.data.rowData.values.note`);
+    }>(`/spreadsheets/${spreadsheetId}?ranges=${encodedSheetName}!${rangeNotation}&fields=sheets.data.rowData.values.note`);
 
-    return response.sheets?.[0]?.data?.[0]?.rowData?.[0]?.values?.[0]?.note || null;
+    const rowData = response.sheets?.[0]?.data?.[0]?.rowData || [];
+    const numRows = endRowIndex - startRowIndex;
+    const numCols = endColumnIndex - startColumnIndex;
+
+    // Build 2D array of notes
+    const notes: (string | null)[][] = [];
+    for (let r = 0; r < numRows; r++) {
+      const row: (string | null)[] = [];
+      for (let c = 0; c < numCols; c++) {
+        const note = rowData[r]?.values?.[c]?.note || null;
+        row.push(note);
+      }
+      notes.push(row);
+    }
+
+    return notes;
   }
 
   /**
@@ -779,6 +856,105 @@ export class GoogleSheetsClient extends GoogleAuthClient {
               },
             },
             index: 0,
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * List conditional formatting rules
+   */
+  async listConditionalFormats(spreadsheetId: string): Promise<Array<{
+    ruleIndex: number;
+    sheetId: number;
+    ranges: string;
+    condition: string;
+    format: string;
+  }>> {
+    const spreadsheet = await this.getSpreadsheet(spreadsheetId);
+    const rules: Array<{
+      ruleIndex: number;
+      sheetId: number;
+      ranges: string;
+      condition: string;
+      format: string;
+    }> = [];
+
+    for (const sheet of spreadsheet.sheets || []) {
+      const conditionalFormats = (sheet as Record<string, unknown>).conditionalFormats as Array<Record<string, unknown>> | undefined;
+      if (!conditionalFormats) continue;
+
+      conditionalFormats.forEach((rule, index) => {
+        const booleanRule = rule.booleanRule as Record<string, unknown> | undefined;
+        const gradientRule = rule.gradientRule as Record<string, unknown> | undefined;
+        const ranges = rule.ranges as Array<Record<string, number>> | undefined;
+
+        let rangeStr = '';
+        if (ranges && ranges.length > 0) {
+          const r = ranges[0];
+          const colToLetter = (col: number) => {
+            let letter = '';
+            let temp = col;
+            while (temp >= 0) {
+              letter = String.fromCharCode((temp % 26) + 65) + letter;
+              temp = Math.floor(temp / 26) - 1;
+            }
+            return letter;
+          };
+          rangeStr = `${colToLetter(r.startColumnIndex || 0)}${(r.startRowIndex || 0) + 1}:${colToLetter((r.endColumnIndex || 1) - 1)}${r.endRowIndex || 1}`;
+        }
+
+        let conditionStr = '';
+        let formatStr = '';
+
+        if (booleanRule) {
+          const condition = booleanRule.condition as Record<string, unknown> | undefined;
+          const format = booleanRule.format as Record<string, unknown> | undefined;
+
+          if (condition) {
+            conditionStr = condition.type as string || 'unknown';
+            const values = condition.values as Array<Record<string, string>> | undefined;
+            if (values && values.length > 0) {
+              conditionStr += ` (${values.map(v => v.userEnteredValue).join(', ')})`;
+            }
+          }
+
+          if (format) {
+            const parts = [];
+            if (format.backgroundColor) parts.push('bg');
+            if (format.textFormat) parts.push('text');
+            formatStr = parts.join(', ') || 'default';
+          }
+        } else if (gradientRule) {
+          conditionStr = 'gradient';
+          formatStr = 'gradient';
+        }
+
+        rules.push({
+          ruleIndex: index,
+          sheetId: sheet.properties.sheetId,
+          ranges: rangeStr,
+          condition: conditionStr,
+          format: formatStr,
+        });
+      });
+    }
+
+    return rules;
+  }
+
+  /**
+   * Delete a conditional formatting rule by index
+   */
+  async deleteConditionalFormat(spreadsheetId: string, sheetId: number, ruleIndex: number): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteConditionalFormatRule: {
+            sheetId,
+            index: ruleIndex,
           },
         }],
       }),

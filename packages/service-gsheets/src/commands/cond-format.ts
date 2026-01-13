@@ -20,10 +20,10 @@ const COLOR_MAP: Record<string, { red: number; green: number; blue: number }> = 
 
 export const condFormatCommand: Command = {
   name: 'cond-format',
-  description: 'Apply conditional formatting to cells',
+  description: 'Apply or manage conditional formatting rules',
   args: [
     { name: 'id', description: 'Spreadsheet ID or URL', required: true },
-    { name: 'range', description: 'Range to format (e.g., B2:B100)', required: true },
+    { name: 'range', description: 'Range to format (e.g., B2:B100) - not required for --list or --remove', required: false },
   ],
   options: [
     { name: 'sheet', short: 's', type: 'string', description: 'Sheet name (default: first sheet)' },
@@ -33,6 +33,8 @@ export const condFormatCommand: Command = {
     { name: 'bg', type: 'string', description: 'Background color: red, green, blue, yellow, orange, purple, pink, gray' },
     { name: 'color', type: 'string', description: 'Text color: red, green, blue, yellow, orange, purple, pink, white' },
     { name: 'bold', type: 'boolean', description: 'Make text bold' },
+    { name: 'list', short: 'l', type: 'boolean', description: 'List all conditional formatting rules' },
+    { name: 'remove', short: 'r', type: 'string', description: 'Remove rule by index (use --list to see indices)' },
   ],
   examples: [
     'uni gsheets cond-format ID B2:B100 --type gt --value 100 --bg green',
@@ -40,6 +42,8 @@ export const condFormatCommand: Command = {
     'uni gsheets cond-format ID A1:A100 --type empty --bg yellow',
     'uni gsheets cond-format ID D1:D50 --type contains --value "error" --bg red --color white',
     'uni gsheets cond-format ID E2:E100 --type between --value 10 --value2 50 --bg blue',
+    'uni gsheets cond-format ID --list',
+    'uni gsheets cond-format ID --remove 0',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
@@ -51,8 +55,92 @@ export const condFormatCommand: Command = {
     }
 
     const spreadsheetId = extractSpreadsheetId(args.id as string);
-    const rangeStr = args.range as string;
+    const rangeStr = args.range as string | undefined;
     const sheetName = flags.sheet as string | undefined;
+    const listRules = flags.list as boolean;
+    const removeIndex = flags.remove as string | undefined;
+
+    // Handle --list
+    if (listRules) {
+      const spinner = output.spinner('Fetching conditional formatting rules...');
+      try {
+        const rules = await gsheets.listConditionalFormats(spreadsheetId);
+        spinner.stop();
+
+        if (globalFlags.json) {
+          output.json({ spreadsheetId, rules });
+          return;
+        }
+
+        console.log('');
+        if (rules.length === 0) {
+          console.log(c.dim('No conditional formatting rules found.'));
+        } else {
+          console.log(c.bold(`Conditional Formatting Rules (${rules.length}):`));
+          console.log('');
+          for (const rule of rules) {
+            console.log(`  ${c.cyan(`Index: ${rule.ruleIndex}`)} ${c.dim(`(Sheet ID: ${rule.sheetId})`)}`);
+            console.log(`    Range: ${rule.ranges}`);
+            console.log(`    Condition: ${rule.condition}`);
+            console.log(`    Format: ${rule.format}`);
+            console.log('');
+          }
+          console.log(c.dim('Use --remove <index> to delete a rule'));
+        }
+        console.log('');
+        return;
+      } catch (error) {
+        spinner.fail('Failed to fetch conditional formatting rules');
+        throw error;
+      }
+    }
+
+    // Handle --remove
+    if (removeIndex !== undefined) {
+      const spinner = output.spinner('Removing conditional formatting rule...');
+      try {
+        // Get sheet info
+        const spreadsheet = await gsheets.getSpreadsheet(spreadsheetId);
+        const sheets = [...(spreadsheet.sheets || [])].sort((a, b) => {
+          const indexA = a.properties.index ?? (a.properties.sheetId === 0 ? 0 : 999);
+          const indexB = b.properties.index ?? (b.properties.sheetId === 0 ? 0 : 999);
+          return indexA - indexB;
+        });
+        const targetSheet = sheetName
+          ? sheets.find(s => s.properties.title.toLowerCase() === sheetName.toLowerCase())
+          : sheets[0];
+
+        if (!targetSheet) {
+          spinner.fail(sheetName ? `Sheet "${sheetName}" not found` : 'No sheets in spreadsheet');
+          return;
+        }
+
+        const ruleIndex = parseInt(removeIndex, 10);
+        if (isNaN(ruleIndex) || ruleIndex < 0) {
+          spinner.fail(`Invalid rule index: ${removeIndex}`);
+          return;
+        }
+
+        await gsheets.deleteConditionalFormat(spreadsheetId, targetSheet.properties.sheetId, ruleIndex);
+        spinner.success(`Removed conditional formatting rule at index ${ruleIndex}`);
+
+        if (globalFlags.json) {
+          output.json({ spreadsheetId, removed: ruleIndex });
+        }
+        return;
+      } catch (error) {
+        spinner.fail('Failed to remove conditional formatting rule');
+        throw error;
+      }
+    }
+
+    // Adding a new rule - range is required
+    if (!rangeStr) {
+      output.error('Range is required when adding a conditional formatting rule');
+      output.info('Use --list to see existing rules, or --remove <index> to delete one');
+      return;
+    }
+
     const ruleType = (flags.type as string) || 'gt';
     const value = flags.value as string | undefined;
     const value2 = flags.value2 as string | undefined;

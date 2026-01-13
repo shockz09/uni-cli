@@ -144,7 +144,8 @@ export function createOutputFormatter(flags: GlobalFlags): OutputFormatter {
     },
 
     debug(msg: string): void {
-      if (piped) return; // Suppress debug in pipe mode
+      // Only suppress in pipe mode if verbose wasn't explicitly requested
+      if (piped && !verbose) return;
       if (verbose && !quiet) {
         console.log(`${c.muted('[debug]')} ${c.muted(msg)}`);
       }

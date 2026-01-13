@@ -4013,7 +4013,7 @@ Get spreadsheet data
 | `--cells` |  | boolean |  | JSON output as cell-keyed object (e.g., {"A1": "value"}) |
 | `--filter` | -f | string |  | Filter rows (e.g., "C>100", "A=foo AND B<50", "A=x OR A=y") |
 | `--skip-empty` |  | boolean |  | Skip rows where all cells are empty |
-| `--trim` |  | boolean |  | Remove trailing empty rows and columns |
+| `--trim` |  | boolean |  | Trim whitespace from cell values and remove trailing empty rows/columns |
 
 **Examples:**
 
@@ -4612,22 +4612,24 @@ Add, view, or remove cell notes (comments)
 | Name | Required | Description |
 |------|----------|-------------|
 | `id` | Yes | Spreadsheet ID or URL |
-| `cell` | Yes | Cell reference (e.g., A1) |
+| `cell` | Yes | Cell reference or range (e.g., A1, A1:A5) |
 
 **Options:**
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
 | `--sheet` | -s | string |  | Sheet name (default: first sheet) |
-| `--set` |  | string |  | Set note text |
-| `--remove` | -r | boolean |  | Remove note from cell |
+| `--set` |  | string |  | Set note text (applies to all cells in range) |
+| `--remove` | -r | boolean |  | Remove note from cell(s) |
 
 **Examples:**
 
 ```bash
 uni gsheets note ID A1
 uni gsheets note ID B2 --set "Remember to update this"
+uni gsheets note ID A1:A5 --set "Same note on all cells"
 uni gsheets note ID C3 --remove
+uni gsheets note ID A1:B10 --remove
 uni gsheets note ID --sheet "Data" D4 --set "Important value"
 ```
 
@@ -4635,14 +4637,14 @@ uni gsheets note ID --sheet "Data" D4 --set "Important value"
 
 ### `uni gsheets cond-format`
 
-Apply conditional formatting to cells
+Apply or manage conditional formatting rules
 
 **Arguments:**
 
 | Name | Required | Description |
 |------|----------|-------------|
 | `id` | Yes | Spreadsheet ID or URL |
-| `range` | Yes | Range to format (e.g., B2:B100) |
+| `range` | No | Range to format (e.g., B2:B100) - not required for --list or --remove |
 
 **Options:**
 
@@ -4655,6 +4657,8 @@ Apply conditional formatting to cells
 | `--bg` |  | string |  | Background color: red, green, blue, yellow, orange, purple, pink, gray |
 | `--color` |  | string |  | Text color: red, green, blue, yellow, orange, purple, pink, white |
 | `--bold` |  | boolean |  | Make text bold |
+| `--list` | -l | boolean |  | List all conditional formatting rules |
+| `--remove` | -r | string |  | Remove rule by index (use --list to see indices) |
 
 **Examples:**
 
@@ -4664,6 +4668,8 @@ uni gsheets cond-format ID C2:C50 --type lt --value 0 --bg red --bold
 uni gsheets cond-format ID A1:A100 --type empty --bg yellow
 uni gsheets cond-format ID D1:D50 --type contains --value "error" --bg red --color white
 uni gsheets cond-format ID E2:E100 --type between --value 10 --value2 50 --bg blue
+uni gsheets cond-format ID --list
+uni gsheets cond-format ID --remove 0
 ```
 
 ---

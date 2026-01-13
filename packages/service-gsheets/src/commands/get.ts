@@ -142,7 +142,7 @@ export const getCommand: Command = {
     { name: 'cells', type: 'boolean', description: 'JSON output as cell-keyed object (e.g., {"A1": "value"})' },
     { name: 'filter', short: 'f', type: 'string', description: 'Filter rows (e.g., "C>100", "A=foo AND B<50", "A=x OR A=y")' },
     { name: 'skip-empty', type: 'boolean', description: 'Skip rows where all cells are empty' },
-    { name: 'trim', type: 'boolean', description: 'Remove trailing empty rows and columns' },
+    { name: 'trim', type: 'boolean', description: 'Trim whitespace from cell values and remove trailing empty rows/columns' },
   ],
   examples: [
     'uni gsheets get 1abc123XYZ',
@@ -240,9 +240,12 @@ export const getCommand: Command = {
 
       // Trim trailing empty rows and columns if requested
       if (trimData && values.length > 0) {
+        // First, trim whitespace from all cell values
+        values = values.map(row => row.map(cell => (cell || '').trim()));
+
         // Find last non-empty row
         let lastNonEmptyRow = values.length - 1;
-        while (lastNonEmptyRow > 0 && values[lastNonEmptyRow].every(cell => !cell || cell.trim() === '')) {
+        while (lastNonEmptyRow > 0 && values[lastNonEmptyRow].every(cell => !cell || cell === '')) {
           lastNonEmptyRow--;
         }
         values = values.slice(0, lastNonEmptyRow + 1);
@@ -251,7 +254,7 @@ export const getCommand: Command = {
         let lastNonEmptyCol = 0;
         for (const row of values) {
           for (let i = row.length - 1; i >= 0; i--) {
-            if (row[i] && row[i].trim() !== '') {
+            if (row[i] && row[i] !== '') {
               lastNonEmptyCol = Math.max(lastNonEmptyCol, i);
               break;
             }
