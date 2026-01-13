@@ -2,22 +2,17 @@
   "version": 1,
   "plugins": [
     {
-      "name": "0x0",
-      "package": "@uni/plugin-0x0",
-      "description": "0x0.st - The null pointer (file hosting)",
-      "version": "0.1.0",
-      "repository": "github:shockz09/uni-plugins",
-      "path": "packages/0x0",
-      "tags": ["upload", "files", "hosting"]
-    },
-    {
       "name": "airtable",
       "package": "@uni/plugin-airtable",
       "description": "Airtable - databases, tables, and records",
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/airtable",
-      "tags": ["database", "tables", "records"]
+      "tags": [
+        "database",
+        "tables",
+        "records"
+      ]
     },
     {
       "name": "asana",
@@ -26,7 +21,11 @@
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/asana",
-      "tags": ["tasks", "projects", "productivity"]
+      "tags": [
+        "tasks",
+        "projects",
+        "productivity"
+      ]
     },
     {
       "name": "cloudinary",
@@ -35,7 +34,12 @@
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/cloudinary",
-      "tags": ["images", "video", "media", "cdn"]
+      "tags": [
+        "images",
+        "video",
+        "media",
+        "cdn"
+      ]
     },
     {
       "name": "gkeep",
@@ -44,7 +48,11 @@
       "version": "1.0.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/gkeep",
-      "tags": ["google", "notes", "workspace"]
+      "tags": [
+        "google",
+        "notes",
+        "workspace"
+      ]
     },
     {
       "name": "hf",
@@ -53,7 +61,12 @@
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/hf",
-      "tags": ["ai", "ml", "models", "huggingface"]
+      "tags": [
+        "ai",
+        "ml",
+        "models",
+        "huggingface"
+      ]
     },
     {
       "name": "imgbb",
@@ -62,7 +75,11 @@
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/imgbb",
-      "tags": ["images", "upload", "hosting"]
+      "tags": [
+        "images",
+        "upload",
+        "hosting"
+      ]
     },
     {
       "name": "ntfy",
@@ -71,7 +88,11 @@
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/ntfy",
-      "tags": ["notifications", "push", "alerts"]
+      "tags": [
+        "notifications",
+        "push",
+        "alerts"
+      ]
     },
     {
       "name": "pushover",
@@ -80,7 +101,11 @@
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/pushover",
-      "tags": ["notifications", "push", "alerts"]
+      "tags": [
+        "notifications",
+        "push",
+        "alerts"
+      ]
     },
     {
       "name": "resend",
@@ -89,7 +114,10 @@
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/resend",
-      "tags": ["email", "transactional"]
+      "tags": [
+        "email",
+        "transactional"
+      ]
     },
     {
       "name": "sendgrid",
@@ -98,7 +126,10 @@
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/sendgrid",
-      "tags": ["email", "transactional"]
+      "tags": [
+        "email",
+        "transactional"
+      ]
     },
     {
       "name": "spotify",
@@ -107,7 +138,11 @@
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/spotify",
-      "tags": ["music", "streaming", "playback"]
+      "tags": [
+        "music",
+        "streaming",
+        "playback"
+      ]
     },
     {
       "name": "stripe",
@@ -116,7 +151,11 @@
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/stripe",
-      "tags": ["payments", "billing", "subscriptions"]
+      "tags": [
+        "payments",
+        "billing",
+        "subscriptions"
+      ]
     },
     {
       "name": "trello",
@@ -125,7 +164,11 @@
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/trello",
-      "tags": ["kanban", "boards", "tasks"]
+      "tags": [
+        "kanban",
+        "boards",
+        "tasks"
+      ]
     },
     {
       "name": "twilio",
@@ -134,7 +177,10 @@
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/twilio",
-      "tags": ["sms", "messaging"]
+      "tags": [
+        "sms",
+        "messaging"
+      ]
     },
     {
       "name": "vonage",
@@ -143,7 +189,10 @@
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/vonage",
-      "tags": ["sms", "messaging"]
+      "tags": [
+        "sms",
+        "messaging"
+      ]
     }
   ]
 }

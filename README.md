@@ -48,7 +48,7 @@ uni exa search "latest AI news"  # Web search
 
 ## Services
 
-### Builtin (26 services)
+### Builtin (27 services)
 
 | Category | Services |
 |----------|----------|
@@ -56,9 +56,9 @@ uni exa search "latest AI news"  # Web search
 | **Google Suite** | `gcal`, `gmail`, `gdrive`, `gsheets`, `gdocs`, `gslides`, `gforms`, `gmeet`, `gtasks`, `gcontacts` |
 | **Productivity** | `slack`, `notion`, `linear`, `todoist` |
 | **Research** | `exa` (web search), `arxiv`, `reddit`, `hn` (Hacker News), `wiki` |
-| **Utilities** | `weather`, `stocks`, `currency`, `qrcode`, `shorturl` |
+| **Utilities** | `weather`, `stocks`, `currency`, `qrcode`, `shorturl`, `0x0` |
 
-### Plugins (16 available)
+### Plugins (15 available)
 
 ```bash
 uni plugins list                 # See available plugins
@@ -73,7 +73,7 @@ uni plugins install airtable     # Database
 | **Email** | `sendgrid`, `resend` |
 | **SMS** | `twilio`, `vonage` |
 | **Notifications** | `pushover`, `ntfy` |
-| **Media** | `cloudinary`, `imgbb`, `0x0` |
+| **Media** | `cloudinary`, `imgbb` |
 | **Productivity** | `trello`, `asana`, `airtable`, `gkeep` |
 | **AI/ML** | `hf` (HuggingFace) |
 | **Music** | `spotify` |

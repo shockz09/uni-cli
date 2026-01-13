@@ -866,6 +866,56 @@ uni linear comments add ENG-123 "Needs more investigation"
 
 ---
 
+## uni 0x0
+
+0x0.st - The null pointer
+
+### `uni 0x0 upload`
+
+Upload a file to 0x0.st
+
+**Aliases:** `up`, `share`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `file` | Yes | File path to upload |
+
+**Examples:**
+
+```bash
+uni 0x0 upload ./image.png
+uni 0x0 share ./document.pdf
+```
+
+---
+
+### `uni 0x0 paste`
+
+Paste text content to 0x0.st
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `text` | Yes | Text to paste |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--name` | -n | string |  | Filename (default: paste.txt) |
+
+**Examples:**
+
+```bash
+uni 0x0 paste "Hello world"
+uni 0x0 paste "console.log(1)" -n code.js
+```
+
+---
+
 ## uni exa
 
 Web search, code context, and research powered by Exa AI
@@ -6014,56 +6064,6 @@ uni airtable records tblXXX get recXXX -b appXXX
 uni airtable records tblXXX create -b appXXX -d '{"Name":"New Task"}'
 uni airtable records tblXXX update recXXX -b appXXX -d '{"Status":"Done"}'
 uni airtable records tblXXX delete recXXX -b appXXX
-```
-
----
-
-## uni 0x0
-
-0x0.st - The null pointer
-
-### `uni 0x0 upload`
-
-Upload a file to 0x0.st
-
-**Aliases:** `up`, `share`
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `file` | Yes | File path to upload |
-
-**Examples:**
-
-```bash
-uni 0x0 upload ./image.png
-uni 0x0 share ./document.pdf
-```
-
----
-
-### `uni 0x0 paste`
-
-Paste text content to 0x0.st
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `text` | Yes | Text to paste |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--name` | -n | string |  | Filename (default: paste.txt) |
-
-**Examples:**
-
-```bash
-uni 0x0 paste "Hello world"
-uni 0x0 paste "console.log(1)" -n code.js
 ```
 
 ---
