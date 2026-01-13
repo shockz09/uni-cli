@@ -9,6 +9,7 @@ import { registry } from './registry';
 import { config } from './config';
 import { history } from './history';
 import { flow, runCommands, substituteArgs, readCommandsFromFile, expandCommandBraces } from './flow';
+import { runPipe, showPipeHelp } from './pipe';
 import { createLLMClient, type LLMProvider, detectProvider, getSupportedProviders, getProviderName, isConfigured, getModelForProvider, testProvider } from './llm';
 import { getModels, getProvider, listProviders, type ProviderInfo } from './llm-providers';
 import { createOutputFormatter } from './output';
@@ -91,6 +92,11 @@ export class UniCLI {
 
       if (parsed.service === 'run') {
         await this.handleRun(parsed, output);
+        return;
+      }
+
+      if (parsed.service === 'pipe') {
+        await this.handlePipe(parsed, output);
         return;
       }
 
@@ -426,6 +432,7 @@ ${c.bold('COMMANDS')}
   setup           Interactive setup wizard
   ask             Natural language commands
   run             Run multiple commands at once
+  pipe            Transform and iterate over command output
   flow            Manage saved command macros
   plugins         Manage plugins (install, uninstall, update)
   auth            Manage authentication
@@ -1541,6 +1548,48 @@ ${c.bold('Examples:')}
 
     if (parsed.globalFlags.json) {
       output.json({ results });
+    }
+  }
+
+  /**
+   * Handle pipe command (data transformation and iteration)
+   */
+  private async handlePipe(
+    parsed: ReturnType<typeof parseArgs>,
+    output: ReturnType<typeof createOutputFormatter>
+  ): Promise<void> {
+    // Get the source command from args
+    const sourceCommand = [
+      parsed.command,
+      parsed.subcommand,
+      ...parsed.args.filter(arg => !arg.startsWith('--'))
+    ].filter(Boolean).join(' ');
+
+    // Check for help or missing command
+    if (parsed.globalFlags.help || !sourceCommand) {
+      showPipeHelp();
+      return;
+    }
+
+    const selectPath = parsed.flags.select as string | undefined;
+    const filterExpr = parsed.flags.filter as string | undefined;
+    const eachCmd = parsed.flags.each as string | undefined;
+    const isDryRun = parsed.flags['dry-run'] || parsed.flags.n;
+
+    const result = await runPipe(sourceCommand, {
+      select: selectPath,
+      filter: filterExpr,
+      each: eachCmd,
+      dryRun: !!isDryRun,
+      json: parsed.globalFlags.json,
+    });
+
+    if (parsed.globalFlags.json) {
+      output.json(result);
+    }
+
+    if (!result.success) {
+      process.exit(1);
     }
   }
 
