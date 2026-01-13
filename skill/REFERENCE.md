@@ -4012,6 +4012,8 @@ Get spreadsheet data
 | `--tsv` |  | boolean |  | Output as TSV (for piping) |
 | `--cells` |  | boolean |  | JSON output as cell-keyed object (e.g., {"A1": "value"}) |
 | `--filter` | -f | string |  | Filter rows (e.g., "C>100", "A=foo AND B<50", "A=x OR A=y") |
+| `--skip-empty` |  | boolean |  | Skip rows where all cells are empty |
+| `--trim` |  | boolean |  | Remove trailing empty rows and columns |
 
 **Examples:**
 
@@ -4023,6 +4025,8 @@ uni gsheets get 1abc123XYZ --data --tsv > data.tsv
 uni gsheets get 1abc123XYZ A1:D100 --filter "C>100"
 uni gsheets get 1abc123XYZ A1:D100 --filter "B>50 AND C<100"
 uni gsheets get 1abc123XYZ A1:D100 --json --cells
+uni gsheets get 1abc123XYZ --data --skip-empty
+uni gsheets get 1abc123XYZ --data --trim
 ```
 
 ---
@@ -4446,6 +4450,7 @@ Export spreadsheet data to CSV/TSV file
 | `--sheet` | -s | string |  | Sheet name (default: first sheet) |
 | `--range` | -r | string |  | Range to export (default: all data) |
 | `--format` | -f | string |  | Format: csv, tsv (default: auto from filename) |
+| `--force` |  | boolean |  | Overwrite existing file without warning |
 
 **Examples:**
 
@@ -4454,6 +4459,7 @@ uni gsheets export 1abc123XYZ data.csv
 uni gsheets export 1abc123XYZ data.tsv --sheet "Sales"
 uni gsheets export 1abc123XYZ output.csv --range A1:D100
 uni gsheets export 1abc123XYZ data.txt --format csv
+uni gsheets export 1abc123XYZ data.csv --force
 ```
 
 ---
@@ -4581,6 +4587,7 @@ Find text in spreadsheet, optionally replace
 | `--replace` |  | string |  | Replace matches with this text |
 | `--case` |  | boolean |  | Case-sensitive search |
 | `--whole` |  | boolean |  | Match whole cell only |
+| `--regex` | -E | boolean |  | Treat search as regular expression |
 
 **Examples:**
 
@@ -4590,6 +4597,134 @@ uni gsheets find ID "error" --sheet "Logs"
 uni gsheets find ID "old" --replace "new"
 uni gsheets find ID "TODO" --case --whole
 uni gsheets find ID "2024" --range A1:A100 --replace "2025"
+uni gsheets find ID "\d{4}-\d{2}-\d{2}" --regex
+uni gsheets find ID "^Error:" --regex --replace "Warning:"
+```
+
+---
+
+### `uni gsheets note`
+
+Add, view, or remove cell notes (comments)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `cell` | Yes | Cell reference (e.g., A1) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+| `--set` |  | string |  | Set note text |
+| `--remove` | -r | boolean |  | Remove note from cell |
+
+**Examples:**
+
+```bash
+uni gsheets note ID A1
+uni gsheets note ID B2 --set "Remember to update this"
+uni gsheets note ID C3 --remove
+uni gsheets note ID --sheet "Data" D4 --set "Important value"
+```
+
+---
+
+### `uni gsheets cond-format`
+
+Apply conditional formatting to cells
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Range to format (e.g., B2:B100) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+| `--type` | -t | string |  | Rule type: gt, lt, eq, ne, empty, not-empty, contains, between (default: gt) |
+| `--value` | -v | string |  | Value to compare (required for most types) |
+| `--value2` |  | string |  | Second value (for "between" type) |
+| `--bg` |  | string |  | Background color: red, green, blue, yellow, orange, purple, pink, gray |
+| `--color` |  | string |  | Text color: red, green, blue, yellow, orange, purple, pink, white |
+| `--bold` |  | boolean |  | Make text bold |
+
+**Examples:**
+
+```bash
+uni gsheets cond-format ID B2:B100 --type gt --value 100 --bg green
+uni gsheets cond-format ID C2:C50 --type lt --value 0 --bg red --bold
+uni gsheets cond-format ID A1:A100 --type empty --bg yellow
+uni gsheets cond-format ID D1:D50 --type contains --value "error" --bg red --color white
+uni gsheets cond-format ID E2:E100 --type between --value 10 --value2 50 --bg blue
+```
+
+---
+
+### `uni gsheets merge`
+
+Merge or unmerge cells
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Range to merge (e.g., A1:C1) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+| `--unmerge` | -u | boolean |  | Unmerge cells instead of merging |
+| `--type` | -t | string |  | Merge type: all, horizontal, vertical (default: all) |
+
+**Examples:**
+
+```bash
+uni gsheets merge ID A1:C1
+uni gsheets merge ID A1:A5 --type vertical
+uni gsheets merge ID B2:D2 --type horizontal
+uni gsheets merge ID A1:C3 --unmerge
+```
+
+---
+
+### `uni gsheets protect`
+
+Protect a sheet or range from editing
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name to protect (default: first sheet) |
+| `--range` | -r | string |  | Range to protect (protects entire sheet if not specified) |
+| `--description` | -d | string |  | Description for the protection |
+| `--warning` | -w | boolean |  | Show warning when editing instead of blocking |
+| `--list` | -l | boolean |  | List existing protections |
+
+**Examples:**
+
+```bash
+uni gsheets protect ID --sheet "Data"
+uni gsheets protect ID --range A1:B10 --description "Header row"
+uni gsheets protect ID --sheet "Summary" --warning
+uni gsheets protect ID --list
 ```
 
 ---

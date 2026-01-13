@@ -32,6 +32,7 @@ export const findCommand: Command = {
     { name: 'replace', type: 'string', description: 'Replace matches with this text' },
     { name: 'case', type: 'boolean', description: 'Case-sensitive search' },
     { name: 'whole', type: 'boolean', description: 'Match whole cell only' },
+    { name: 'regex', short: 'E', type: 'boolean', description: 'Treat search as regular expression' },
   ],
   examples: [
     'uni gsheets find ID "old text"',
@@ -39,6 +40,8 @@ export const findCommand: Command = {
     'uni gsheets find ID "old" --replace "new"',
     'uni gsheets find ID "TODO" --case --whole',
     'uni gsheets find ID "2024" --range A1:A100 --replace "2025"',
+    'uni gsheets find ID "\\d{4}-\\d{2}-\\d{2}" --regex',
+    'uni gsheets find ID "^Error:" --regex --replace "Warning:"',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
@@ -56,6 +59,18 @@ export const findCommand: Command = {
     const replaceText = flags.replace as string | undefined;
     const caseSensitive = flags.case as boolean;
     const wholeCell = flags.whole as boolean;
+    const useRegex = flags.regex as boolean;
+
+    // Validate regex if specified
+    let searchRegex: RegExp | null = null;
+    if (useRegex) {
+      try {
+        searchRegex = new RegExp(searchText, caseSensitive ? 'g' : 'gi');
+      } catch (e) {
+        output.error(`Invalid regular expression: ${searchText}`);
+        return;
+      }
+    }
 
     const isReplace = replaceText !== undefined;
     const spinner = output.spinner(isReplace ? 'Finding and replacing...' : 'Searching...');
@@ -104,19 +119,33 @@ export const findCommand: Command = {
         const newRow: string[] = [];
         for (let c = 0; c < values[r].length; c++) {
           let cellValue = values[r][c] || '';
-          const compareValue = caseSensitive ? cellValue : cellValue.toLowerCase();
-          const compareSearch = caseSensitive ? searchText : searchText.toLowerCase();
+          let isMatch = false;
 
-          const isMatch = wholeCell
-            ? compareValue === compareSearch
-            : compareValue.includes(compareSearch);
+          if (useRegex && searchRegex) {
+            // Reset regex lastIndex for each cell
+            searchRegex.lastIndex = 0;
+            if (wholeCell) {
+              isMatch = searchRegex.test(cellValue) && cellValue.match(searchRegex)?.[0] === cellValue;
+            } else {
+              isMatch = searchRegex.test(cellValue);
+            }
+          } else {
+            const compareValue = caseSensitive ? cellValue : cellValue.toLowerCase();
+            const compareSearch = caseSensitive ? searchText : searchText.toLowerCase();
+            isMatch = wholeCell
+              ? compareValue === compareSearch
+              : compareValue.includes(compareSearch);
+          }
 
           if (isMatch) {
             const cellRef = `${colToLetter(startCol + c)}${startRow + r}`;
             matches.push({ cell: cellRef, row: startRow + r, col: startCol + c, value: cellValue });
 
             if (isReplace) {
-              if (wholeCell) {
+              if (useRegex && searchRegex) {
+                searchRegex.lastIndex = 0;
+                cellValue = cellValue.replace(searchRegex, replaceText);
+              } else if (wholeCell) {
                 cellValue = replaceText;
               } else {
                 const regex = new RegExp(searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), caseSensitive ? 'g' : 'gi');

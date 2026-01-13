@@ -141,6 +141,8 @@ export const getCommand: Command = {
     { name: 'tsv', type: 'boolean', description: 'Output as TSV (for piping)' },
     { name: 'cells', type: 'boolean', description: 'JSON output as cell-keyed object (e.g., {"A1": "value"})' },
     { name: 'filter', short: 'f', type: 'string', description: 'Filter rows (e.g., "C>100", "A=foo AND B<50", "A=x OR A=y")' },
+    { name: 'skip-empty', type: 'boolean', description: 'Skip rows where all cells are empty' },
+    { name: 'trim', type: 'boolean', description: 'Remove trailing empty rows and columns' },
   ],
   examples: [
     'uni gsheets get 1abc123XYZ',
@@ -150,6 +152,8 @@ export const getCommand: Command = {
     'uni gsheets get 1abc123XYZ A1:D100 --filter "C>100"',
     'uni gsheets get 1abc123XYZ A1:D100 --filter "B>50 AND C<100"',
     'uni gsheets get 1abc123XYZ A1:D100 --json --cells',
+    'uni gsheets get 1abc123XYZ --data --skip-empty',
+    'uni gsheets get 1abc123XYZ --data --trim',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
@@ -167,6 +171,8 @@ export const getCommand: Command = {
     const outputTsv = flags.tsv as boolean;
     const outputCells = flags.cells as boolean;
     const filterExpr = flags.filter as string | undefined;
+    const skipEmpty = flags['skip-empty'] as boolean;
+    const trimData = flags.trim as boolean;
 
     const spinner = output.spinner('Fetching spreadsheet...');
 
@@ -221,6 +227,38 @@ export const getCommand: Command = {
           spinner.fail(`Invalid filter: ${filterExpr}. Use format like "C>100" or "A=foo"`);
           return;
         }
+      }
+
+      // Skip empty rows if requested
+      if (skipEmpty && values.length > 0) {
+        const header = values[0];
+        const nonEmptyRows = values.slice(1).filter(row =>
+          row.some(cell => cell && cell.trim() !== '')
+        );
+        values = [header, ...nonEmptyRows];
+      }
+
+      // Trim trailing empty rows and columns if requested
+      if (trimData && values.length > 0) {
+        // Find last non-empty row
+        let lastNonEmptyRow = values.length - 1;
+        while (lastNonEmptyRow > 0 && values[lastNonEmptyRow].every(cell => !cell || cell.trim() === '')) {
+          lastNonEmptyRow--;
+        }
+        values = values.slice(0, lastNonEmptyRow + 1);
+
+        // Find last non-empty column
+        let lastNonEmptyCol = 0;
+        for (const row of values) {
+          for (let i = row.length - 1; i >= 0; i--) {
+            if (row[i] && row[i].trim() !== '') {
+              lastNonEmptyCol = Math.max(lastNonEmptyCol, i);
+              break;
+            }
+          }
+        }
+        // Trim each row to lastNonEmptyCol + 1
+        values = values.map(row => row.slice(0, lastNonEmptyCol + 1));
       }
 
       spinner.stop();

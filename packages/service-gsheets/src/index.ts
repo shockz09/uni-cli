@@ -26,6 +26,10 @@ import { renameCommand } from './commands/rename';
 import { sortCommand } from './commands/sort';
 import { statsCommand } from './commands/stats';
 import { findCommand } from './commands/find';
+import { noteCommand } from './commands/note';
+import { condFormatCommand } from './commands/cond-format';
+import { mergeCommand } from './commands/merge';
+import { protectCommand } from './commands/protect';
 import { authCommand } from './commands/auth';
 import { gsheets } from './api';
 
@@ -57,6 +61,10 @@ const gsheetsService: UniService = {
     sortCommand,
     statsCommand,
     findCommand,
+    noteCommand,
+    condFormatCommand,
+    mergeCommand,
+    protectCommand,
     authCommand,
   ],
 

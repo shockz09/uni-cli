@@ -662,6 +662,245 @@ export class GoogleSheetsClient extends GoogleAuthClient {
       }),
     });
   }
+
+  /**
+   * Set a note on a cell
+   */
+  async setNote(spreadsheetId: string, sheetId: number, rowIndex: number, columnIndex: number, note: string): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateCells: {
+            range: {
+              sheetId,
+              startRowIndex: rowIndex,
+              endRowIndex: rowIndex + 1,
+              startColumnIndex: columnIndex,
+              endColumnIndex: columnIndex + 1,
+            },
+            rows: [{
+              values: [{
+                note: note || null,
+              }],
+            }],
+            fields: 'note',
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Get a note from a cell
+   */
+  async getNote(spreadsheetId: string, sheetName: string, rowIndex: number, columnIndex: number): Promise<string | null> {
+    // Need to use a different endpoint to get cell data including notes
+    // Range format needs sheet name (not sheetId), properly encoded
+    const encodedSheetName = encodeURIComponent(`'${sheetName}'`);
+    const response = await this.request<{
+      sheets: Array<{
+        data: Array<{
+          rowData: Array<{
+            values: Array<{
+              note?: string;
+            }>;
+          }>;
+        }>;
+      }>;
+    }>(`/spreadsheets/${spreadsheetId}?ranges=${encodedSheetName}!R${rowIndex + 1}C${columnIndex + 1}&fields=sheets.data.rowData.values.note`);
+
+    return response.sheets?.[0]?.data?.[0]?.rowData?.[0]?.values?.[0]?.note || null;
+  }
+
+  /**
+   * Add conditional formatting rule
+   */
+  async addConditionalFormat(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    ruleType: string,
+    value?: string,
+    value2?: string,
+    bgColor?: { red: number; green: number; blue: number },
+    textColor?: { red: number; green: number; blue: number },
+    bold?: boolean
+  ): Promise<void> {
+    // Build condition based on type
+    let condition: Record<string, unknown>;
+    switch (ruleType) {
+      case 'gt':
+        condition = { type: 'NUMBER_GREATER', values: [{ userEnteredValue: value }] };
+        break;
+      case 'lt':
+        condition = { type: 'NUMBER_LESS', values: [{ userEnteredValue: value }] };
+        break;
+      case 'eq':
+        condition = { type: 'NUMBER_EQ', values: [{ userEnteredValue: value }] };
+        break;
+      case 'ne':
+        condition = { type: 'NUMBER_NOT_EQ', values: [{ userEnteredValue: value }] };
+        break;
+      case 'empty':
+        condition = { type: 'BLANK' };
+        break;
+      case 'not-empty':
+        condition = { type: 'NOT_BLANK' };
+        break;
+      case 'contains':
+        condition = { type: 'TEXT_CONTAINS', values: [{ userEnteredValue: value }] };
+        break;
+      case 'between':
+        condition = { type: 'NUMBER_BETWEEN', values: [{ userEnteredValue: value }, { userEnteredValue: value2 }] };
+        break;
+      default:
+        throw new Error(`Unknown rule type: ${ruleType}`);
+    }
+
+    // Build format
+    const format: Record<string, unknown> = {};
+    if (bgColor) format.backgroundColor = bgColor;
+    if (textColor || bold) {
+      format.textFormat = {};
+      if (textColor) (format.textFormat as Record<string, unknown>).foregroundColor = textColor;
+      if (bold) (format.textFormat as Record<string, unknown>).bold = true;
+    }
+
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          addConditionalFormatRule: {
+            rule: {
+              ranges: [range],
+              booleanRule: {
+                condition,
+                format,
+              },
+            },
+            index: 0,
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Merge cells
+   */
+  async mergeCells(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    mergeType: string = 'all'
+  ): Promise<void> {
+    const typeMap: Record<string, string> = {
+      all: 'MERGE_ALL',
+      horizontal: 'MERGE_ROWS',
+      vertical: 'MERGE_COLUMNS',
+    };
+
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          mergeCells: {
+            range,
+            mergeType: typeMap[mergeType] || 'MERGE_ALL',
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Unmerge cells
+   */
+  async unmergeCells(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number }
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          unmergeCells: { range },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Add protection to sheet or range
+   */
+  async addProtection(
+    spreadsheetId: string,
+    sheetId: number,
+    range?: { sheetId: number; startRowIndex?: number; endRowIndex?: number; startColumnIndex?: number; endColumnIndex?: number },
+    description?: string,
+    warningOnly?: boolean
+  ): Promise<void> {
+    const protectedRange: Record<string, unknown> = {
+      description,
+      warningOnly: warningOnly || false,
+    };
+
+    if (range) {
+      protectedRange.range = range;
+    } else {
+      protectedRange.range = { sheetId };
+    }
+
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          addProtectedRange: { protectedRange },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * List protections
+   */
+  async listProtections(spreadsheetId: string): Promise<Array<{
+    protectedRangeId: number;
+    description?: string;
+    range?: object;
+    warningOnly: boolean;
+  }>> {
+    // Need to get full spreadsheet data with protections
+    const response = await this.request<{
+      sheets: Array<{
+        protectedRanges?: Array<{
+          protectedRangeId: number;
+          description?: string;
+          range?: object;
+          warningOnly?: boolean;
+        }>;
+      }>;
+    }>(`/spreadsheets/${spreadsheetId}?fields=sheets.protectedRanges`);
+
+    const protections: Array<{
+      protectedRangeId: number;
+      description?: string;
+      range?: object;
+      warningOnly: boolean;
+    }> = [];
+
+    for (const sheet of response.sheets || []) {
+      for (const p of sheet.protectedRanges || []) {
+        protections.push({
+          protectedRangeId: p.protectedRangeId,
+          description: p.description,
+          range: p.range,
+          warningOnly: p.warningOnly || false,
+        });
+      }
+    }
+
+    return protections;
+  }
 }
 
 export const gsheets = new GoogleSheetsClient();

@@ -18,12 +18,14 @@ export const exportCommand: Command = {
     { name: 'sheet', short: 's', type: 'string', description: 'Sheet name (default: first sheet)' },
     { name: 'range', short: 'r', type: 'string', description: 'Range to export (default: all data)' },
     { name: 'format', short: 'f', type: 'string', description: 'Format: csv, tsv (default: auto from filename)' },
+    { name: 'force', type: 'boolean', description: 'Overwrite existing file without warning' },
   ],
   examples: [
     'uni gsheets export 1abc123XYZ data.csv',
     'uni gsheets export 1abc123XYZ data.tsv --sheet "Sales"',
     'uni gsheets export 1abc123XYZ output.csv --range A1:D100',
     'uni gsheets export 1abc123XYZ data.txt --format csv',
+    'uni gsheets export 1abc123XYZ data.csv --force',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
@@ -39,6 +41,13 @@ export const exportCommand: Command = {
     const sheetName = flags.sheet as string | undefined;
     const rangeArg = flags.range as string | undefined;
     let format = flags.format as string | undefined;
+    const forceOverwrite = flags.force as boolean;
+
+    // Check if file exists and warn
+    if (fs.existsSync(outputPath) && !forceOverwrite && !output.isPiped()) {
+      console.log(`${c.yellow('Warning:')} File "${outputPath}" already exists and will be overwritten.`);
+      console.log(c.dim('Use --force to skip this warning.'));
+    }
 
     // Auto-detect format from filename
     if (!format) {
