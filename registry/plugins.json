@@ -2,31 +2,148 @@
   "version": 1,
   "plugins": [
     {
+      "name": "0x0",
+      "package": "@uni/plugin-0x0",
+      "description": "0x0.st - The null pointer (file hosting)",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/0x0",
+      "tags": ["upload", "files", "hosting"]
+    },
+    {
+      "name": "airtable",
+      "package": "@uni/plugin-airtable",
+      "description": "Airtable - databases, tables, and records",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/airtable",
+      "tags": ["database", "tables", "records"]
+    },
+    {
+      "name": "asana",
+      "package": "@uni/plugin-asana",
+      "description": "Asana - task and project management",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/asana",
+      "tags": ["tasks", "projects", "productivity"]
+    },
+    {
+      "name": "cloudinary",
+      "package": "@uni/plugin-cloudinary",
+      "description": "Cloudinary - image and video hosting",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/cloudinary",
+      "tags": ["images", "video", "media", "cdn"]
+    },
+    {
       "name": "gkeep",
       "package": "@uni/plugin-gkeep",
-      "description": "Google Keep (Workspace accounts only)",
+      "description": "Google Keep - notes (Workspace accounts only)",
       "version": "1.0.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/gkeep",
       "tags": ["google", "notes", "workspace"]
     },
     {
+      "name": "hf",
+      "package": "@uni/plugin-hf",
+      "description": "HuggingFace - models, datasets, spaces, and inference",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/hf",
+      "tags": ["ai", "ml", "models", "huggingface"]
+    },
+    {
+      "name": "imgbb",
+      "package": "@uni/plugin-imgbb",
+      "description": "imgbb - image hosting",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/imgbb",
+      "tags": ["images", "upload", "hosting"]
+    },
+    {
+      "name": "ntfy",
+      "package": "@uni/plugin-ntfy",
+      "description": "ntfy - push notifications",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/ntfy",
+      "tags": ["notifications", "push", "alerts"]
+    },
+    {
+      "name": "pushover",
+      "package": "@uni/plugin-pushover",
+      "description": "Pushover - push notifications",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/pushover",
+      "tags": ["notifications", "push", "alerts"]
+    },
+    {
+      "name": "resend",
+      "package": "@uni/plugin-resend",
+      "description": "Resend - transactional email",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/resend",
+      "tags": ["email", "transactional"]
+    },
+    {
+      "name": "sendgrid",
+      "package": "@uni/plugin-sendgrid",
+      "description": "SendGrid - transactional email",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/sendgrid",
+      "tags": ["email", "transactional"]
+    },
+    {
+      "name": "spotify",
+      "package": "@uni/plugin-spotify",
+      "description": "Spotify - playback control, search, and playlists",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/spotify",
+      "tags": ["music", "streaming", "playback"]
+    },
+    {
+      "name": "stripe",
+      "package": "@uni/plugin-stripe",
+      "description": "Stripe - payments, subscriptions, and invoices",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/stripe",
+      "tags": ["payments", "billing", "subscriptions"]
+    },
+    {
       "name": "trello",
       "package": "@uni/plugin-trello",
-      "description": "Trello boards, lists, and cards",
+      "description": "Trello - boards, lists, and cards",
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
       "path": "packages/trello",
       "tags": ["kanban", "boards", "tasks"]
     },
     {
-      "name": "hf",
-      "package": "@uni/plugin-hf",
-      "description": "HuggingFace models, datasets, spaces, and inference",
+      "name": "twilio",
+      "package": "@uni/plugin-twilio",
+      "description": "Twilio - SMS messaging",
       "version": "0.1.0",
       "repository": "github:shockz09/uni-plugins",
-      "path": "packages/hf",
-      "tags": ["ai", "ml", "models", "huggingface"]
+      "path": "packages/twilio",
+      "tags": ["sms", "messaging"]
+    },
+    {
+      "name": "vonage",
+      "package": "@uni/plugin-vonage",
+      "description": "Vonage - SMS messaging",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/vonage",
+      "tags": ["sms", "messaging"]
     }
   ]
 }

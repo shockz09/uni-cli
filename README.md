@@ -58,7 +58,7 @@ uni exa search "latest AI news"  # Web search
 | **Research** | `exa` (web search), `arxiv`, `reddit`, `hn` (Hacker News), `wiki` |
 | **Utilities** | `weather`, `stocks`, `currency`, `qrcode`, `shorturl` |
 
-### Plugins (10+ available)
+### Plugins (16 available)
 
 ```bash
 uni plugins list                 # See available plugins
@@ -67,7 +67,16 @@ uni plugins install stripe       # Payment processing
 uni plugins install airtable     # Database
 ```
 
-Available: `spotify`, `stripe`, `airtable`, `trello`, `asana`, `sendgrid`, `resend`, `twilio`, `vonage`, `pushover`, `ntfy`, `cloudinary`, `imgbb`, `0x0`, `hf`
+| Category | Plugins |
+|----------|---------|
+| **Payments** | `stripe` |
+| **Email** | `sendgrid`, `resend` |
+| **SMS** | `twilio`, `vonage` |
+| **Notifications** | `pushover`, `ntfy` |
+| **Media** | `cloudinary`, `imgbb`, `0x0` |
+| **Productivity** | `trello`, `asana`, `airtable`, `gkeep` |
+| **AI/ML** | `hf` (HuggingFace) |
+| **Music** | `spotify` |
 
 ## Examples
 
