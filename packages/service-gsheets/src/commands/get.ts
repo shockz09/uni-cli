@@ -141,7 +141,7 @@ export const getCommand: Command = {
     { name: 'tsv', type: 'boolean', description: 'Output as TSV (for piping)' },
     { name: 'cells', type: 'boolean', description: 'JSON output as cell-keyed object (e.g., {"A1": "value"})' },
     { name: 'filter', short: 'f', type: 'string', description: 'Filter rows (e.g., "C>100", "A=foo AND B<50", "A=x OR A=y")' },
-    { name: 'skip-empty', type: 'boolean', description: 'Skip data rows where all cells are empty or whitespace (header row preserved)' },
+    { name: 'skip-empty', type: 'boolean', description: 'Skip rows with only empty/whitespace cells (API already omits truly empty rows; use --trim for most cases)' },
     { name: 'trim', type: 'boolean', description: 'Trim whitespace from cell values and remove trailing empty rows/columns' },
   ],
   examples: [
