@@ -4012,7 +4012,7 @@ Get spreadsheet data
 | `--tsv` |  | boolean |  | Output as TSV (for piping) |
 | `--cells` |  | boolean |  | JSON output as cell-keyed object (e.g., {"A1": "value"}) |
 | `--filter` | -f | string |  | Filter rows (e.g., "C>100", "A=foo AND B<50", "A=x OR A=y") |
-| `--skip-empty` |  | boolean |  | Skip rows with only empty/whitespace cells (API already omits truly empty rows; use --trim for most cases) |
+| `--skip-blank` |  | boolean |  | Skip rows where all cells are blank (empty or whitespace-only) |
 | `--trim` |  | boolean |  | Trim whitespace from cell values and remove trailing empty rows/columns |
 
 **Examples:**
@@ -4025,7 +4025,7 @@ uni gsheets get 1abc123XYZ --data --tsv > data.tsv
 uni gsheets get 1abc123XYZ A1:D100 --filter "C>100"
 uni gsheets get 1abc123XYZ A1:D100 --filter "B>50 AND C<100"
 uni gsheets get 1abc123XYZ A1:D100 --json --cells
-uni gsheets get 1abc123XYZ --data --skip-empty
+uni gsheets get 1abc123XYZ --data --skip-blank
 uni gsheets get 1abc123XYZ --data --trim
 ```
 

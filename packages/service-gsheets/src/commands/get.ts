@@ -141,7 +141,7 @@ export const getCommand: Command = {
     { name: 'tsv', type: 'boolean', description: 'Output as TSV (for piping)' },
     { name: 'cells', type: 'boolean', description: 'JSON output as cell-keyed object (e.g., {"A1": "value"})' },
     { name: 'filter', short: 'f', type: 'string', description: 'Filter rows (e.g., "C>100", "A=foo AND B<50", "A=x OR A=y")' },
-    { name: 'skip-empty', type: 'boolean', description: 'Skip rows with only empty/whitespace cells (API already omits truly empty rows; use --trim for most cases)' },
+    { name: 'skip-blank', type: 'boolean', description: 'Skip rows where all cells are blank (empty or whitespace-only)' },
     { name: 'trim', type: 'boolean', description: 'Trim whitespace from cell values and remove trailing empty rows/columns' },
   ],
   examples: [
@@ -152,7 +152,7 @@ export const getCommand: Command = {
     'uni gsheets get 1abc123XYZ A1:D100 --filter "C>100"',
     'uni gsheets get 1abc123XYZ A1:D100 --filter "B>50 AND C<100"',
     'uni gsheets get 1abc123XYZ A1:D100 --json --cells',
-    'uni gsheets get 1abc123XYZ --data --skip-empty',
+    'uni gsheets get 1abc123XYZ --data --skip-blank',
     'uni gsheets get 1abc123XYZ --data --trim',
   ],
 
@@ -171,7 +171,7 @@ export const getCommand: Command = {
     const outputTsv = flags.tsv as boolean;
     const outputCells = flags.cells as boolean;
     const filterExpr = flags.filter as string | undefined;
-    const skipEmpty = flags['skip-empty'] as boolean;
+    const skipBlank = flags['skip-blank'] as boolean;
     const trimData = flags.trim as boolean;
 
     const spinner = output.spinner('Fetching spreadsheet...');
@@ -229,8 +229,8 @@ export const getCommand: Command = {
         }
       }
 
-      // Skip empty rows if requested
-      if (skipEmpty && values.length > 0) {
+      // Skip blank rows if requested
+      if (skipBlank && values.length > 0) {
         const header = values[0];
         const nonEmptyRows = values.slice(1).filter(row =>
           row.some(cell => cell && cell.trim() !== '')
