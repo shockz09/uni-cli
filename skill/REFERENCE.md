@@ -4012,7 +4012,7 @@ Get spreadsheet data
 | `--tsv` |  | boolean |  | Output as TSV (for piping) |
 | `--cells` |  | boolean |  | JSON output as cell-keyed object (e.g., {"A1": "value"}) |
 | `--filter` | -f | string |  | Filter rows (e.g., "C>100", "A=foo AND B<50", "A=x OR A=y") |
-| `--skip-empty` |  | boolean |  | Skip rows where all cells are empty |
+| `--skip-empty` |  | boolean |  | Skip data rows where all cells are empty or whitespace (header row preserved) |
 | `--trim` |  | boolean |  | Trim whitespace from cell values and remove trailing empty rows/columns |
 
 **Examples:**
