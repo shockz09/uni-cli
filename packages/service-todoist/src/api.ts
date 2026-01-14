@@ -141,6 +141,8 @@ export class TodoistClient {
     due_string?: string;
     due_date?: string;
     labels?: string[];
+    project_id?: string;
+    section_id?: string;
   }): Promise<Task> {
     return this.request<Task>(`/tasks/${taskId}`, {
       method: 'POST',

@@ -1,29 +1,25 @@
 /**
- * uni todoist move - Move task to different project/section
+ * uni todoist move - Update task priority and labels
  */
 
 import type { Command, CommandContext } from '@uni/shared';
 import { todoist, todoistOAuth } from '../api';
 
 export const moveCommand: Command = {
-  name: 'move',
-  aliases: ['mv'],
-  description: 'Move a task to a different project or section',
+  name: 'priority',
+  aliases: ['prio', 'p'],
+  description: 'Update task priority',
   args: [
     { name: 'taskId', description: 'Task ID', required: true },
-  ],
-  options: [
-    { name: 'project', short: 'p', type: 'string', description: 'Target project ID' },
-    { name: 'section', short: 's', type: 'string', description: 'Target section ID' },
+    { name: 'priority', description: 'Priority level (1-4, where 1 is highest)', required: true },
   ],
   examples: [
-    'uni todoist move TASK_ID --project PROJECT_ID',
-    'uni todoist move TASK_ID --section SECTION_ID',
-    'uni todoist move TASK_ID --project PROJECT_ID --section SECTION_ID',
+    'uni todoist priority TASK_ID 1',
+    'uni todoist priority TASK_ID 4',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
-    const { output, args, flags, globalFlags } = ctx;
+    const { output, args, globalFlags } = ctx;
 
     if (!todoistOAuth.isAuthenticated()) {
       output.error('Not authenticated. Run "uni todoist auth" first.');
@@ -31,32 +27,25 @@ export const moveCommand: Command = {
     }
 
     const taskId = args.taskId as string;
-    const projectId = flags.project as string | undefined;
-    const sectionId = flags.section as string | undefined;
+    const priority = parseInt(args.priority as string, 10);
 
-    if (!projectId && !sectionId) {
-      output.error('At least one of --project or --section is required');
+    if (priority < 1 || priority > 4) {
+      output.error('Priority must be between 1 (highest) and 4 (lowest)');
       return;
     }
 
-    const spinner = output.spinner('Moving task...');
+    const spinner = output.spinner('Updating priority...');
 
     try {
-      const updates: Record<string, string> = {};
-      if (projectId) updates.project_id = projectId;
-      if (sectionId) updates.section_id = sectionId;
-
-      const task = await todoist.updateTask(taskId, updates);
-      spinner.success(`Moved: ${task.content}`);
+      // Todoist uses inverse priority (4 = p1, 1 = p4)
+      const task = await todoist.updateTask(taskId, { priority: 5 - priority });
+      spinner.success(`Updated priority to P${priority}: ${task.content}`);
 
       if (globalFlags.json) {
         output.json(task);
-      } else {
-        if (projectId) output.info(`  New project: ${projectId}`);
-        if (sectionId) output.info(`  New section: ${sectionId}`);
       }
     } catch (error) {
-      spinner.fail('Failed to move task');
+      spinner.fail('Failed to update priority');
       throw error;
     }
   },
