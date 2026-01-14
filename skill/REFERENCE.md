@@ -7987,31 +7987,24 @@ uni todoist due --filter week --project PROJECT_ID
 
 ---
 
-### `uni todoist move`
+### `uni todoist priority`
 
-Move a task to a different project or section
+Update task priority
 
-**Aliases:** `mv`
+**Aliases:** `prio`, `p`
 
 **Arguments:**
 
 | Name | Required | Description |
 |------|----------|-------------|
 | `taskId` | Yes | Task ID |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--project` | -p | string |  | Target project ID |
-| `--section` | -s | string |  | Target section ID |
+| `priority` | Yes | Priority level (1-4, where 1 is highest) |
 
 **Examples:**
 
 ```bash
-uni todoist move TASK_ID --project PROJECT_ID
-uni todoist move TASK_ID --section SECTION_ID
-uni todoist move TASK_ID --project PROJECT_ID --section SECTION_ID
+uni todoist priority TASK_ID 1
+uni todoist priority TASK_ID 4
 ```
 
 ---
