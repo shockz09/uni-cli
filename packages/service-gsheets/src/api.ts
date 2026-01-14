@@ -1956,6 +1956,642 @@ export class GoogleSheetsClient extends GoogleAuthClient {
       })),
     };
   }
+
+  // ============================================
+  // PIVOT TABLES
+  // ============================================
+
+  /**
+   * Create a pivot table
+   */
+  async createPivotTable(
+    spreadsheetId: string,
+    sourceRange: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    destCell: { sheetId: number; rowIndex: number; columnIndex: number },
+    rows: Array<{ sourceColumnOffset: number; sortOrder?: 'ASCENDING' | 'DESCENDING'; showTotals?: boolean }>,
+    columns: Array<{ sourceColumnOffset: number; sortOrder?: 'ASCENDING' | 'DESCENDING'; showTotals?: boolean }>,
+    values: Array<{ sourceColumnOffset: number; summarizeFunction: 'SUM' | 'COUNT' | 'AVERAGE' | 'MAX' | 'MIN' | 'COUNTA' | 'COUNTUNIQUE' | 'MEDIAN' | 'STDEV' | 'VAR'; name?: string }>
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateCells: {
+            rows: [{
+              values: [{
+                pivotTable: {
+                  source: sourceRange,
+                  rows: rows.map(r => ({
+                    sourceColumnOffset: r.sourceColumnOffset,
+                    sortOrder: r.sortOrder || 'ASCENDING',
+                    showTotals: r.showTotals ?? true,
+                  })),
+                  columns: columns.map(c => ({
+                    sourceColumnOffset: c.sourceColumnOffset,
+                    sortOrder: c.sortOrder || 'ASCENDING',
+                    showTotals: c.showTotals ?? true,
+                  })),
+                  values: values.map(v => ({
+                    sourceColumnOffset: v.sourceColumnOffset,
+                    summarizeFunction: v.summarizeFunction,
+                    name: v.name,
+                  })),
+                  valueLayout: 'HORIZONTAL',
+                },
+              }],
+            }],
+            start: destCell,
+            fields: 'pivotTable',
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // HYPERLINKS
+  // ============================================
+
+  /**
+   * Set hyperlink on a cell
+   */
+  async setHyperlink(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    uri: string
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          repeatCell: {
+            range,
+            cell: {
+              userEnteredFormat: {
+                textFormat: {
+                  link: { uri },
+                },
+              },
+            },
+            fields: 'userEnteredFormat.textFormat.link',
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Clear hyperlink from a cell
+   */
+  async clearHyperlink(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number }
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          repeatCell: {
+            range,
+            cell: {
+              userEnteredFormat: {
+                textFormat: {
+                  link: null,
+                },
+              },
+            },
+            fields: 'userEnteredFormat.textFormat.link',
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // NUMBER FORMAT
+  // ============================================
+
+  /**
+   * Set number format on cells
+   */
+  async setNumberFormat(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    type: 'TEXT' | 'NUMBER' | 'PERCENT' | 'CURRENCY' | 'DATE' | 'TIME' | 'DATE_TIME' | 'SCIENTIFIC',
+    pattern?: string
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          repeatCell: {
+            range,
+            cell: {
+              userEnteredFormat: {
+                numberFormat: { type, pattern },
+              },
+            },
+            fields: 'userEnteredFormat.numberFormat',
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // TEXT ALIGNMENT
+  // ============================================
+
+  /**
+   * Set text alignment
+   */
+  async setAlignment(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    horizontal?: 'LEFT' | 'CENTER' | 'RIGHT',
+    vertical?: 'TOP' | 'MIDDLE' | 'BOTTOM'
+  ): Promise<void> {
+    const fields: string[] = [];
+    const format: Record<string, string> = {};
+
+    if (horizontal) {
+      format.horizontalAlignment = horizontal;
+      fields.push('userEnteredFormat.horizontalAlignment');
+    }
+    if (vertical) {
+      format.verticalAlignment = vertical;
+      fields.push('userEnteredFormat.verticalAlignment');
+    }
+
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          repeatCell: {
+            range,
+            cell: { userEnteredFormat: format },
+            fields: fields.join(','),
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // TEXT WRAP
+  // ============================================
+
+  /**
+   * Set text wrap strategy
+   */
+  async setWrapStrategy(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    strategy: 'OVERFLOW_CELL' | 'CLIP' | 'WRAP'
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          repeatCell: {
+            range,
+            cell: {
+              userEnteredFormat: { wrapStrategy: strategy },
+            },
+            fields: 'userEnteredFormat.wrapStrategy',
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // TEXT ROTATION
+  // ============================================
+
+  /**
+   * Set text rotation
+   */
+  async setTextRotation(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    angle?: number,
+    vertical?: boolean
+  ): Promise<void> {
+    const textRotation: Record<string, unknown> = {};
+    if (vertical) {
+      textRotation.vertical = true;
+    } else if (angle !== undefined) {
+      textRotation.angle = angle;
+    }
+
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          repeatCell: {
+            range,
+            cell: {
+              userEnteredFormat: { textRotation },
+            },
+            fields: 'userEnteredFormat.textRotation',
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // CHART UPDATE
+  // ============================================
+
+  /**
+   * Update chart title - fetches current spec and updates title
+   */
+  async updateChartTitle(spreadsheetId: string, chartId: number, title: string): Promise<void> {
+    // First get the current chart spec
+    const spreadsheet = await this.getSpreadsheet(spreadsheetId);
+    let currentSpec: Record<string, unknown> | null = null;
+
+    for (const sheet of spreadsheet.sheets || []) {
+      for (const chart of sheet.charts || []) {
+        if (chart.chartId === chartId) {
+          currentSpec = chart.spec as Record<string, unknown>;
+          break;
+        }
+      }
+      if (currentSpec) break;
+    }
+
+    if (!currentSpec) {
+      throw new Error(`Chart ${chartId} not found`);
+    }
+
+    // Update the title in the spec
+    currentSpec.title = title;
+
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateChartSpec: {
+            chartId,
+            spec: currentSpec,
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // UNPROTECT (DELETE PROTECTION)
+  // ============================================
+
+  /**
+   * Delete a protected range
+   */
+  async deleteProtectedRange(spreadsheetId: string, protectedRangeId: number): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteProtectedRange: { protectedRangeId },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // SLICERS
+  // ============================================
+
+  /**
+   * Add a slicer
+   */
+  async addSlicer(
+    spreadsheetId: string,
+    sheetId: number,
+    anchorCell: { rowIndex: number; columnIndex: number },
+    dataRange: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    columnIndex: number,
+    title?: string
+  ): Promise<number> {
+    const response = await this.request<{
+      replies: Array<{ addSlicer: { slicer: { slicerId: number } } }>;
+    }>(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          addSlicer: {
+            slicer: {
+              spec: {
+                dataRange,
+                columnIndex,
+                title,
+              },
+              position: {
+                overlayPosition: {
+                  anchorCell: { sheetId, ...anchorCell },
+                  widthPixels: 200,
+                  heightPixels: 200,
+                },
+              },
+            },
+          },
+        }],
+      }),
+    });
+    return response.replies[0].addSlicer.slicer.slicerId;
+  }
+
+  /**
+   * List slicers
+   */
+  async listSlicers(spreadsheetId: string): Promise<Array<{
+    slicerId: number;
+    sheetId: number;
+    title?: string;
+    filterColumnIndex?: number;
+  }>> {
+    const response = await this.request<{
+      sheets: Array<{
+        properties: { sheetId: number };
+        slicers?: Array<{
+          slicerId: number;
+          spec?: {
+            title?: string;
+            filterColumnIndex?: number;
+          };
+        }>;
+      }>;
+    }>(`/spreadsheets/${spreadsheetId}?fields=sheets(properties.sheetId,slicers)`);
+
+    const slicers: Array<{
+      slicerId: number;
+      sheetId: number;
+      title?: string;
+      filterColumnIndex?: number;
+    }> = [];
+
+    for (const sheet of response.sheets || []) {
+      for (const s of sheet.slicers || []) {
+        slicers.push({
+          slicerId: s.slicerId,
+          sheetId: sheet.properties.sheetId,
+          title: s.spec?.title,
+          filterColumnIndex: s.spec?.filterColumnIndex,
+        });
+      }
+    }
+
+    return slicers;
+  }
+
+  /**
+   * Delete a slicer
+   */
+  async deleteSlicer(spreadsheetId: string, slicerId: number): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteEmbeddedObject: { objectId: slicerId },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // TEXT TO COLUMNS
+  // ============================================
+
+  /**
+   * Split text to columns
+   */
+  async textToColumns(
+    spreadsheetId: string,
+    source: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    delimiterType: 'COMMA' | 'SEMICOLON' | 'PERIOD' | 'SPACE' | 'CUSTOM' | 'AUTODETECT',
+    customDelimiter?: string
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          textToColumns: {
+            source,
+            delimiterType,
+            delimiter: customDelimiter,
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // AUTO FILL
+  // ============================================
+
+  /**
+   * Auto-fill a range based on existing data
+   */
+  async autoFill(
+    spreadsheetId: string,
+    sourceRange: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    fillLength: number,
+    dimension: 'ROWS' | 'COLUMNS'
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          autoFill: {
+            sourceAndDestination: {
+              source: sourceRange,
+              dimension,
+              fillLength,
+            },
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // MOVE DIMENSION
+  // ============================================
+
+  /**
+   * Move rows or columns to a new position
+   */
+  async moveDimension(
+    spreadsheetId: string,
+    sheetId: number,
+    dimension: 'ROWS' | 'COLUMNS',
+    startIndex: number,
+    endIndex: number,
+    destinationIndex: number
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          moveDimension: {
+            source: {
+              sheetId,
+              dimension,
+              startIndex,
+              endIndex,
+            },
+            destinationIndex,
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // BANDING (ADVANCED)
+  // ============================================
+
+  /**
+   * Add banded range (alternating colors)
+   */
+  async addBandedRange(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    headerColor?: { red: number; green: number; blue: number },
+    firstBandColor?: { red: number; green: number; blue: number },
+    secondBandColor?: { red: number; green: number; blue: number },
+    footerColor?: { red: number; green: number; blue: number }
+  ): Promise<number> {
+    const rowProperties: Record<string, unknown> = {};
+    if (headerColor) rowProperties.headerColor = headerColor;
+    if (firstBandColor) rowProperties.firstBandColor = firstBandColor;
+    if (secondBandColor) rowProperties.secondBandColor = secondBandColor;
+    if (footerColor) rowProperties.footerColor = footerColor;
+
+    const response = await this.request<{
+      replies: Array<{ addBanding: { bandedRange: { bandedRangeId: number } } }>;
+    }>(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          addBanding: {
+            bandedRange: {
+              range,
+              rowProperties,
+            },
+          },
+        }],
+      }),
+    });
+    return response.replies[0].addBanding.bandedRange.bandedRangeId;
+  }
+
+  /**
+   * List banded ranges
+   */
+  async listBandedRanges(spreadsheetId: string): Promise<Array<{
+    bandedRangeId: number;
+    sheetId: number;
+    range: string;
+  }>> {
+    const response = await this.request<{
+      sheets: Array<{
+        properties: { sheetId: number };
+        bandedRanges?: Array<{
+          bandedRangeId: number;
+          range: {
+            startRowIndex?: number;
+            endRowIndex?: number;
+            startColumnIndex?: number;
+            endColumnIndex?: number;
+          };
+        }>;
+      }>;
+    }>(`/spreadsheets/${spreadsheetId}?fields=sheets(properties.sheetId,bandedRanges)`);
+
+    const colToLetter = (col: number) => {
+      let letter = '';
+      let temp = col;
+      while (temp >= 0) {
+        letter = String.fromCharCode((temp % 26) + 65) + letter;
+        temp = Math.floor(temp / 26) - 1;
+      }
+      return letter;
+    };
+
+    const bands: Array<{
+      bandedRangeId: number;
+      sheetId: number;
+      range: string;
+    }> = [];
+
+    for (const sheet of response.sheets || []) {
+      for (const b of sheet.bandedRanges || []) {
+        const r = b.range;
+        const startCol = colToLetter(r.startColumnIndex || 0);
+        const endCol = colToLetter((r.endColumnIndex || 1) - 1);
+        const startRow = (r.startRowIndex || 0) + 1;
+        const endRow = r.endRowIndex || 1;
+        bands.push({
+          bandedRangeId: b.bandedRangeId,
+          sheetId: sheet.properties.sheetId,
+          range: `${startCol}${startRow}:${endCol}${endRow}`,
+        });
+      }
+    }
+
+    return bands;
+  }
+
+  /**
+   * Delete a banded range
+   */
+  async deleteBandedRange(spreadsheetId: string, bandedRangeId: number): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteBanding: { bandedRangeId },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // IMAGE
+  // ============================================
+
+  /**
+   * Insert image into a cell (using =IMAGE formula)
+   */
+  async insertImage(
+    spreadsheetId: string,
+    cell: { sheetId: number; rowIndex: number; columnIndex: number },
+    imageUrl: string,
+    mode: 1 | 2 | 3 | 4 = 1
+  ): Promise<void> {
+    // Mode: 1=fit, 2=stretch, 3=original, 4=custom (needs width/height)
+    const formula = `=IMAGE("${imageUrl}",${mode})`;
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateCells: {
+            rows: [{
+              values: [{
+                userEnteredValue: { formulaValue: formula },
+              }],
+            }],
+            start: cell,
+            fields: 'userEnteredValue',
+          },
+        }],
+      }),
+    });
+  }
 }
 
 export const gsheets = new GoogleSheetsClient();

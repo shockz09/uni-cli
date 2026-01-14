@@ -44,6 +44,21 @@ import { filterCommand } from './commands/filter';
 import { filterViewCommand } from './commands/filter-view';
 import { copyPasteCommand } from './commands/copy-paste';
 import { groupCommand } from './commands/group';
+// Batch 2 commands
+import { pivotCommand } from './commands/pivot';
+import { hyperlinkCommand } from './commands/hyperlink';
+import { numberFormatCommand } from './commands/number-format';
+import { alignCommand } from './commands/align';
+import { wrapCommand } from './commands/wrap';
+import { rotateCommand } from './commands/rotate';
+import { chartUpdateCommand } from './commands/chart-update';
+import { unprotectCommand } from './commands/unprotect';
+import { slicerCommand } from './commands/slicer';
+import { textToColsCommand } from './commands/text-to-cols';
+import { autofillCommand } from './commands/autofill';
+import { moveDimCommand } from './commands/move-dim';
+import { bandingCommand } from './commands/banding';
+import { imageCommand } from './commands/image';
 import { gsheets } from './api';
 
 const gsheetsService: UniService = {
@@ -92,6 +107,21 @@ const gsheetsService: UniService = {
     filterViewCommand,
     copyPasteCommand,
     groupCommand,
+    // Batch 2 commands
+    pivotCommand,
+    hyperlinkCommand,
+    numberFormatCommand,
+    alignCommand,
+    wrapCommand,
+    rotateCommand,
+    chartUpdateCommand,
+    unprotectCommand,
+    slicerCommand,
+    textToColsCommand,
+    autofillCommand,
+    moveDimCommand,
+    bandingCommand,
+    imageCommand,
     authCommand,
   ],
 

@@ -5204,6 +5204,424 @@ uni gsheets group ID --list
 
 ---
 
+### `uni gsheets pivot`
+
+Create a pivot table
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `source` | Yes | Source data range (e.g., A1:E100) |
+| `dest` | Yes | Destination cell (e.g., G1) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--rows` | -r | string |  | Row grouping columns (0-indexed, comma-separated) |
+| `--cols` | -c | string |  | Column grouping columns (0-indexed, comma-separated) |
+| `--values` | -v | string |  | Value columns with function (e.g., "2:SUM,3:AVERAGE") |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets pivot ID A1:E100 G1 --rows 0 --values "2:SUM"
+uni gsheets pivot ID A1:D50 F1 --rows 0,1 --cols 2 --values "3:SUM"
+uni gsheets pivot ID A1:E100 G1 --rows 0 --values "2:COUNT,3:AVERAGE"
+```
+
+---
+
+### `uni gsheets hyperlink`
+
+Add or remove hyperlinks from cells
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Cell or range (e.g., A1, A1:A10) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--url` | -u | string |  | URL to link to |
+| `--clear` | -c | boolean |  | Remove hyperlink |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets hyperlink ID A1 --url "https://example.com"
+uni gsheets hyperlink ID B2:B10 --url "https://google.com"
+uni gsheets hyperlink ID A1 --clear
+```
+
+---
+
+### `uni gsheets number-format`
+
+Set number format on cells (currency, percent, date, etc.)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Cell or range (e.g., A1, B1:B100) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--type` | -t | string |  | Format type: number, currency, percent, date, time, datetime, text, scientific |
+| `--pattern` | -p | string |  | Custom pattern (e.g., "$#,##0.00", "0.00%") |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets number-format ID B1:B100 --type currency
+uni gsheets number-format ID C1:C50 --type percent
+uni gsheets number-format ID D1:D100 --type date
+uni gsheets number-format ID E1:E50 --type number --pattern "#,##0.00"
+uni gsheets number-format ID F1:F100 --type currency --pattern "$#,##0.00"
+```
+
+---
+
+### `uni gsheets align`
+
+Set text alignment in cells
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Cell or range (e.g., A1, A1:D10) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--horizontal` | -h | string |  | Horizontal alignment: left, center, right |
+| `--vertical` | -v | string |  | Vertical alignment: top, middle, bottom |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets align ID A1:D10 --horizontal center
+uni gsheets align ID B1:B100 --vertical middle
+uni gsheets align ID A1:Z1 --horizontal center --vertical middle
+```
+
+---
+
+### `uni gsheets wrap`
+
+Set text wrapping strategy for cells
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Cell or range (e.g., A1, A1:D10) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--strategy` | -t | string |  | Wrap strategy: wrap, overflow, clip |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets wrap ID A1:D100 --strategy wrap
+uni gsheets wrap ID B2:B50 --strategy clip
+uni gsheets wrap ID C1:C10 --strategy overflow
+```
+
+---
+
+### `uni gsheets rotate`
+
+Rotate text in cells
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Cell or range (e.g., A1, A1:Z1) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--angle` | -a | string |  | Rotation angle (-90 to 90 degrees) |
+| `--vertical` | -v | boolean |  | Stack text vertically |
+| `--clear` | -c | boolean |  | Clear rotation (reset to 0) |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets rotate ID A1:Z1 --angle 45
+uni gsheets rotate ID A1:A10 --angle -90
+uni gsheets rotate ID B1:B5 --vertical
+uni gsheets rotate ID A1:Z1 --clear
+```
+
+---
+
+### `uni gsheets chart-update`
+
+Update chart title or properties
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `chartId` | Yes | Chart ID to update |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--title` | -t | string |  | New chart title |
+
+**Examples:**
+
+```bash
+uni gsheets chart-update ID 123456 --title "Sales Report 2024"
+uni gsheets chart-update ID 789 --title "Monthly Revenue"
+```
+
+---
+
+### `uni gsheets unprotect`
+
+Remove protection from a range
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `protectedRangeId` | No | Protected range ID to remove (not needed with --list) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | boolean |  | List all protected ranges instead |
+
+**Examples:**
+
+```bash
+uni gsheets unprotect ID --list
+uni gsheets unprotect ID 123456
+```
+
+---
+
+### `uni gsheets slicer`
+
+Add, list, or delete slicers (interactive filters)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--add` | -a | boolean |  | Add a new slicer |
+| `--list` | -l | boolean |  | List all slicers |
+| `--delete` | -d | string |  | Delete slicer by ID |
+| `--anchor` |  | string |  | Anchor cell for slicer (e.g., E1) |
+| `--data-range` |  | string |  | Data range to filter (e.g., A1:D100) |
+| `--column` | -c | string |  | Column index to filter (0-based) |
+| `--title` | -t | string |  | Slicer title |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets slicer ID --list
+uni gsheets slicer ID --add --anchor E1 --data-range A1:D100 --column 0 --title "Category"
+uni gsheets slicer ID --delete 123456
+```
+
+---
+
+### `uni gsheets text-to-cols`
+
+Split text in cells into multiple columns
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Source range (e.g., A1:A100) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--delimiter` | -d | string |  | Delimiter: comma, semicolon, period, space, custom |
+| `--custom` | -c | string |  | Custom delimiter string (use with --delimiter custom) |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets text-to-cols ID A1:A100 --delimiter comma
+uni gsheets text-to-cols ID B1:B50 --delimiter semicolon
+uni gsheets text-to-cols ID C1:C20 --delimiter custom --custom "|"
+uni gsheets text-to-cols ID A1:A10 --delimiter space
+```
+
+---
+
+### `uni gsheets autofill`
+
+Auto-fill cells based on a pattern (like dragging fill handle)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `source` | Yes | Source range with pattern (e.g., A1:A2) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--count` | -n | string |  | Number of cells to fill |
+| `--direction` | -d | string |  | Direction: down, right (default: down) |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets autofill ID A1:A2 --count 10
+uni gsheets autofill ID A1:B1 --count 5 --direction right
+uni gsheets autofill ID A1:A3 --count 100 --direction down
+```
+
+---
+
+### `uni gsheets move-dim`
+
+Move rows or columns to a new position
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--rows` | -r | boolean |  | Move rows |
+| `--cols` | -c | boolean |  | Move columns |
+| `--start` |  | string |  | Start index (1-based, e.g., 5 for row 5 or column E) |
+| `--end` |  | string |  | End index (1-based, inclusive) |
+| `--to` |  | string |  | Destination index (1-based) |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets move-dim ID --rows --start 5 --end 7 --to 2
+uni gsheets move-dim ID --cols --start 3 --end 3 --to 1
+uni gsheets move-dim ID --rows --start 10 --end 15 --to 1 --sheet "Data"
+```
+
+---
+
+### `uni gsheets banding`
+
+Add, list, or delete banded (alternating color) ranges
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--add` | -a | boolean |  | Add banding to a range |
+| `--list` | -l | boolean |  | List all banded ranges |
+| `--delete` | -d | string |  | Delete banding by ID |
+| `--range` | -r | string |  | Range for banding (e.g., A1:D100) |
+| `--header-color` |  | string |  | Header row color (name or #hex) |
+| `--first-color` |  | string |  | First band color (name or #hex) |
+| `--second-color` |  | string |  | Second band color (name or #hex) |
+| `--footer-color` |  | string |  | Footer row color (name or #hex) |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets banding ID --list
+uni gsheets banding ID --add --range A1:D100 --header-color blue --first-color white --second-color lightgray
+uni gsheets banding ID --add --range A1:Z50 --first-color "#ffffff" --second-color "#f0f0f0"
+uni gsheets banding ID --delete 123456
+```
+
+---
+
+### `uni gsheets image`
+
+Insert an image into a cell
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `cell` | Yes | Target cell (e.g., A1) |
+| `url` | Yes | Image URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--mode` | -m | string |  | Insert mode: 1 (fit to cell), 2 (stretch), 3 (original size), 4 (custom size) |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets image ID A1 "https://example.com/logo.png"
+uni gsheets image ID B5 "https://example.com/chart.png" --mode 2
+uni gsheets image ID C1 "https://example.com/image.jpg" --mode 3 --sheet "Images"
+```
+
+---
+
 ### `uni gsheets auth`
 
 Authenticate with Google Sheets
