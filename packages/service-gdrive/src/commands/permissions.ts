@@ -55,15 +55,15 @@ export const permissionsCommand: Command = {
       }
 
       if (permissions.length === 0) {
-        output.log('No permissions found.');
+        output.info('No permissions found.');
         return;
       }
 
-      output.log(`Permissions (${permissions.length}):\n`);
+      output.info(`Permissions (${permissions.length}):\n`);
       for (const perm of permissions) {
         const email = perm.emailAddress || 'N/A';
-        output.log(`  ${perm.type}: ${email} [${perm.role}]`);
-        output.log(`    ID: ${perm.id}`);
+        output.info(`  ${perm.type}: ${email} [${perm.role}]`);
+        output.info(`    ID: ${perm.id}`);
       }
     } catch (error) {
       spinner.fail('Failed to fetch permissions');

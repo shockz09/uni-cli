@@ -42,8 +42,8 @@ export const threadsCommand: Command = {
           return;
         }
 
-        output.log(`Thread: ${thread.id}\n`);
-        output.log(`Messages: ${thread.messages.length}\n`);
+        output.info(`Thread: ${thread.id}\n`);
+        output.info(`Messages: ${thread.messages.length}\n`);
 
         for (let i = 0; i < thread.messages.length; i++) {
           const msg = thread.messages[i];
@@ -51,11 +51,11 @@ export const threadsCommand: Command = {
           const subject = gmail.getHeader(msg, 'Subject') || 'No Subject';
           const date = gmail.getHeader(msg, 'Date') || '';
 
-          output.log(`--- Message ${i + 1} ---`);
-          output.log(`From: ${from}`);
-          output.log(`Subject: ${subject}`);
-          output.log(`Date: ${date}`);
-          output.log(`\n${gmail.decodeBody(msg)}\n`);
+          output.info(`--- Message ${i + 1} ---`);
+          output.info(`From: ${from}`);
+          output.info(`Subject: ${subject}`);
+          output.info(`Date: ${date}`);
+          output.info(`\n${gmail.decodeBody(msg)}\n`);
         }
         return;
       } catch (error) {
@@ -80,15 +80,15 @@ export const threadsCommand: Command = {
       }
 
       if (threads.length === 0) {
-        output.log('No threads found.');
+        output.info('No threads found.');
         return;
       }
 
-      output.log(`Found ${threads.length} thread(s):\n`);
+      output.info(`Found ${threads.length} thread(s):\n`);
       for (const thread of threads) {
-        output.log(`  ${thread.id}`);
-        output.log(`    ${thread.snippet.slice(0, 80)}...`);
-        output.log('');
+        output.info(`  ${thread.id}`);
+        output.info(`    ${thread.snippet.slice(0, 80)}...`);
+        output.info('');
       }
     } catch (error) {
       spinner.fail('Failed to fetch threads');

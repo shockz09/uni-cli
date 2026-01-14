@@ -98,20 +98,20 @@ export const labelsCommand: Command = {
       const userLabels = labels.filter(l => l.type === 'user');
       const systemLabels = labels.filter(l => l.type === 'system');
 
-      output.log('System Labels:');
+      output.info('System Labels:');
       for (const label of systemLabels) {
         const unread = label.messagesUnread ? ` (${label.messagesUnread} unread)` : '';
-        output.log(`  ${label.name}${unread}`);
+        output.info(`  ${label.name}${unread}`);
       }
 
-      output.log('\nUser Labels:');
+      output.info('\nUser Labels:');
       if (userLabels.length === 0) {
-        output.log('  No custom labels');
+        output.info('  No custom labels');
       } else {
         for (const label of userLabels) {
           const unread = label.messagesUnread ? ` (${label.messagesUnread} unread)` : '';
-          output.log(`  ${label.name}${unread}`);
-          output.log(`    ID: ${label.id}`);
+          output.info(`  ${label.name}${unread}`);
+          output.info(`    ID: ${label.id}`);
         }
       }
     } catch (error) {

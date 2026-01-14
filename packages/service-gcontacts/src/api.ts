@@ -178,11 +178,12 @@ export class GContactsClient extends GoogleAuthClient {
    * Create a contact group
    */
   async createGroup(name: string): Promise<{ resourceName: string; name: string }> {
-    const response = await this.request<{ group: { resourceName: string; name: string } }>('/contactGroups', {
+    // API returns the contactGroup directly, not wrapped
+    const response = await this.request<{ resourceName: string; name: string }>('/contactGroups', {
       method: 'POST',
       body: JSON.stringify({ contactGroup: { name } }),
     });
-    return response.group;
+    return response;
   }
 
   /**

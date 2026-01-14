@@ -40,7 +40,7 @@ export const calendarsCommand: Command = {
         if (globalFlags.json) {
           output.json(calendar);
         } else {
-          output.log(`ID: ${calendar.id}`);
+          output.info(`ID: ${calendar.id}`);
         }
         return;
       } catch (error) {
@@ -74,18 +74,18 @@ export const calendarsCommand: Command = {
       }
 
       if (calendars.length === 0) {
-        output.log('No calendars found.');
+        output.info('No calendars found.');
         return;
       }
 
-      output.log(`Found ${calendars.length} calendars:\n`);
+      output.info(`Found ${calendars.length} calendars:\n`);
       for (const cal of calendars) {
         const primary = cal.primary ? ' (primary)' : '';
         const role = cal.accessRole ? ` [${cal.accessRole}]` : '';
-        output.log(`  ${cal.summary}${primary}${role}`);
-        output.log(`    ID: ${cal.id}`);
-        if (cal.description) output.log(`    ${cal.description}`);
-        output.log('');
+        output.info(`  ${cal.summary}${primary}${role}`);
+        output.info(`    ID: ${cal.id}`);
+        if (cal.description) output.info(`    ${cal.description}`);
+        output.info('');
       }
     } catch (error) {
       spinner.fail('Failed to fetch calendars');

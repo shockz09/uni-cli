@@ -42,8 +42,8 @@ export const copyCommand: Command = {
       if (globalFlags.json) {
         output.json(file);
       } else {
-        output.log(`ID: ${file.id}`);
-        if (file.webViewLink) output.log(`Link: ${file.webViewLink}`);
+        output.info(`ID: ${file.id}`);
+        if (file.webViewLink) output.info(`Link: ${file.webViewLink}`);
       }
     } catch (error) {
       spinner.fail('Failed to copy file');

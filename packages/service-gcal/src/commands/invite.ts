@@ -42,16 +42,16 @@ export const inviteCommand: Command = {
         return;
       }
 
-      output.log(`Attendees for: ${event.summary}\n`);
+      output.info(`Attendees for: ${event.summary}\n`);
       if (!event.attendees || event.attendees.length === 0) {
-        output.log('  No attendees');
+        output.info('  No attendees');
         return;
       }
 
       for (const attendee of event.attendees) {
         const status = attendee.responseStatus || 'pending';
         const organizer = attendee.organizer ? ' (organizer)' : '';
-        output.log(`  - ${attendee.email} [${status}]${organizer}`);
+        output.info(`  - ${attendee.email} [${status}]${organizer}`);
       }
       return;
     }

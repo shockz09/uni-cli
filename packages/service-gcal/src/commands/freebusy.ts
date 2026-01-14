@@ -54,18 +54,18 @@ export const freebusyCommand: Command = {
         return;
       }
 
-      output.log(`Free/Busy: ${timeMin.toLocaleDateString()} - ${timeMax.toLocaleDateString()}\n`);
+      output.info(`Free/Busy: ${timeMin.toLocaleDateString()} - ${timeMax.toLocaleDateString()}\n`);
 
       if (!calendarBusy?.busy || calendarBusy.busy.length === 0) {
-        output.log('  No busy times found - you\'re free!');
+        output.info('  No busy times found - you\'re free!');
         return;
       }
 
-      output.log('Busy times:');
+      output.info('Busy times:');
       for (const busy of calendarBusy.busy) {
         const start = new Date(busy.start);
         const end = new Date(busy.end);
-        output.log(`  ${start.toLocaleString()} - ${end.toLocaleTimeString()}`);
+        output.info(`  ${start.toLocaleString()} - ${end.toLocaleTimeString()}`);
       }
     } catch (error) {
       spinner.fail('Failed to check availability');

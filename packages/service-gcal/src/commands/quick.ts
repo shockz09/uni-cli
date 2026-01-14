@@ -43,9 +43,9 @@ export const quickCommand: Command = {
       }
 
       const start = event.start.dateTime || event.start.date;
-      output.log(`  When: ${start ? new Date(start).toLocaleString() : 'TBD'}`);
-      if (event.location) output.log(`  Where: ${event.location}`);
-      output.log(`  Link: ${event.htmlLink}`);
+      output.info(`  When: ${start ? new Date(start).toLocaleString() : 'TBD'}`);
+      if (event.location) output.info(`  Where: ${event.location}`);
+      output.info(`  Link: ${event.htmlLink}`);
     } catch (error) {
       spinner.fail('Failed to create event');
       throw error;

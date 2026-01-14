@@ -32,9 +32,9 @@ export const linkCommand: Command = {
       return;
     }
 
-    output.log('Form URLs:\n');
-    output.log(`  Edit:    ${urls.edit}`);
-    output.log(`  Respond: ${urls.respond}`);
-    output.log(`  Results: ${urls.results}`);
+    output.info('Form URLs:\n');
+    output.info(`  Edit:    ${urls.edit}`);
+    output.info(`  Respond: ${urls.respond}`);
+    output.info(`  Results: ${urls.results}`);
   },
 };

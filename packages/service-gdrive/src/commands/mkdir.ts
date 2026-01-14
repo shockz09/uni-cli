@@ -39,8 +39,8 @@ export const mkdirCommand: Command = {
       if (globalFlags.json) {
         output.json(folder);
       } else {
-        output.log(`ID: ${folder.id}`);
-        if (folder.webViewLink) output.log(`Link: ${folder.webViewLink}`);
+        output.info(`ID: ${folder.id}`);
+        if (folder.webViewLink) output.info(`Link: ${folder.webViewLink}`);
       }
     } catch (error) {
       spinner.fail('Failed to create folder');

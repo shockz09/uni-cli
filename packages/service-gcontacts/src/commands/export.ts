@@ -37,7 +37,7 @@ export const exportCommand: Command = {
         return;
       }
 
-      output.log(vcfData);
+      output.info(vcfData);
     } catch (error) {
       spinner.fail('Failed to export contacts');
       throw error;

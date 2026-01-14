@@ -63,12 +63,15 @@ export const recurringCommand: Command = {
 
     const spinner = output.spinner('Creating recurring event...');
     try {
+      // Get timezone from system
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
       const event = await gcal.createRecurringEvent(
         {
           summary: title,
           location: flags.location as string | undefined,
-          start: { dateTime: start.toISOString() },
-          end: { dateTime: end.toISOString() },
+          start: { dateTime: start.toISOString(), timeZone },
+          end: { dateTime: end.toISOString(), timeZone },
         },
         recurrence,
         calendarId
@@ -80,9 +83,9 @@ export const recurringCommand: Command = {
         return;
       }
 
-      output.log(`  Recurrence: ${recurrence[0]}`);
-      output.log(`  First occurrence: ${start.toLocaleString()}`);
-      output.log(`  Link: ${event.htmlLink}`);
+      output.info(`  Recurrence: ${recurrence[0]}`);
+      output.info(`  First occurrence: ${start.toLocaleString()}`);
+      output.info(`  Link: ${event.htmlLink}`);
     } catch (error) {
       spinner.fail('Failed to create recurring event');
       throw error;

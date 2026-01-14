@@ -51,8 +51,8 @@ export const subtaskCommand: Command = {
       if (globalFlags.json) {
         output.json(movedTask);
       } else {
-        output.log(`  ID: ${movedTask.id}`);
-        output.log(`  Parent: ${parentId}`);
+        output.info(`  ID: ${movedTask.id}`);
+        output.info(`  Parent: ${parentId}`);
       }
     } catch (error) {
       spinner.fail('Failed to create subtask');

@@ -42,14 +42,14 @@ export const getCommand: Command = {
       }
 
       const status = task.status === 'completed' ? '[x]' : '[ ]';
-      output.log(`${status} ${task.title}\n`);
-      output.log(`  ID: ${task.id}`);
-      output.log(`  Status: ${task.status}`);
-      if (task.notes) output.log(`  Notes: ${task.notes}`);
-      if (task.due) output.log(`  Due: ${new Date(task.due).toLocaleDateString()}`);
-      if (task.completed) output.log(`  Completed: ${new Date(task.completed).toLocaleString()}`);
-      if (task.parent) output.log(`  Parent: ${task.parent}`);
-      if (task.updated) output.log(`  Updated: ${new Date(task.updated).toLocaleString()}`);
+      output.info(`${status} ${task.title}\n`);
+      output.info(`  ID: ${task.id}`);
+      output.info(`  Status: ${task.status}`);
+      if (task.notes) output.info(`  Notes: ${task.notes}`);
+      if (task.due) output.info(`  Due: ${new Date(task.due).toLocaleDateString()}`);
+      if (task.completed) output.info(`  Completed: ${new Date(task.completed).toLocaleString()}`);
+      if (task.parent) output.info(`  Parent: ${task.parent}`);
+      if (task.updated) output.info(`  Updated: ${new Date(task.updated).toLocaleString()}`);
     } catch (error) {
       spinner.fail('Failed to fetch task');
       throw error;

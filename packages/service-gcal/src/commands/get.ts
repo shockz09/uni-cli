@@ -41,39 +41,39 @@ export const getCommand: Command = {
         return;
       }
 
-      output.log(`Event: ${event.summary}\n`);
-      output.log(`  ID: ${event.id}`);
-      output.log(`  Status: ${event.status}`);
+      output.info(`Event: ${event.summary}\n`);
+      output.info(`  ID: ${event.id}`);
+      output.info(`  Status: ${event.status}`);
 
       const start = event.start.dateTime || event.start.date;
       const end = event.end.dateTime || event.end.date;
-      if (start) output.log(`  Start: ${new Date(start).toLocaleString()}`);
-      if (end) output.log(`  End: ${new Date(end).toLocaleString()}`);
+      if (start) output.info(`  Start: ${new Date(start).toLocaleString()}`);
+      if (end) output.info(`  End: ${new Date(end).toLocaleString()}`);
 
-      if (event.location) output.log(`  Location: ${event.location}`);
-      if (event.description) output.log(`  Description: ${event.description}`);
+      if (event.location) output.info(`  Location: ${event.location}`);
+      if (event.description) output.info(`  Description: ${event.description}`);
 
       if (event.attendees && event.attendees.length > 0) {
-        output.log(`\n  Attendees (${event.attendees.length}):`);
+        output.info(`\n  Attendees (${event.attendees.length}):`);
         for (const attendee of event.attendees) {
           const status = attendee.responseStatus || 'pending';
           const organizer = attendee.organizer ? ' (organizer)' : '';
-          output.log(`    - ${attendee.email} [${status}]${organizer}`);
+          output.info(`    - ${attendee.email} [${status}]${organizer}`);
         }
       }
 
       if (event.recurrence) {
-        output.log(`\n  Recurrence: ${event.recurrence.join(', ')}`);
+        output.info(`\n  Recurrence: ${event.recurrence.join(', ')}`);
       }
 
       if (event.reminders?.overrides) {
-        output.log(`\n  Reminders:`);
+        output.info(`\n  Reminders:`);
         for (const r of event.reminders.overrides) {
-          output.log(`    - ${r.method}: ${r.minutes} minutes before`);
+          output.info(`    - ${r.method}: ${r.minutes} minutes before`);
         }
       }
 
-      output.log(`\n  Link: ${event.htmlLink}`);
+      output.info(`\n  Link: ${event.htmlLink}`);
     } catch (error) {
       spinner.fail('Failed to fetch event');
       throw error;

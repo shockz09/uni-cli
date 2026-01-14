@@ -39,7 +39,7 @@ export const groupsCommand: Command = {
         const group = await gcontacts.createGroup(flags.create as string);
         spinner.success(`Created group: ${group.name}`);
         if (globalFlags.json) output.json(group);
-        else output.log(`  Resource: ${group.resourceName}`);
+        else output.info(`  Resource: ${group.resourceName}`);
         return;
       } catch (error) {
         spinner.fail('Failed to create group');
@@ -98,15 +98,15 @@ export const groupsCommand: Command = {
       }
 
       if (groups.length === 0) {
-        output.log('No contact groups found.');
+        output.info('No contact groups found.');
         return;
       }
 
-      output.log(`Contact Groups (${groups.length}):\n`);
+      output.info(`Contact Groups (${groups.length}):\n`);
       for (const group of groups) {
         const count = group.memberCount !== undefined ? ` (${group.memberCount} members)` : '';
-        output.log(`  ${group.name}${count}`);
-        output.log(`    ${group.resourceName}`);
+        output.info(`  ${group.name}${count}`);
+        output.info(`    ${group.resourceName}`);
       }
     } catch (error) {
       spinner.fail('Failed to fetch groups');

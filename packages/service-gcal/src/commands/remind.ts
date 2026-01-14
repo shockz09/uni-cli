@@ -70,9 +70,9 @@ export const remindCommand: Command = {
         return;
       }
 
-      output.log('\nReminders set:');
+      output.info('\nReminders set:');
       for (const r of reminders) {
-        output.log(`  - ${r.method}: ${r.minutes} minutes before`);
+        output.info(`  - ${r.method}: ${r.minutes} minutes before`);
       }
     } catch (error) {
       spinner.fail('Failed to set reminders');

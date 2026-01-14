@@ -73,10 +73,10 @@ export const draftCommand: Command = {
         const subject = gmail.getHeader(draft.message, 'Subject') || 'No Subject';
         const body = gmail.decodeBody(draft.message);
 
-        output.log(`Draft: ${draft.id}\n`);
-        output.log(`To: ${to}`);
-        output.log(`Subject: ${subject}`);
-        output.log(`\n${body}`);
+        output.info(`Draft: ${draft.id}\n`);
+        output.info(`To: ${to}`);
+        output.info(`Subject: ${subject}`);
+        output.info(`\n${body}`);
         return;
       } catch (error) {
         spinner.fail('Failed to fetch draft');
@@ -124,15 +124,15 @@ export const draftCommand: Command = {
       }
 
       if (drafts.length === 0) {
-        output.log('No drafts found.');
+        output.info('No drafts found.');
         return;
       }
 
-      output.log(`Found ${drafts.length} draft(s):\n`);
+      output.info(`Found ${drafts.length} draft(s):\n`);
       for (const draft of drafts) {
-        output.log(`  ID: ${draft.id}`);
-        output.log(`  Message ID: ${draft.message.id}`);
-        output.log('');
+        output.info(`  ID: ${draft.id}`);
+        output.info(`  Message ID: ${draft.message.id}`);
+        output.info('');
       }
     } catch (error) {
       spinner.fail('Failed to fetch drafts');

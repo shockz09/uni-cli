@@ -40,21 +40,21 @@ export const getCommand: Command = {
       const start = meeting.start.dateTime || meeting.start.date;
       const end = meeting.end.dateTime || meeting.end.date;
 
-      output.log(`Meeting: ${meeting.summary}\n`);
-      output.log(`  ID: ${meeting.id}`);
-      if (start) output.log(`  Start: ${new Date(start).toLocaleString()}`);
-      if (end) output.log(`  End: ${new Date(end).toLocaleString()}`);
-      if (meetLink) output.log(`  Meet Link: ${meetLink}`);
+      output.info(`Meeting: ${meeting.summary}\n`);
+      output.info(`  ID: ${meeting.id}`);
+      if (start) output.info(`  Start: ${new Date(start).toLocaleString()}`);
+      if (end) output.info(`  End: ${new Date(end).toLocaleString()}`);
+      if (meetLink) output.info(`  Meet Link: ${meetLink}`);
 
       if (meeting.attendees && meeting.attendees.length > 0) {
-        output.log(`\n  Attendees (${meeting.attendees.length}):`);
+        output.info(`\n  Attendees (${meeting.attendees.length}):`);
         for (const a of meeting.attendees) {
           const status = a.responseStatus || 'pending';
-          output.log(`    - ${a.email} [${status}]`);
+          output.info(`    - ${a.email} [${status}]`);
         }
       }
 
-      if (meeting.htmlLink) output.log(`\n  Calendar: ${meeting.htmlLink}`);
+      if (meeting.htmlLink) output.info(`\n  Calendar: ${meeting.htmlLink}`);
     } catch (error) {
       spinner.fail('Failed to fetch meeting');
       throw error;

@@ -40,14 +40,14 @@ export const exportCommand: Command = {
       }
 
       if (responses.length === 0) {
-        output.log('No responses found.');
+        output.info('No responses found.');
         return;
       }
 
       // Build CSV header from questions
       const questions = form.items?.filter(i => i.questionItem).map(i => i.title || 'Question') || [];
       const header = ['Timestamp', 'Email', ...questions];
-      output.log(header.map(h => `"${h}"`).join(','));
+      output.info(header.map(h => `"${h}"`).join(','));
 
       // Output each response as CSV row
       for (const response of responses) {
@@ -66,7 +66,7 @@ export const exportCommand: Command = {
           }
         }
 
-        output.log(row.map(v => `"${v}"`).join(','));
+        output.info(row.map(v => `"${v}"`).join(','));
       }
     } catch (error) {
       spinner.fail('Failed to export responses');

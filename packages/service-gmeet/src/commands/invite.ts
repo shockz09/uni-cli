@@ -40,15 +40,15 @@ export const inviteCommand: Command = {
         return;
       }
 
-      output.log(`Attendees for: ${meeting.summary}\n`);
+      output.info(`Attendees for: ${meeting.summary}\n`);
       if (!meeting.attendees || meeting.attendees.length === 0) {
-        output.log('  No attendees');
+        output.info('  No attendees');
         return;
       }
 
       for (const a of meeting.attendees) {
         const status = a.responseStatus || 'pending';
-        output.log(`  - ${a.email} [${status}]`);
+        output.info(`  - ${a.email} [${status}]`);
       }
       return;
     }

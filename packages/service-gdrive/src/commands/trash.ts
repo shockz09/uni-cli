@@ -46,15 +46,15 @@ export const trashCommand: Command = {
         }
 
         if (files.length === 0) {
-          output.log('Trash is empty.');
+          output.info('Trash is empty.');
           return;
         }
 
-        output.log(`Trash (${files.length} files):\n`);
+        output.info(`Trash (${files.length} files):\n`);
         for (const file of files) {
           const icon = gdrive.getMimeIcon(file.mimeType);
-          output.log(`  ${icon} ${file.name}`);
-          output.log(`    ID: ${file.id}`);
+          output.info(`  ${icon} ${file.name}`);
+          output.info(`    ID: ${file.id}`);
         }
         return;
       } catch (error) {
