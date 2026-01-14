@@ -193,3 +193,87 @@ export async function getPostById(postId: string): Promise<{ post: RedditPost; c
     return null;
   }
 }
+
+export interface RedditUser {
+  name: string;
+  created: string;
+  linkKarma: number;
+  commentKarma: number;
+  totalKarma: number;
+  isGold: boolean;
+  isMod: boolean;
+  description?: string;
+}
+
+export interface RedditSubreddit {
+  name: string;
+  title: string;
+  description: string;
+  subscribers: number;
+  activeUsers: number;
+  created: string;
+  isNsfw: boolean;
+  url: string;
+}
+
+export async function getUserInfo(username: string): Promise<RedditUser> {
+  const path = `/user/${username}/about`;
+  const data = await fetchReddit(path) as Record<string, unknown>;
+  const d = data.data as Record<string, unknown>;
+
+  return {
+    name: d.name as string,
+    created: new Date((d.created_utc as number) * 1000).toISOString(),
+    linkKarma: d.link_karma as number,
+    commentKarma: d.comment_karma as number,
+    totalKarma: (d.total_karma as number) || ((d.link_karma as number) + (d.comment_karma as number)),
+    isGold: d.is_gold as boolean,
+    isMod: d.is_mod as boolean,
+    description: d.subreddit?.public_description as string | undefined,
+  };
+}
+
+export async function getUserPosts(
+  username: string,
+  sort: 'new' | 'hot' | 'top' = 'new',
+  limit = 10
+): Promise<RedditPost[]> {
+  const path = `/user/${username}/submitted/${sort}.json?limit=${limit}`;
+  const data = await fetchRedditRaw(path) as Record<string, unknown>;
+  const listing = data.data as Record<string, unknown>;
+  const children = listing.children as Record<string, unknown>[];
+
+  return children.map(parsePost);
+}
+
+export async function getUserComments(
+  username: string,
+  sort: 'new' | 'hot' | 'top' = 'new',
+  limit = 10
+): Promise<RedditComment[]> {
+  const path = `/user/${username}/comments/${sort}.json?limit=${limit}`;
+  const data = await fetchRedditRaw(path) as Record<string, unknown>;
+  const listing = data.data as Record<string, unknown>;
+  const children = listing.children as Record<string, unknown>[];
+
+  return children
+    .map((c) => parseComment(c))
+    .filter((c): c is RedditComment => c !== null);
+}
+
+export async function getSubredditInfo(subreddit: string): Promise<RedditSubreddit> {
+  const path = `/r/${subreddit}/about`;
+  const data = await fetchReddit(path) as Record<string, unknown>;
+  const d = data.data as Record<string, unknown>;
+
+  return {
+    name: d.display_name as string,
+    title: d.title as string,
+    description: (d.public_description as string) || (d.description as string) || '',
+    subscribers: d.subscribers as number,
+    activeUsers: d.active_user_count as number || 0,
+    created: new Date((d.created_utc as number) * 1000).toISOString(),
+    isNsfw: d.over18 as boolean,
+    url: `https://reddit.com/r/${d.display_name as string}`,
+  };
+}

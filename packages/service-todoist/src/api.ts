@@ -231,6 +231,73 @@ export class TodoistClient {
   async deleteComment(commentId: string): Promise<void> {
     await this.request<void>(`/comments/${commentId}`, { method: 'DELETE' });
   }
+
+  // ========== Sections ==========
+
+  async listSections(projectId?: string): Promise<Section[]> {
+    const params = projectId ? `?project_id=${projectId}` : '';
+    return this.request<Section[]>(`/sections${params}`);
+  }
+
+  async getSection(sectionId: string): Promise<Section> {
+    return this.request<Section>(`/sections/${sectionId}`);
+  }
+
+  async createSection(input: {
+    project_id: string;
+    name: string;
+    order?: number;
+  }): Promise<Section> {
+    return this.request<Section>('/sections', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+  }
+
+  async updateSection(sectionId: string, name: string): Promise<Section> {
+    return this.request<Section>(`/sections/${sectionId}`, {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+  }
+
+  async deleteSection(sectionId: string): Promise<void> {
+    await this.request<void>(`/sections/${sectionId}`, { method: 'DELETE' });
+  }
+
+  // ========== Shared Labels ==========
+
+  async getLabel(labelId: string): Promise<Label> {
+    return this.request<Label>(`/labels/${labelId}`);
+  }
+
+  async updateLabel(labelId: string, input: {
+    name?: string;
+    color?: string;
+    is_favorite?: boolean;
+  }): Promise<Label> {
+    return this.request<Label>(`/labels/${labelId}`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+  }
+
+  // ========== Quick Add ==========
+
+  async quickAddTask(text: string): Promise<Task> {
+    // Uses natural language processing for due dates etc.
+    return this.request<Task>('/tasks', {
+      method: 'POST',
+      body: JSON.stringify({ content: text }),
+    });
+  }
+}
+
+export interface Section {
+  id: string;
+  project_id: string;
+  order: number;
+  name: string;
 }
 
 export const todoist = new TodoistClient();

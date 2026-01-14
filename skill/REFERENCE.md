@@ -1019,6 +1019,90 @@ uni linear comments add ENG-123 "Needs more investigation"
 
 ---
 
+### `uni linear cycles`
+
+List and view cycles/sprints
+
+**Aliases:** `cycle`, `sprint`, `sprints`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--team` | -t | string |  | Filter by team ID |
+| `--current` | -c | boolean |  | Show current active cycle only |
+| `--limit` | -n | string |  | Number of cycles (default: 10) |
+
+**Examples:**
+
+```bash
+uni linear cycles
+uni linear cycles --team TEAM_ID
+uni linear cycles --current --team TEAM_ID
+uni linear cycles --limit 5
+```
+
+---
+
+### `uni linear labels`
+
+List, create, and manage labels
+
+**Aliases:** `label`, `tag`, `tags`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--team` | -t | string |  | Filter by team ID |
+| `--create` | -c | string |  | Create a new label (name) |
+| `--color` |  | string |  | Label color for creation (hex without #) |
+| `--description` | -d | string |  | Label description |
+| `--add-to` | -a | string |  | Add label to issue (issue ID) |
+| `--label` | -l | string |  | Label ID for add-to operation |
+
+**Examples:**
+
+```bash
+uni linear labels
+uni linear labels --team TEAM_ID
+uni linear labels --create "Bug" --team TEAM_ID --color "ff0000"
+uni linear labels --add-to ISSUE_ID --label LABEL_ID
+```
+
+---
+
+### `uni linear attachments`
+
+List, add, and remove attachments from issues
+
+**Aliases:** `attachment`, `attach`, `files`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `issueId` | Yes | Issue ID or identifier |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--add` | -a | string |  | Add attachment (URL) |
+| `--title` | -t | string |  | Attachment title |
+| `--delete` | -d | string |  | Delete attachment by ID |
+
+**Examples:**
+
+```bash
+uni linear attachments ENG-123
+uni linear attachments ENG-123 --add "https://example.com/doc.pdf"
+uni linear attachments ENG-123 --add "https://figma.com/..." --title "Design mockup"
+uni linear attachments ENG-123 --delete ATTACHMENT_ID
+```
+
+---
+
 ## uni 0x0
 
 0x0.st - The null pointer
@@ -1186,6 +1270,94 @@ Research a company
 uni exa company "Anthropic"
 uni exa company "OpenAI" --num 10
 uni exa company "Stripe"
+```
+
+---
+
+### `uni exa similar`
+
+Find content similar to a given URL
+
+**Aliases:** `like`, `related`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `url` | Yes | URL to find similar content for |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--num` | -n | string |  | Number of results (default: 5) |
+| `--include` | -i | string |  | Include domains (comma-separated) |
+| `--exclude` | -e | string |  | Exclude domains (comma-separated) |
+
+**Examples:**
+
+```bash
+uni exa similar "https://example.com/article"
+uni exa similar "https://blog.com/post" --num 10
+uni exa similar "https://news.com/story" --exclude "reddit.com,twitter.com"
+```
+
+---
+
+### `uni exa crawl`
+
+Extract and read content from a URL
+
+**Aliases:** `extract`, `fetch`, `contents`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `url` | Yes | URL to extract content from |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--chars` | -c | string |  | Max characters to extract (default: 10000) |
+
+**Examples:**
+
+```bash
+uni exa crawl "https://example.com/article"
+uni exa crawl "https://blog.com/post" --chars 5000
+uni exa crawl "https://docs.example.com/guide"
+```
+
+---
+
+### `uni exa news`
+
+Search for recent news articles
+
+**Aliases:** `headlines`, `recent`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | News topic to search |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--num` | -n | string |  | Number of results (default: 10) |
+| `--days` | -d | string |  | Days back to search (default: 7) |
+
+**Examples:**
+
+```bash
+uni exa news "AI developments"
+uni exa news "tech layoffs" --num 20
+uni exa news "cryptocurrency" --days 3
+uni exa news "climate change" --days 30 --num 15
 ```
 
 ---
@@ -2605,6 +2777,112 @@ uni reddit post 1abc2de
 
 ---
 
+### `uni reddit user`
+
+View a Reddit user profile and activity
+
+**Aliases:** `u`, `profile`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `username` | Yes | Reddit username |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--posts` | -p | boolean |  | Show recent posts |
+| `--comments` | -c | boolean |  | Show recent comments |
+| `--limit` | -n | string |  | Number of items (default: 5) |
+
+**Examples:**
+
+```bash
+uni reddit user spez
+uni reddit user spez --posts
+uni reddit user spez --comments --limit 10
+```
+
+---
+
+### `uni reddit subreddit`
+
+View subreddit information
+
+**Aliases:** `sub`, `info`, `about`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `subreddit` | Yes | Subreddit name (without r/) |
+
+**Examples:**
+
+```bash
+uni reddit subreddit programming
+uni reddit subreddit AskReddit
+uni reddit sub rust
+```
+
+---
+
+### `uni reddit comments`
+
+View comments on a Reddit post
+
+**Aliases:** `c`, `discussion`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `postId` | Yes | Post ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | string |  | Number of top-level comments to show |
+
+**Examples:**
+
+```bash
+uni reddit comments 1abc2de
+uni reddit comments 1abc2de --limit 20
+```
+
+---
+
+### `uni reddit rising`
+
+Get rising posts from a subreddit
+
+**Aliases:** `rise`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `subreddit` | Yes | Subreddit name (without r/) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | string |  | Number of posts (default: 10) |
+
+**Examples:**
+
+```bash
+uni reddit rising programming
+uni reddit rising AskReddit -n 20
+```
+
+---
+
 ## uni gmeet
 
 Google Meet - video meetings
@@ -3297,6 +3575,132 @@ uni notion databases query abc123 --limit 50
 
 ---
 
+### `uni notion create`
+
+Create a new page
+
+**Aliases:** `new`, `add`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Page title |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--parent` | -p | string |  | Parent page ID |
+| `--database` | -d | string |  | Database ID to add to |
+| `--content` | -c | string |  | Initial content (paragraph) |
+
+**Examples:**
+
+```bash
+uni notion create "Meeting Notes"
+uni notion create "New Task" --database abc123
+uni notion create "Ideas" --parent xyz789 --content "Initial thoughts here"
+```
+
+---
+
+### `uni notion update`
+
+Update page properties or archive
+
+**Aliases:** `edit`, `modify`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `pageId` | Yes | Page ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--archive` | -a | boolean |  | Archive the page |
+| `--unarchive` | -u | boolean |  | Unarchive the page |
+| `--title` | -t | string |  | Update title |
+
+**Examples:**
+
+```bash
+uni notion update abc123 --archive
+uni notion update abc123 --unarchive
+uni notion update abc123 --title "New Title"
+```
+
+---
+
+### `uni notion blocks`
+
+View and manage page content blocks
+
+**Aliases:** `block`, `content`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `pageId` | Yes | Page or block ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--add` | -a | string |  | Add a paragraph block |
+| `--heading` | -h | string |  | Add a heading block |
+| `--todo` |  | string |  | Add a todo block |
+| `--bullet` | -b | string |  | Add a bullet point |
+| `--delete` | -d | string |  | Delete a block by ID |
+| `--level` | -l | string |  | Heading level 1-3 (default: 1) |
+
+**Examples:**
+
+```bash
+uni notion blocks abc123
+uni notion blocks abc123 --add "New paragraph text"
+uni notion blocks abc123 --heading "New Section" --level 2
+uni notion blocks abc123 --todo "Task to complete"
+uni notion blocks abc123 --bullet "List item"
+uni notion blocks abc123 --delete block-id-123
+```
+
+---
+
+### `uni notion append`
+
+Quickly append text to a page
+
+**Aliases:** `write`, `add-content`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `pageId` | Yes | Page ID |
+| `content` | Yes | Text content to append |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--type` | -t | string |  | Block type: paragraph, heading, todo, bullet (default: paragraph) |
+
+**Examples:**
+
+```bash
+uni notion append abc123 "New note content"
+uni notion append abc123 "Important Task" --type todo
+uni notion append abc123 "Section Title" --type heading
+uni notion append abc123 "List item" --type bullet
+```
+
+---
+
 ## uni arxiv
 
 arXiv paper search (free)
@@ -3547,6 +3951,154 @@ Get user info
 
 ```bash
 uni slack users info U01234567
+```
+
+---
+
+### `uni slack threads`
+
+Get thread replies
+
+**Aliases:** `thread`, `replies`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `channel` | Yes | Channel name or ID |
+| `threadTs` | Yes | Thread timestamp |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | string |  | Number of replies (default: 20) |
+
+**Examples:**
+
+```bash
+uni slack threads general 1234567890.123456
+uni slack threads C01234567 1234567890.123456 --limit 50
+```
+
+---
+
+### `uni slack reactions`
+
+Add or remove reactions from messages
+
+**Aliases:** `react`, `emoji`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `channel` | Yes | Channel name or ID |
+| `timestamp` | Yes | Message timestamp |
+| `emoji` | Yes | Emoji name (without colons) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--remove` | -r | boolean |  | Remove reaction instead of adding |
+
+**Examples:**
+
+```bash
+uni slack reactions general 1234567890.123456 thumbsup
+uni slack reactions C01234567 1234567890.123456 fire
+uni slack reactions general 1234567890.123456 thumbsup --remove
+```
+
+---
+
+### `uni slack pins`
+
+Pin, unpin, or list pinned messages
+
+**Aliases:** `pin`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `channel` | Yes | Channel name or ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--add` | -a | string |  | Pin a message (timestamp) |
+| `--remove` | -r | string |  | Unpin a message (timestamp) |
+
+**Examples:**
+
+```bash
+uni slack pins general
+uni slack pins general --add 1234567890.123456
+uni slack pins general --remove 1234567890.123456
+```
+
+---
+
+### `uni slack search`
+
+Search messages (requires user token)
+
+**Aliases:** `find`, `query`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Search query |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | string |  | Number of results (default: 20) |
+
+**Examples:**
+
+```bash
+uni slack search "deployment"
+uni slack search "from:@john bug" --limit 50
+uni slack search "in:#general meeting"
+```
+
+---
+
+### `uni slack schedule`
+
+Schedule messages for later
+
+**Aliases:** `later`, `timer`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `channel` | Yes | Channel name or ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--message` | -m | string |  | Message to schedule |
+| `--time` | -t | string |  | Unix timestamp or relative time (e.g., "+1h", "+30m") |
+| `--list` | -l | boolean |  | List scheduled messages |
+| `--delete` | -d | string |  | Delete a scheduled message by ID |
+| `--thread` |  | string |  | Thread timestamp for threaded reply |
+
+**Examples:**
+
+```bash
+uni slack schedule general --list
+uni slack schedule general --message "Good morning!" --time "+1h"
+uni slack schedule general -m "Reminder" -t 1700000000
+uni slack schedule general --delete Q1234567890
 ```
 
 ---
@@ -7324,6 +7876,142 @@ Add a comment to a task
 
 ```bash
 uni todoist comments add "Buy groceries" "Remember to get organic"
+```
+
+---
+
+### `uni todoist sections`
+
+List and manage sections within projects
+
+**Aliases:** `section`, `sec`
+
+**Examples:**
+
+```bash
+uni todoist sections list
+uni todoist sections create "In Progress" --project PROJECT_ID
+uni todoist sections delete SECTION_ID
+```
+
+**Subcommands:**
+
+#### `uni todoist sections list`
+
+List sections
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--project` | -p | string | Filter by project ID |
+
+```bash
+uni todoist sections list
+uni todoist sections list --project PROJECT_ID
+```
+
+#### `uni todoist sections create`
+
+Create a section
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | Section name |
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--project` | -p | string | Project ID |
+
+```bash
+uni todoist sections create "In Progress" --project PROJECT_ID
+```
+
+#### `uni todoist sections delete`
+
+Delete a section
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `id` | Yes | Section ID |
+
+```bash
+uni todoist sections delete SECTION_ID
+```
+
+---
+
+### `uni todoist quick`
+
+Quick add a task using natural language
+
+**Aliases:** `q`, `add-quick`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `text` | Yes | Task with natural language due date |
+
+**Examples:**
+
+```bash
+uni todoist quick "Buy milk tomorrow"
+uni todoist quick "Call mom every monday at 10am"
+uni todoist quick "Submit report friday #work @urgent"
+uni todoist quick "Meeting next wednesday at 2pm"
+```
+
+---
+
+### `uni todoist due`
+
+View tasks by due date filter
+
+**Aliases:** `today`, `upcoming`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--filter` | -f | string |  | Filter: today, tomorrow, week, overdue |
+| `--project` | -p | string |  | Filter by project ID |
+
+**Examples:**
+
+```bash
+uni todoist due
+uni todoist due --filter today
+uni todoist due --filter tomorrow
+uni todoist due --filter overdue
+uni todoist due --filter week --project PROJECT_ID
+```
+
+---
+
+### `uni todoist move`
+
+Move a task to a different project or section
+
+**Aliases:** `mv`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `taskId` | Yes | Task ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--project` | -p | string |  | Target project ID |
+| `--section` | -s | string |  | Target section ID |
+
+**Examples:**
+
+```bash
+uni todoist move TASK_ID --project PROJECT_ID
+uni todoist move TASK_ID --section SECTION_ID
+uni todoist move TASK_ID --project PROJECT_ID --section SECTION_ID
 ```
 
 ---

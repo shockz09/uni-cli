@@ -18,6 +18,9 @@ import { issuesCommand } from './commands/issues';
 import { projectsCommand } from './commands/projects';
 import { teamsCommand } from './commands/teams';
 import { commentsCommand } from './commands/comments';
+import { cyclesCommand } from './commands/cycles';
+import { labelsCommand } from './commands/labels';
+import { attachmentsCommand } from './commands/attachments';
 import { linearOAuth } from './api';
 
 const linearService: UniService = {
@@ -25,7 +28,16 @@ const linearService: UniService = {
   description: 'Linear - issues, projects, and teams',
   version: '0.1.0',
 
-  commands: [authCommand, issuesCommand, projectsCommand, teamsCommand, commentsCommand],
+  commands: [
+    authCommand,
+    issuesCommand,
+    projectsCommand,
+    teamsCommand,
+    commentsCommand,
+    cyclesCommand,
+    labelsCommand,
+    attachmentsCommand,
+  ],
 
   auth: {
     type: 'oauth',

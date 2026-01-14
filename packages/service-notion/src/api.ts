@@ -236,6 +236,118 @@ export class NotionClient {
 
     return '';
   }
+
+  /**
+   * Update page properties
+   */
+  async updatePage(
+    pageId: string,
+    properties: Record<string, unknown>,
+    archived?: boolean
+  ): Promise<Page> {
+    const body: Record<string, unknown> = { properties };
+    if (archived !== undefined) body.archived = archived;
+
+    return this.request<Page>(`/pages/${pageId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Archive/unarchive a page
+   */
+  async archivePage(pageId: string, archived = true): Promise<Page> {
+    return this.request<Page>(`/pages/${pageId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ archived }),
+    });
+  }
+
+  /**
+   * Append blocks to a page
+   */
+  async appendBlocks(pageId: string, blocks: unknown[]): Promise<Block[]> {
+    const response = await this.request<{ results: Block[] }>(
+      `/blocks/${pageId}/children`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ children: blocks }),
+      }
+    );
+    return response.results || [];
+  }
+
+  /**
+   * Delete (archive) a block
+   */
+  async deleteBlock(blockId: string): Promise<void> {
+    await this.request(`/blocks/${blockId}`, { method: 'DELETE' });
+  }
+
+  /**
+   * Update a block
+   */
+  async updateBlock(blockId: string, content: Record<string, unknown>): Promise<Block> {
+    return this.request<Block>(`/blocks/${blockId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(content),
+    });
+  }
+
+  /**
+   * Create a text block helper
+   */
+  createParagraphBlock(text: string): Record<string, unknown> {
+    return {
+      object: 'block',
+      type: 'paragraph',
+      paragraph: {
+        rich_text: [{ type: 'text', text: { content: text } }],
+      },
+    };
+  }
+
+  /**
+   * Create a heading block helper
+   */
+  createHeadingBlock(text: string, level: 1 | 2 | 3 = 1): Record<string, unknown> {
+    const type = `heading_${level}` as const;
+    return {
+      object: 'block',
+      type,
+      [type]: {
+        rich_text: [{ type: 'text', text: { content: text } }],
+      },
+    };
+  }
+
+  /**
+   * Create a todo block helper
+   */
+  createTodoBlock(text: string, checked = false): Record<string, unknown> {
+    return {
+      object: 'block',
+      type: 'to_do',
+      to_do: {
+        rich_text: [{ type: 'text', text: { content: text } }],
+        checked,
+      },
+    };
+  }
+
+  /**
+   * Create a bulleted list item block helper
+   */
+  createBulletBlock(text: string): Record<string, unknown> {
+    return {
+      object: 'block',
+      type: 'bulleted_list_item',
+      bulleted_list_item: {
+        rich_text: [{ type: 'text', text: { content: text } }],
+      },
+    };
+  }
 }
 
 export const notion = new NotionClient();

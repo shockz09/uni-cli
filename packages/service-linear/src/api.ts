@@ -343,6 +343,192 @@ export class LinearClient {
 
     return data.issues.nodes.slice(0, limit);
   }
+
+  // ============================================
+  // CYCLES
+  // ============================================
+
+  async listCycles(teamId?: string, limit = 20): Promise<Cycle[]> {
+    const filter = teamId ? { team: { id: { eq: teamId } } } : undefined;
+
+    const data = await this.query<{ cycles: { nodes: Cycle[] } }>(`
+      query Cycles($first: Int, $filter: CycleFilter) {
+        cycles(first: $first, filter: $filter, orderBy: createdAt) {
+          nodes {
+            id
+            name
+            number
+            startsAt
+            endsAt
+            progress
+            completedIssueCountHistory
+            team { name key }
+          }
+        }
+      }
+    `, { first: limit, filter });
+
+    return data.cycles.nodes;
+  }
+
+  async getCurrentCycle(teamId: string): Promise<Cycle | null> {
+    const data = await this.query<{ cycles: { nodes: Cycle[] } }>(`
+      query CurrentCycle($teamId: String!) {
+        cycles(first: 1, filter: { team: { id: { eq: $teamId } }, isActive: { eq: true } }) {
+          nodes {
+            id
+            name
+            number
+            startsAt
+            endsAt
+            progress
+            team { name key }
+          }
+        }
+      }
+    `, { teamId });
+
+    return data.cycles.nodes[0] || null;
+  }
+
+  // ============================================
+  // LABELS
+  // ============================================
+
+  async listLabels(teamId?: string): Promise<Label[]> {
+    const filter = teamId ? { team: { id: { eq: teamId } } } : undefined;
+
+    const data = await this.query<{ issueLabels: { nodes: Label[] } }>(`
+      query Labels($filter: IssueLabelFilter) {
+        issueLabels(filter: $filter) {
+          nodes {
+            id
+            name
+            color
+            description
+            team { name key }
+          }
+        }
+      }
+    `, { filter });
+
+    return data.issueLabels.nodes;
+  }
+
+  async createLabel(input: { teamId: string; name: string; color?: string; description?: string }): Promise<Label> {
+    const data = await this.query<{ issueLabelCreate: { success: boolean; issueLabel: Label } }>(`
+      mutation CreateLabel($input: IssueLabelCreateInput!) {
+        issueLabelCreate(input: $input) {
+          success
+          issueLabel {
+            id
+            name
+            color
+            description
+          }
+        }
+      }
+    `, { input });
+
+    return data.issueLabelCreate.issueLabel;
+  }
+
+  async addLabelToIssue(issueId: string, labelId: string): Promise<Issue> {
+    const data = await this.query<{ issueUpdate: { success: boolean; issue: Issue } }>(`
+      mutation AddLabel($id: String!, $labelIds: [String!]!) {
+        issueUpdate(id: $id, input: { labelIds: $labelIds }) {
+          success
+          issue {
+            id
+            identifier
+            title
+            url
+          }
+        }
+      }
+    `, { id: issueId, labelIds: [labelId] });
+
+    return data.issueUpdate.issue;
+  }
+
+  // ============================================
+  // ATTACHMENTS
+  // ============================================
+
+  async listAttachments(issueId: string): Promise<Attachment[]> {
+    const data = await this.query<{ issue: { attachments: { nodes: Attachment[] } } }>(`
+      query IssueAttachments($id: String!) {
+        issue(id: $id) {
+          attachments {
+            nodes {
+              id
+              title
+              url
+              createdAt
+              creator { name }
+            }
+          }
+        }
+      }
+    `, { id: issueId });
+
+    return data.issue.attachments.nodes;
+  }
+
+  async createAttachment(issueId: string, url: string, title?: string): Promise<Attachment> {
+    const data = await this.query<{ attachmentCreate: { success: boolean; attachment: Attachment } }>(`
+      mutation CreateAttachment($input: AttachmentCreateInput!) {
+        attachmentCreate(input: $input) {
+          success
+          attachment {
+            id
+            title
+            url
+            createdAt
+          }
+        }
+      }
+    `, { input: { issueId, url, title: title || url } });
+
+    return data.attachmentCreate.attachment;
+  }
+
+  async deleteAttachment(attachmentId: string): Promise<void> {
+    await this.query(`
+      mutation DeleteAttachment($id: String!) {
+        attachmentDelete(id: $id) {
+          success
+        }
+      }
+    `, { id: attachmentId });
+  }
+}
+
+export interface Cycle {
+  id: string;
+  name?: string;
+  number: number;
+  startsAt: string;
+  endsAt: string;
+  progress: number;
+  completedIssueCountHistory?: number[];
+  team: { name: string; key: string };
+}
+
+export interface Label {
+  id: string;
+  name: string;
+  color: string;
+  description?: string;
+  team?: { name: string; key: string };
+}
+
+export interface Attachment {
+  id: string;
+  title: string;
+  url: string;
+  createdAt: string;
+  creator?: { name: string };
 }
 
 export const linear = new LinearClient();

@@ -214,6 +214,51 @@ export class ExaClient {
   }
 
   /**
+   * Find similar content to a URL
+   */
+  async findSimilar(url: string, options: SearchOptions = {}): Promise<ExaSearchResponse> {
+    const { numResults = 5, excludeDomains, includeDomains } = options;
+
+    const body: Record<string, unknown> = {
+      url,
+      numResults,
+      contents: {
+        text: true,
+      },
+    };
+
+    if (includeDomains?.length) body.includeDomains = includeDomains;
+    if (excludeDomains?.length) body.excludeDomains = excludeDomains;
+
+    const response = await this.request('/findSimilar', body);
+    return response as ExaSearchResponse;
+  }
+
+  /**
+   * Get contents/crawl a specific URL
+   */
+  async getContents(urls: string[], options: { maxCharacters?: number } = {}): Promise<ExaSearchResult[]> {
+    const { maxCharacters = 10000 } = options;
+
+    const response = await this.request('/contents', {
+      ids: urls,
+      text: {
+        maxCharacters,
+      },
+    });
+
+    return (response as { results: ExaSearchResult[] }).results || [];
+  }
+
+  /**
+   * Crawl and extract content from a URL
+   */
+  async crawl(url: string, maxCharacters = 10000): Promise<ExaSearchResult | null> {
+    const results = await this.getContents([url], { maxCharacters });
+    return results[0] || null;
+  }
+
+  /**
    * Make an API request
    */
   private async request(

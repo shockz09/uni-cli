@@ -190,6 +190,97 @@ export class SlackClient {
 
     return response.channel;
   }
+
+  /**
+   * Get thread replies
+   */
+  async getThreadReplies(channel: string, threadTs: string, limit = 20): Promise<Message[]> {
+    const response = await this.request<SlackResponse & { messages: Message[] }>(
+      'conversations.replies',
+      { channel, ts: threadTs, limit }
+    );
+
+    return response.messages || [];
+  }
+
+  /**
+   * Add reaction to a message
+   */
+  async addReaction(channel: string, timestamp: string, emoji: string): Promise<void> {
+    await this.request('reactions.add', { channel, timestamp, name: emoji });
+  }
+
+  /**
+   * Remove reaction from a message
+   */
+  async removeReaction(channel: string, timestamp: string, emoji: string): Promise<void> {
+    await this.request('reactions.remove', { channel, timestamp, name: emoji });
+  }
+
+  /**
+   * Pin a message
+   */
+  async pinMessage(channel: string, timestamp: string): Promise<void> {
+    await this.request('pins.add', { channel, timestamp });
+  }
+
+  /**
+   * Unpin a message
+   */
+  async unpinMessage(channel: string, timestamp: string): Promise<void> {
+    await this.request('pins.remove', { channel, timestamp });
+  }
+
+  /**
+   * List pinned messages
+   */
+  async listPins(channel: string): Promise<Array<{ message: Message }>> {
+    const response = await this.request<SlackResponse & { items: Array<{ message: Message }> }>(
+      'pins.list',
+      { channel }
+    );
+
+    return response.items || [];
+  }
+
+  /**
+   * Schedule a message
+   */
+  async scheduleMessage(
+    channel: string,
+    text: string,
+    postAt: number,
+    options: { thread_ts?: string } = {}
+  ): Promise<{ scheduled_message_id: string; post_at: number }> {
+    const response = await this.request<SlackResponse & { scheduled_message_id: string; post_at: number }>(
+      'chat.scheduleMessage',
+      { channel, text, post_at: postAt, ...options }
+    );
+
+    return { scheduled_message_id: response.scheduled_message_id, post_at: response.post_at };
+  }
+
+  /**
+   * List scheduled messages
+   */
+  async listScheduledMessages(channel?: string): Promise<Array<{ id: string; channel_id: string; post_at: number; text: string }>> {
+    const params: Record<string, string | number | boolean> = {};
+    if (channel) params.channel = channel;
+
+    const response = await this.request<SlackResponse & { scheduled_messages: Array<{ id: string; channel_id: string; post_at: number; text: string }> }>(
+      'chat.scheduledMessages.list',
+      params
+    );
+
+    return response.scheduled_messages || [];
+  }
+
+  /**
+   * Delete a scheduled message
+   */
+  async deleteScheduledMessage(channel: string, scheduledMessageId: string): Promise<void> {
+    await this.request('chat.deleteScheduledMessage', { channel, scheduled_message_id: scheduledMessageId });
+  }
 }
 
 export const slack = new SlackClient();

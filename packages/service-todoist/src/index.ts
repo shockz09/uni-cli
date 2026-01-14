@@ -18,6 +18,10 @@ import { tasksCommand } from './commands/tasks';
 import { projectsCommand } from './commands/projects';
 import { labelsCommand } from './commands/labels';
 import { commentsCommand } from './commands/comments';
+import { sectionsCommand } from './commands/sections';
+import { quickCommand } from './commands/quick';
+import { dueCommand } from './commands/due';
+import { moveCommand } from './commands/move';
 import { todoistOAuth } from './api';
 
 const todoistService: UniService = {
@@ -25,7 +29,17 @@ const todoistService: UniService = {
   description: 'Todoist - tasks, projects, labels, and comments',
   version: '0.1.0',
 
-  commands: [authCommand, tasksCommand, projectsCommand, labelsCommand, commentsCommand],
+  commands: [
+    authCommand,
+    tasksCommand,
+    projectsCommand,
+    labelsCommand,
+    commentsCommand,
+    sectionsCommand,
+    quickCommand,
+    dueCommand,
+    moveCommand,
+  ],
 
   auth: {
     type: 'oauth',

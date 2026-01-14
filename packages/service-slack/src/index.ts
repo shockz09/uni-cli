@@ -17,6 +17,11 @@ import { channelsCommand } from './commands/channels';
 import { messagesCommand } from './commands/messages';
 import { sendCommand } from './commands/send';
 import { usersCommand } from './commands/users';
+import { threadsCommand } from './commands/threads';
+import { reactionsCommand } from './commands/reactions';
+import { pinsCommand } from './commands/pins';
+import { searchCommand } from './commands/search';
+import { scheduleCommand } from './commands/schedule';
 import { slack } from './api';
 
 const slackService: UniService = {
@@ -24,7 +29,17 @@ const slackService: UniService = {
   description: 'Slack messaging - channels, messages, users',
   version: '0.1.0',
 
-  commands: [channelsCommand, messagesCommand, sendCommand, usersCommand],
+  commands: [
+    channelsCommand,
+    messagesCommand,
+    sendCommand,
+    usersCommand,
+    threadsCommand,
+    reactionsCommand,
+    pinsCommand,
+    searchCommand,
+    scheduleCommand,
+  ],
 
   auth: {
     type: 'token',

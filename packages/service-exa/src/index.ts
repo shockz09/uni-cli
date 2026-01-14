@@ -13,6 +13,9 @@ import { searchCommand } from './commands/search';
 import { codeCommand } from './commands/code';
 import { researchCommand } from './commands/research';
 import { companyCommand } from './commands/company';
+import { similarCommand } from './commands/similar';
+import { crawlCommand } from './commands/crawl';
+import { newsCommand } from './commands/news';
 
 const exaService: UniService = {
   name: 'exa',
@@ -24,6 +27,9 @@ const exaService: UniService = {
     codeCommand,
     researchCommand,
     companyCommand,
+    similarCommand,
+    crawlCommand,
+    newsCommand,
   ],
 
   auth: {
