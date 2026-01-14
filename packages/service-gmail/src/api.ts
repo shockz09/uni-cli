@@ -13,6 +13,7 @@ const SCOPES = [
   'https://www.googleapis.com/auth/gmail.readonly',
   'https://www.googleapis.com/auth/gmail.send',
   'https://www.googleapis.com/auth/gmail.modify',
+  'https://www.googleapis.com/auth/gmail.labels',
 ];
 
 interface EmailPart {
@@ -280,6 +281,244 @@ export class GmailClient extends GoogleAuthClient {
    */
   async deleteEmail(id: string): Promise<void> {
     await this.request(`/users/me/messages/${id}`, { method: 'DELETE' });
+  }
+
+  // ============================================
+  // LABELS
+  // ============================================
+
+  /**
+   * List all labels
+   */
+  async listLabels(): Promise<Array<{ id: string; name: string; type: string; messagesTotal?: number; messagesUnread?: number }>> {
+    const response = await this.request<{ labels: Array<{ id: string; name: string; type: string; messagesTotal?: number; messagesUnread?: number }> }>('/users/me/labels');
+    return response.labels || [];
+  }
+
+  /**
+   * Get label details
+   */
+  async getLabel(labelId: string): Promise<{ id: string; name: string; type: string; messagesTotal?: number; messagesUnread?: number }> {
+    return this.request(`/users/me/labels/${labelId}`);
+  }
+
+  /**
+   * Create a label
+   */
+  async createLabel(name: string): Promise<{ id: string; name: string }> {
+    return this.request('/users/me/labels', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+  }
+
+  /**
+   * Delete a label
+   */
+  async deleteLabel(labelId: string): Promise<void> {
+    await this.request(`/users/me/labels/${labelId}`, { method: 'DELETE' });
+  }
+
+  /**
+   * Add labels to message
+   */
+  async addLabels(messageId: string, labelIds: string[]): Promise<void> {
+    await this.request(`/users/me/messages/${messageId}/modify`, {
+      method: 'POST',
+      body: JSON.stringify({ addLabelIds: labelIds }),
+    });
+  }
+
+  /**
+   * Remove labels from message
+   */
+  async removeLabels(messageId: string, labelIds: string[]): Promise<void> {
+    await this.request(`/users/me/messages/${messageId}/modify`, {
+      method: 'POST',
+      body: JSON.stringify({ removeLabelIds: labelIds }),
+    });
+  }
+
+  // ============================================
+  // MESSAGE OPERATIONS
+  // ============================================
+
+  /**
+   * Mark message as read
+   */
+  async markAsRead(messageId: string): Promise<void> {
+    await this.removeLabels(messageId, ['UNREAD']);
+  }
+
+  /**
+   * Mark message as unread
+   */
+  async markAsUnread(messageId: string): Promise<void> {
+    await this.addLabels(messageId, ['UNREAD']);
+  }
+
+  /**
+   * Star a message
+   */
+  async starMessage(messageId: string): Promise<void> {
+    await this.addLabels(messageId, ['STARRED']);
+  }
+
+  /**
+   * Unstar a message
+   */
+  async unstarMessage(messageId: string): Promise<void> {
+    await this.removeLabels(messageId, ['STARRED']);
+  }
+
+  /**
+   * Archive a message (remove from INBOX)
+   */
+  async archiveMessage(messageId: string): Promise<void> {
+    await this.removeLabels(messageId, ['INBOX']);
+  }
+
+  /**
+   * Unarchive a message (move back to INBOX)
+   */
+  async unarchiveMessage(messageId: string): Promise<void> {
+    await this.addLabels(messageId, ['INBOX']);
+  }
+
+  // ============================================
+  // DRAFTS
+  // ============================================
+
+  /**
+   * Create a draft
+   */
+  async createDraft(to: string, subject: string, body: string): Promise<{ id: string; message: { id: string } }> {
+    const raw = this.createRawEmail(to, subject, body);
+    return this.request('/users/me/drafts', {
+      method: 'POST',
+      body: JSON.stringify({ message: { raw } }),
+    });
+  }
+
+  /**
+   * List drafts
+   */
+  async listDrafts(maxResults = 10): Promise<Array<{ id: string; message: { id: string; threadId: string } }>> {
+    const response = await this.request<{ drafts?: Array<{ id: string; message: { id: string; threadId: string } }> }>(
+      `/users/me/drafts?maxResults=${maxResults}`
+    );
+    return response.drafts || [];
+  }
+
+  /**
+   * Get draft
+   */
+  async getDraft(draftId: string): Promise<{ id: string; message: Email }> {
+    return this.request(`/users/me/drafts/${draftId}`);
+  }
+
+  /**
+   * Delete draft
+   */
+  async deleteDraft(draftId: string): Promise<void> {
+    await this.request(`/users/me/drafts/${draftId}`, { method: 'DELETE' });
+  }
+
+  /**
+   * Send draft
+   */
+  async sendDraft(draftId: string): Promise<{ id: string }> {
+    return this.request('/users/me/drafts/send', {
+      method: 'POST',
+      body: JSON.stringify({ id: draftId }),
+    });
+  }
+
+  // ============================================
+  // REPLY & FORWARD
+  // ============================================
+
+  /**
+   * Reply to an email
+   */
+  async replyToEmail(originalMessageId: string, body: string, replyAll = false): Promise<{ id: string }> {
+    const original = await this.getEmail(originalMessageId);
+    const from = this.getHeader(original, 'From') || '';
+    const to = this.getHeader(original, 'To') || '';
+    const subject = this.getHeader(original, 'Subject') || '';
+    const messageId = this.getHeader(original, 'Message-ID') || '';
+
+    const replyTo = replyAll ? `${from}, ${to}` : from;
+    const replySubject = subject.startsWith('Re:') ? subject : `Re: ${subject}`;
+
+    const headers = [
+      `To: ${replyTo}`,
+      `Subject: ${replySubject}`,
+      `In-Reply-To: ${messageId}`,
+      `References: ${messageId}`,
+      'Content-Type: text/plain; charset=utf-8',
+      '',
+      body,
+    ].join('\r\n');
+
+    const raw = Buffer.from(headers).toString('base64url');
+
+    return this.request('/users/me/messages/send', {
+      method: 'POST',
+      body: JSON.stringify({ raw, threadId: original.threadId }),
+    });
+  }
+
+  /**
+   * Forward an email
+   */
+  async forwardEmail(originalMessageId: string, to: string, additionalMessage?: string): Promise<{ id: string }> {
+    const original = await this.getEmail(originalMessageId);
+    const originalFrom = this.getHeader(original, 'From') || 'Unknown';
+    const originalSubject = this.getHeader(original, 'Subject') || 'No Subject';
+    const originalDate = this.getHeader(original, 'Date') || '';
+    const originalBody = this.decodeBody(original);
+
+    const forwardSubject = originalSubject.startsWith('Fwd:') ? originalSubject : `Fwd: ${originalSubject}`;
+    const forwardBody = [
+      additionalMessage || '',
+      '',
+      '---------- Forwarded message ---------',
+      `From: ${originalFrom}`,
+      `Date: ${originalDate}`,
+      `Subject: ${originalSubject}`,
+      '',
+      originalBody,
+    ].join('\n');
+
+    const raw = this.createRawEmail(to, forwardSubject, forwardBody);
+    return this.request('/users/me/messages/send', {
+      method: 'POST',
+      body: JSON.stringify({ raw }),
+    });
+  }
+
+  // ============================================
+  // THREADS
+  // ============================================
+
+  /**
+   * List threads
+   */
+  async listThreads(options: { maxResults?: number; q?: string } = {}): Promise<Array<{ id: string; snippet: string; historyId: string }>> {
+    const { maxResults = 20, q } = options;
+    const params = new URLSearchParams({ maxResults: String(maxResults) });
+    if (q) params.set('q', q);
+
+    const response = await this.request<{ threads?: Array<{ id: string; snippet: string; historyId: string }> }>(`/users/me/threads?${params}`);
+    return response.threads || [];
+  }
+
+  /**
+   * Get thread
+   */
+  async getThread(threadId: string): Promise<{ id: string; messages: Email[]; snippet: string }> {
+    return this.request(`/users/me/threads/${threadId}`);
   }
 }
 

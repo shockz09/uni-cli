@@ -22,6 +22,15 @@ import { nextCommand } from './commands/next';
 import { updateCommand } from './commands/update';
 import { deleteCommand } from './commands/delete';
 import { authCommand } from './commands/auth';
+// New commands
+import { calendarsCommand } from './commands/calendars';
+import { quickCommand } from './commands/quick';
+import { freebusyCommand } from './commands/freebusy';
+import { getCommand } from './commands/get';
+import { moveCommand } from './commands/move';
+import { inviteCommand } from './commands/invite';
+import { recurringCommand } from './commands/recurring';
+import { remindCommand } from './commands/remind';
 import { gcal } from './api';
 
 const gcalService: UniService = {
@@ -29,7 +38,23 @@ const gcalService: UniService = {
   description: 'Google Calendar - events and scheduling',
   version: '0.1.0',
 
-  commands: [listCommand, addCommand, nextCommand, updateCommand, deleteCommand, authCommand],
+  commands: [
+    listCommand,
+    addCommand,
+    nextCommand,
+    updateCommand,
+    deleteCommand,
+    // New commands
+    calendarsCommand,
+    quickCommand,
+    freebusyCommand,
+    getCommand,
+    moveCommand,
+    inviteCommand,
+    recurringCommand,
+    remindCommand,
+    authCommand,
+  ],
 
   auth: {
     type: 'oauth',

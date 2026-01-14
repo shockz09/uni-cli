@@ -140,6 +140,76 @@ export class GMeetClient extends GoogleAuthClient {
       method: 'DELETE',
     });
   }
+
+  /**
+   * Get meeting details
+   */
+  async getMeeting(eventId: string): Promise<MeetEvent> {
+    return this.request<MeetEvent>(`/calendars/primary/events/${encodeURIComponent(eventId)}`);
+  }
+
+  /**
+   * Update meeting
+   */
+  async updateMeeting(
+    eventId: string,
+    updates: { title?: string; date?: Date; durationMinutes?: number }
+  ): Promise<MeetEvent> {
+    const existing = await this.getMeeting(eventId);
+    const body: Record<string, unknown> = { ...existing };
+
+    if (updates.title) body.summary = updates.title;
+    if (updates.date) {
+      body.start = { dateTime: updates.date.toISOString() };
+      const duration = updates.durationMinutes || 30;
+      body.end = { dateTime: new Date(updates.date.getTime() + duration * 60 * 1000).toISOString() };
+    }
+
+    return this.request<MeetEvent>(
+      `/calendars/primary/events/${encodeURIComponent(eventId)}?conferenceDataVersion=1`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      }
+    );
+  }
+
+  /**
+   * Add attendees to meeting
+   */
+  async addAttendees(eventId: string, emails: string[]): Promise<MeetEvent> {
+    const existing = await this.getMeeting(eventId);
+    const currentAttendees = existing.attendees || [];
+    const newAttendees = emails.map(email => ({ email }));
+
+    return this.request<MeetEvent>(
+      `/calendars/primary/events/${encodeURIComponent(eventId)}?conferenceDataVersion=1`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({
+          attendees: [...currentAttendees, ...newAttendees],
+        }),
+      }
+    );
+  }
+
+  /**
+   * Remove attendee from meeting
+   */
+  async removeAttendee(eventId: string, email: string): Promise<MeetEvent> {
+    const existing = await this.getMeeting(eventId);
+    const updatedAttendees = (existing.attendees || []).filter(a => a.email !== email);
+
+    return this.request<MeetEvent>(
+      `/calendars/primary/events/${encodeURIComponent(eventId)}?conferenceDataVersion=1`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({
+          attendees: updatedAttendees,
+        }),
+      }
+    );
+  }
 }
 
 export const gmeet = new GMeetClient();

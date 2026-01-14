@@ -187,6 +187,133 @@ export class GDriveClient extends GoogleAuthClient {
     }
   }
 
+  // ============================================
+  // FOLDER OPERATIONS
+  // ============================================
+
+  /**
+   * Create a folder
+   */
+  async createFolder(name: string, parentId?: string): Promise<DriveFile> {
+    const metadata: Record<string, unknown> = {
+      name,
+      mimeType: 'application/vnd.google-apps.folder',
+    };
+    if (parentId) {
+      metadata.parents = [parentId];
+    }
+
+    return this.request<DriveFile>('/files?fields=id,name,mimeType,webViewLink', {
+      method: 'POST',
+      body: JSON.stringify(metadata),
+    });
+  }
+
+  // ============================================
+  // FILE OPERATIONS
+  // ============================================
+
+  /**
+   * Move file to a different folder
+   */
+  async moveFile(fileId: string, newParentId: string): Promise<DriveFile> {
+    const file = await this.getFile(fileId);
+    const previousParents = file.parents?.join(',') || '';
+
+    return this.request<DriveFile>(
+      `/files/${fileId}?addParents=${newParentId}&removeParents=${previousParents}&fields=id,name,parents,webViewLink`,
+      { method: 'PATCH' }
+    );
+  }
+
+  /**
+   * Copy a file
+   */
+  async copyFile(fileId: string, name?: string, parentId?: string): Promise<DriveFile> {
+    const body: Record<string, unknown> = {};
+    if (name) body.name = name;
+    if (parentId) body.parents = [parentId];
+
+    return this.request<DriveFile>(`/files/${fileId}/copy?fields=id,name,mimeType,webViewLink`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Rename a file
+   */
+  async renameFile(fileId: string, newName: string): Promise<DriveFile> {
+    return this.request<DriveFile>(`/files/${fileId}?fields=id,name,mimeType,webViewLink`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name: newName }),
+    });
+  }
+
+  /**
+   * Move file to trash
+   */
+  async trashFile(fileId: string): Promise<DriveFile> {
+    return this.request<DriveFile>(`/files/${fileId}?fields=id,name,trashed`, {
+      method: 'PATCH',
+      body: JSON.stringify({ trashed: true }),
+    });
+  }
+
+  /**
+   * Restore file from trash
+   */
+  async untrashFile(fileId: string): Promise<DriveFile> {
+    return this.request<DriveFile>(`/files/${fileId}?fields=id,name,trashed`, {
+      method: 'PATCH',
+      body: JSON.stringify({ trashed: false }),
+    });
+  }
+
+  /**
+   * List files in trash
+   */
+  async listTrash(pageSize = 20): Promise<DriveFile[]> {
+    const params = new URLSearchParams({
+      q: 'trashed=true',
+      pageSize: String(pageSize),
+      fields: 'files(id,name,mimeType,modifiedTime,webViewLink)',
+    });
+
+    const response = await this.request<FileList>(`/files?${params}`);
+    return response.files || [];
+  }
+
+  /**
+   * Empty trash
+   */
+  async emptyTrash(): Promise<void> {
+    const token = await this.getAccessToken();
+    const response = await fetch(`${DRIVE_API}/files/trash`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      throw new Error(`Empty trash failed: ${response.status}`);
+    }
+  }
+
+  /**
+   * Get file permissions
+   */
+  async getPermissions(fileId: string): Promise<Array<{ id: string; type: string; role: string; emailAddress?: string }>> {
+    const response = await this.request<{ permissions: Array<{ id: string; type: string; role: string; emailAddress?: string }> }>(
+      `/files/${fileId}/permissions?fields=permissions(id,type,role,emailAddress)`
+    );
+    return response.permissions || [];
+  }
+
+  /**
+   * Remove permission from file
+   */
+  async removePermission(fileId: string, permissionId: string): Promise<void> {
+    await this.request(`/files/${fileId}/permissions/${permissionId}`, { method: 'DELETE' });
+  }
 }
 
 export const gdrive = new GDriveClient();

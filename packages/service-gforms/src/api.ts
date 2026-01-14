@@ -240,6 +240,65 @@ export class GoogleFormsClient extends GoogleAuthClient {
       }),
     });
   }
+
+  /**
+   * Update form title/description
+   */
+  async updateForm(formId: string, updates: { title?: string; description?: string }): Promise<Form> {
+    const requests: Record<string, unknown>[] = [];
+
+    if (updates.title) {
+      requests.push({
+        updateFormInfo: {
+          info: { title: updates.title },
+          updateMask: 'title',
+        },
+      });
+    }
+
+    if (updates.description) {
+      requests.push({
+        updateFormInfo: {
+          info: { description: updates.description },
+          updateMask: 'description',
+        },
+      });
+    }
+
+    if (requests.length === 0) {
+      return this.getForm(formId);
+    }
+
+    await this.request(`/forms/${formId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({ requests }),
+    });
+
+    return this.getForm(formId);
+  }
+
+  /**
+   * Delete a question from form
+   */
+  async deleteQuestion(formId: string, itemId: string): Promise<void> {
+    await this.request(`/forms/${formId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{ deleteItem: { location: { index: 0 } } }],
+      }),
+    });
+  }
+
+  /**
+   * Get form URLs
+   */
+  getFormUrls(formId: string): { edit: string; respond: string; results: string } {
+    return {
+      edit: `https://docs.google.com/forms/d/${formId}/edit`,
+      respond: `https://docs.google.com/forms/d/e/${formId}/viewform`,
+      results: `https://docs.google.com/forms/d/${formId}/viewanalytics`,
+    };
+  }
 }
 
 export const gforms = new GoogleFormsClient();

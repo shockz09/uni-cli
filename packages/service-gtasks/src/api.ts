@@ -109,6 +109,43 @@ export class GTasksClient extends GoogleAuthClient {
     const tasks = await this.getTasks(listId, { showCompleted: true });
     return tasks.find((t) => t.title.toLowerCase().includes(title.toLowerCase())) || null;
   }
+
+  /**
+   * Move task (reorder or change parent)
+   */
+  async moveTask(listId: string, taskId: string, options: { parent?: string; previous?: string } = {}): Promise<Task> {
+    const params = new URLSearchParams();
+    if (options.parent) params.set('parent', options.parent);
+    if (options.previous) params.set('previous', options.previous);
+
+    return this.request<Task>(`/lists/${listId}/tasks/${taskId}/move?${params}`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * Clear completed tasks from a list
+   */
+  async clearCompleted(listId: string): Promise<void> {
+    await this.request(`/lists/${listId}/clear`, { method: 'POST' });
+  }
+
+  /**
+   * Update task list
+   */
+  async updateTaskList(listId: string, title: string): Promise<TaskList> {
+    return this.request<TaskList>(`/users/@me/lists/${listId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ id: listId, title }),
+    });
+  }
+
+  /**
+   * Get a single task
+   */
+  async getTask(listId: string, taskId: string): Promise<Task> {
+    return this.request<Task>(`/lists/${listId}/tasks/${taskId}`);
+  }
 }
 
 export const gtasks = new GTasksClient();

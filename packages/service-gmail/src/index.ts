@@ -21,6 +21,15 @@ import { searchCommand } from './commands/search';
 import { sendCommand } from './commands/send';
 import { deleteCommand } from './commands/delete';
 import { authCommand } from './commands/auth';
+// New commands
+import { labelsCommand } from './commands/labels';
+import { draftCommand } from './commands/draft';
+import { replyCommand } from './commands/reply';
+import { forwardCommand } from './commands/forward';
+import { starCommand } from './commands/star';
+import { markCommand } from './commands/mark';
+import { archiveCommand } from './commands/archive';
+import { threadsCommand } from './commands/threads';
 import { gmail } from './api';
 
 const gmailService: UniService = {
@@ -28,7 +37,23 @@ const gmailService: UniService = {
   description: 'Gmail - read, send, and search emails',
   version: '0.1.0',
 
-  commands: [listCommand, readCommand, searchCommand, sendCommand, deleteCommand, authCommand],
+  commands: [
+    listCommand,
+    readCommand,
+    searchCommand,
+    sendCommand,
+    deleteCommand,
+    // New commands
+    labelsCommand,
+    draftCommand,
+    replyCommand,
+    forwardCommand,
+    starCommand,
+    markCommand,
+    archiveCommand,
+    threadsCommand,
+    authCommand,
+  ],
 
   auth: {
     type: 'oauth',

@@ -12,6 +12,10 @@ import { responsesCommand } from './commands/responses';
 import { shareCommand } from './commands/share';
 import { deleteCommand } from './commands/delete';
 import { authCommand } from './commands/auth';
+// New commands
+import { updateCommand } from './commands/update';
+import { linkCommand } from './commands/link';
+import { exportCommand } from './commands/export';
 import { gforms } from './api';
 
 const gformsService: UniService = {
@@ -27,6 +31,10 @@ const gformsService: UniService = {
     responsesCommand,
     shareCommand,
     deleteCommand,
+    // New commands
+    updateCommand,
+    linkCommand,
+    exportCommand,
     authCommand,
   ],
 

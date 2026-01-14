@@ -552,6 +552,159 @@ uni gdrive delete --id 1abc123xyz
 
 ---
 
+### `uni gdrive mkdir`
+
+Create a new folder
+
+**Aliases:** `newfolder`, `create-folder`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `name` | Yes | Folder name |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--parent` | -p | string |  | Parent folder ID |
+
+**Examples:**
+
+```bash
+uni gdrive mkdir "My Folder"
+uni gdrive mkdir "Subfolder" --parent FOLDER_ID
+```
+
+---
+
+### `uni gdrive move`
+
+Move a file to a different folder
+
+**Aliases:** `mv`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `fileId` | Yes | File ID to move |
+| `folderId` | Yes | Destination folder ID |
+
+**Examples:**
+
+```bash
+uni gdrive move FILE_ID FOLDER_ID
+```
+
+---
+
+### `uni gdrive copy`
+
+Copy a file
+
+**Aliases:** `cp`, `duplicate`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `fileId` | Yes | File ID to copy |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--name` | -n | string |  | New name for the copy |
+| `--parent` | -p | string |  | Destination folder ID |
+
+**Examples:**
+
+```bash
+uni gdrive copy FILE_ID
+uni gdrive copy FILE_ID --name "Copy of Document"
+uni gdrive copy FILE_ID --parent FOLDER_ID
+```
+
+---
+
+### `uni gdrive rename`
+
+Rename a file
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `fileId` | Yes | File ID to rename |
+| `newName` | Yes | New name |
+
+**Examples:**
+
+```bash
+uni gdrive rename FILE_ID "New Name.pdf"
+```
+
+---
+
+### `uni gdrive trash`
+
+Move file to trash, restore from trash, or list trash
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `fileId` | No | File ID to trash/restore (optional) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--restore` | -r | boolean |  | Restore file from trash |
+| `--empty` | -e | boolean |  | Empty entire trash (permanent!) |
+| `--list` | -l | boolean |  | List files in trash |
+| `--limit` | -n | string |  | Number of items to list (default: 20) |
+
+**Examples:**
+
+```bash
+uni gdrive trash FILE_ID
+uni gdrive trash FILE_ID --restore
+uni gdrive trash --list
+uni gdrive trash --empty
+```
+
+---
+
+### `uni gdrive permissions`
+
+View or manage file permissions
+
+**Aliases:** `perms`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `fileId` | Yes | File ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--remove` | -r | string |  | Remove permission by ID |
+
+**Examples:**
+
+```bash
+uni gdrive permissions FILE_ID
+uni gdrive permissions FILE_ID --remove PERMISSION_ID
+```
+
+---
+
 ### `uni gdrive auth`
 
 Authenticate with Google Drive
@@ -1860,6 +2013,72 @@ uni gcontacts delete "old@email.com"
 
 ---
 
+### `uni gcontacts groups`
+
+List and manage contact groups
+
+**Aliases:** `group`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--create` | -c | string |  | Create a new group |
+| `--delete` | -d | string |  | Delete a group by resource name |
+| `--add-contact` | -a | string |  | Add contact to group (requires --group) |
+| `--remove-contact` | -r | string |  | Remove contact from group (requires --group) |
+| `--group` | -g | string |  | Group resource name for add/remove operations |
+
+**Examples:**
+
+```bash
+uni gcontacts groups
+uni gcontacts groups --create "Work Colleagues"
+uni gcontacts groups --delete contactGroups/123
+uni gcontacts groups --add-contact people/123 --group contactGroups/456
+uni gcontacts groups --remove-contact people/123 --group contactGroups/456
+```
+
+---
+
+### `uni gcontacts export`
+
+Export contacts as vCard format
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | string |  | Number of contacts to export (default: 100) |
+
+**Examples:**
+
+```bash
+uni gcontacts export
+uni gcontacts export --limit 50
+uni gcontacts export > contacts.vcf
+```
+
+---
+
+### `uni gcontacts batch-delete`
+
+Delete multiple contacts at once
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `resourceNames` | Yes | Contact resource names (comma-separated) |
+
+**Examples:**
+
+```bash
+uni gcontacts batch-delete "people/123,people/456,people/789"
+```
+
+---
+
 ### `uni gcontacts auth`
 
 Authenticate with Google Contacts
@@ -2016,6 +2235,222 @@ Delete an email (moves to trash)
 uni gmail delete 19b637d54e3f3c51
 uni gmail delete "Newsletter from spam"
 uni gmail delete "old email" --permanent
+```
+
+---
+
+### `uni gmail labels`
+
+List and manage labels
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--create` | -c | string |  | Create a new label |
+| `--delete` | -d | string |  | Delete a label by ID |
+| `--add` | -a | string |  | Add label to message (requires --message) |
+| `--remove` | -r | string |  | Remove label from message (requires --message) |
+| `--message` | -m | string |  | Message ID for add/remove operations |
+
+**Examples:**
+
+```bash
+uni gmail labels
+uni gmail labels --create "Important/Work"
+uni gmail labels --delete Label_123
+uni gmail labels --add Label_123 --message MSG_ID
+uni gmail labels --remove Label_123 --message MSG_ID
+```
+
+---
+
+### `uni gmail draft`
+
+Create and manage drafts
+
+**Aliases:** `drafts`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--create` | -c | boolean |  | Create a new draft |
+| `--to` | -t | string |  | Recipient email (for create) |
+| `--subject` | -s | string |  | Subject (for create) |
+| `--body` | -b | string |  | Body text (for create) |
+| `--delete` | -d | string |  | Delete draft by ID |
+| `--send` |  | string |  | Send draft by ID |
+| `--view` | -v | string |  | View draft by ID |
+| `--limit` | -n | string |  | Number of drafts to list (default: 10) |
+
+**Examples:**
+
+```bash
+uni gmail draft
+uni gmail draft --create --to "user@example.com" --subject "Hello" --body "Message"
+uni gmail draft --view DRAFT_ID
+uni gmail draft --send DRAFT_ID
+uni gmail draft --delete DRAFT_ID
+```
+
+---
+
+### `uni gmail reply`
+
+Reply to an email
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `messageId` | Yes | Message ID to reply to |
+| `body` | Yes | Reply message body |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--all` | -a | boolean |  | Reply all (include all recipients) |
+
+**Examples:**
+
+```bash
+uni gmail reply MSG_ID "Thanks for your email!"
+uni gmail reply MSG_ID "Got it, thanks!" --all
+```
+
+---
+
+### `uni gmail forward`
+
+Forward an email
+
+**Aliases:** `fwd`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `messageId` | Yes | Message ID to forward |
+| `to` | Yes | Recipient email address |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--message` | -m | string |  | Additional message to include |
+
+**Examples:**
+
+```bash
+uni gmail forward MSG_ID "user@example.com"
+uni gmail forward MSG_ID "user@example.com" --message "FYI - see below"
+```
+
+---
+
+### `uni gmail star`
+
+Star or unstar an email
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `messageId` | Yes | Message ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--remove` | -r | boolean |  | Unstar the message |
+
+**Examples:**
+
+```bash
+uni gmail star MSG_ID
+uni gmail star MSG_ID --remove
+```
+
+---
+
+### `uni gmail mark`
+
+Mark email as read or unread
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `messageId` | Yes | Message ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--read` | -r | boolean |  | Mark as read |
+| `--unread` | -u | boolean |  | Mark as unread |
+
+**Examples:**
+
+```bash
+uni gmail mark MSG_ID --read
+uni gmail mark MSG_ID --unread
+```
+
+---
+
+### `uni gmail archive`
+
+Archive or unarchive an email
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `messageId` | Yes | Message ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--undo` | -u | boolean |  | Unarchive (move back to inbox) |
+
+**Examples:**
+
+```bash
+uni gmail archive MSG_ID
+uni gmail archive MSG_ID --undo
+```
+
+---
+
+### `uni gmail threads`
+
+List and view email threads
+
+**Aliases:** `thread`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `threadId` | No | Thread ID to view (optional) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--query` | -q | string |  | Search query |
+| `--limit` | -n | string |  | Number of threads (default: 20) |
+
+**Examples:**
+
+```bash
+uni gmail threads
+uni gmail threads --query "from:boss@company.com"
+uni gmail threads THREAD_ID
 ```
 
 ---
@@ -2276,6 +2711,85 @@ uni gmeet cancel "1:1 with John"
 
 ---
 
+### `uni gmeet get`
+
+Get meeting details
+
+**Aliases:** `view`, `show`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `eventId` | Yes | Meeting/event ID |
+
+**Examples:**
+
+```bash
+uni gmeet get EVENT_ID
+```
+
+---
+
+### `uni gmeet update`
+
+Update meeting title or time
+
+**Aliases:** `edit`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `eventId` | Yes | Meeting/event ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--title` | -t | string |  | New title |
+| `--date` | -d | string |  | New date/time (ISO format) |
+| `--duration` |  | string |  | Duration in minutes |
+
+**Examples:**
+
+```bash
+uni gmeet update EVENT_ID --title "Updated Meeting"
+uni gmeet update EVENT_ID --date "2024-01-20T15:00:00"
+uni gmeet update EVENT_ID --date "2024-01-20T15:00:00" --duration 60
+```
+
+---
+
+### `uni gmeet invite`
+
+Add or remove meeting attendees
+
+**Aliases:** `attendees`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `eventId` | Yes | Meeting/event ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--add` | -a | string |  | Email(s) to add (comma-separated) |
+| `--remove` | -r | string |  | Email to remove |
+
+**Examples:**
+
+```bash
+uni gmeet invite EVENT_ID --add "user@example.com"
+uni gmeet invite EVENT_ID --add "alice@example.com,bob@example.com"
+uni gmeet invite EVENT_ID --remove "user@example.com"
+```
+
+---
+
 ### `uni gmeet auth`
 
 Authenticate with Google Meet
@@ -2506,6 +3020,109 @@ Delete a task list
 | Option | Short | Type | Description |
 |--------|-------|------|-------------|
 | `--force` | -f | boolean | Skip confirmation |
+
+---
+
+### `uni gtasks move`
+
+Move or reorder a task
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `taskId` | Yes | Task ID to move |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | string |  | Task list ID (default: @default) |
+| `--parent` | -p | string |  | Parent task ID (makes it a subtask) |
+| `--after` | -a | string |  | Task ID to position after |
+
+**Examples:**
+
+```bash
+uni gtasks move TASK_ID --parent PARENT_TASK_ID
+uni gtasks move TASK_ID --after OTHER_TASK_ID
+uni gtasks move TASK_ID --list LIST_ID --parent PARENT_ID
+```
+
+---
+
+### `uni gtasks clear`
+
+Clear all completed tasks from a list
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | string |  | Task list ID (default: @default) |
+
+**Examples:**
+
+```bash
+uni gtasks clear
+uni gtasks clear --list LIST_ID
+```
+
+---
+
+### `uni gtasks subtask`
+
+Add a subtask under a parent task
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `parentId` | Yes | Parent task ID |
+| `title` | Yes | Subtask title |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | string |  | Task list ID (default: @default) |
+| `--notes` | -n | string |  | Task notes |
+| `--due` | -d | string |  | Due date (YYYY-MM-DD) |
+
+**Examples:**
+
+```bash
+uni gtasks subtask PARENT_ID "Subtask title"
+uni gtasks subtask PARENT_ID "Subtask" --notes "Details here"
+uni gtasks subtask PARENT_ID "Subtask" --due 2024-01-20
+```
+
+---
+
+### `uni gtasks get`
+
+Get task details
+
+**Aliases:** `view`, `show`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `taskId` | Yes | Task ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | string |  | Task list ID (default: @default) |
+
+**Examples:**
+
+```bash
+uni gtasks get TASK_ID
+uni gtasks get TASK_ID --list LIST_ID
+```
 
 ---
 
@@ -3091,6 +3708,73 @@ uni gforms delete <form-id>
 
 ---
 
+### `uni gforms update`
+
+Update form title or description
+
+**Aliases:** `edit`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `formId` | Yes | Form ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--title` | -t | string |  | New title |
+| `--description` | -d | string |  | New description |
+
+**Examples:**
+
+```bash
+uni gforms update FORM_ID --title "New Title"
+uni gforms update FORM_ID --description "Updated description"
+```
+
+---
+
+### `uni gforms link`
+
+Get form URLs (edit, respond, results)
+
+**Aliases:** `links`, `url`, `urls`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `formId` | Yes | Form ID or URL |
+
+**Examples:**
+
+```bash
+uni gforms link FORM_ID
+```
+
+---
+
+### `uni gforms export`
+
+Export form responses to CSV format
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `formId` | Yes | Form ID or URL |
+
+**Examples:**
+
+```bash
+uni gforms export FORM_ID
+uni gforms export FORM_ID > responses.csv
+```
+
+---
+
 ### `uni gforms auth`
 
 Authenticate with Google Forms
@@ -3328,6 +4012,233 @@ Delete a calendar event
 ```bash
 uni gcal delete "Team Meeting"
 uni gcal delete "Check-in"
+```
+
+---
+
+### `uni gcal calendars`
+
+List all calendars
+
+**Aliases:** `cals`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--create` | -c | string |  | Create a new calendar with this name |
+| `--delete` | -d | string |  | Delete calendar by ID |
+| `--description` |  | string |  | Description for new calendar |
+
+**Examples:**
+
+```bash
+uni gcal calendars
+uni gcal calendars --create "Work"
+uni gcal calendars --create "Personal" --description "My personal events"
+uni gcal calendars --delete CALENDAR_ID
+```
+
+---
+
+### `uni gcal quick`
+
+Quick add event using natural language
+
+**Aliases:** `q`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `text` | Yes | Natural language event description |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--calendar` | -c | string |  | Calendar ID (default: primary) |
+
+**Examples:**
+
+```bash
+uni gcal quick "Lunch with John tomorrow at noon"
+uni gcal quick "Team meeting Friday 3pm-4pm"
+uni gcal quick "Dentist appointment next Monday 10am" --calendar work
+```
+
+---
+
+### `uni gcal freebusy`
+
+Check free/busy times
+
+**Aliases:** `fb`, `busy`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--days` | -d | string |  | Number of days to check (default: 1) |
+| `--calendar` | -c | string |  | Calendar ID (default: primary) |
+| `--start` | -s | string |  | Start date (YYYY-MM-DD, default: today) |
+
+**Examples:**
+
+```bash
+uni gcal freebusy
+uni gcal freebusy --days 7
+uni gcal freebusy --start 2024-01-15 --days 3
+```
+
+---
+
+### `uni gcal get`
+
+Get event details
+
+**Aliases:** `view`, `show`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `eventId` | Yes | Event ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--calendar` | -c | string |  | Calendar ID (default: primary) |
+
+**Examples:**
+
+```bash
+uni gcal get EVENT_ID
+uni gcal get EVENT_ID --calendar work
+```
+
+---
+
+### `uni gcal move`
+
+Move event to another calendar
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `eventId` | Yes | Event ID |
+| `toCalendar` | Yes | Destination calendar ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--from` | -f | string |  | Source calendar ID (default: primary) |
+
+**Examples:**
+
+```bash
+uni gcal move EVENT_ID work@group.calendar.google.com
+uni gcal move EVENT_ID personal --from work
+```
+
+---
+
+### `uni gcal invite`
+
+Add or remove attendees from an event
+
+**Aliases:** `attendees`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `eventId` | Yes | Event ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--add` | -a | string |  | Email(s) to add (comma-separated) |
+| `--remove` | -r | string |  | Email to remove |
+| `--calendar` | -c | string |  | Calendar ID (default: primary) |
+
+**Examples:**
+
+```bash
+uni gcal invite EVENT_ID --add "john@example.com"
+uni gcal invite EVENT_ID --add "alice@example.com,bob@example.com"
+uni gcal invite EVENT_ID --remove "john@example.com"
+```
+
+---
+
+### `uni gcal recurring`
+
+Create a recurring event
+
+**Aliases:** `repeat`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Event title |
+| `datetime` | Yes | Start date/time (ISO or natural) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--duration` | -d | string |  | Duration in minutes (default: 60) |
+| `--freq` | -f | string |  | Frequency: daily, weekly, monthly, yearly |
+| `--count` | -n | string |  | Number of occurrences |
+| `--until` | -u | string |  | End date (YYYY-MM-DD) |
+| `--days` |  | string |  | Days of week for weekly (MO,TU,WE,TH,FR,SA,SU) |
+| `--interval` | -i | string |  | Interval (e.g., 2 for every 2 weeks) |
+| `--calendar` | -c | string |  | Calendar ID (default: primary) |
+| `--location` | -l | string |  | Event location |
+
+**Examples:**
+
+```bash
+uni gcal recurring "Daily Standup" "2024-01-15T09:00:00" --freq daily --count 30
+uni gcal recurring "Weekly Team Meeting" "2024-01-15T14:00:00" --freq weekly --days MO,WE,FR
+uni gcal recurring "Monthly Review" "2024-01-15T10:00:00" --freq monthly --until 2024-12-31
+uni gcal recurring "Bi-weekly Sync" "2024-01-15T15:00:00" --freq weekly --interval 2
+```
+
+---
+
+### `uni gcal remind`
+
+Set reminders for an event
+
+**Aliases:** `reminder`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `eventId` | Yes | Event ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--popup` | -p | string |  | Popup reminder minutes before (comma-separated) |
+| `--email` | -e | string |  | Email reminder minutes before (comma-separated) |
+| `--calendar` | -c | string |  | Calendar ID (default: primary) |
+
+**Examples:**
+
+```bash
+uni gcal remind EVENT_ID --popup 10
+uni gcal remind EVENT_ID --popup 10,30 --email 60
+uni gcal remind EVENT_ID --popup "5,15,30" --email "60,1440"
 ```
 
 ---

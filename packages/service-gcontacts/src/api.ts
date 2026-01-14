@@ -159,6 +159,102 @@ export class GContactsClient extends GoogleAuthClient {
   getCompany(contact: Contact): string | undefined {
     return contact.organizations?.[0]?.name;
   }
+
+  // ============================================
+  // CONTACT GROUPS
+  // ============================================
+
+  /**
+   * List contact groups
+   */
+  async listGroups(): Promise<Array<{ resourceName: string; name: string; memberCount?: number }>> {
+    const response = await this.request<{ contactGroups: Array<{ resourceName: string; name: string; memberCount?: number }> }>(
+      '/contactGroups?pageSize=100'
+    );
+    return response.contactGroups || [];
+  }
+
+  /**
+   * Create a contact group
+   */
+  async createGroup(name: string): Promise<{ resourceName: string; name: string }> {
+    const response = await this.request<{ group: { resourceName: string; name: string } }>('/contactGroups', {
+      method: 'POST',
+      body: JSON.stringify({ contactGroup: { name } }),
+    });
+    return response.group;
+  }
+
+  /**
+   * Delete a contact group
+   */
+  async deleteGroup(resourceName: string): Promise<void> {
+    await this.request(`/${resourceName}`, { method: 'DELETE' });
+  }
+
+  /**
+   * Add contact to group
+   */
+  async addToGroup(contactResourceName: string, groupResourceName: string): Promise<void> {
+    await this.request(`/${groupResourceName}/members:modify`, {
+      method: 'POST',
+      body: JSON.stringify({
+        resourceNamesToAdd: [contactResourceName],
+      }),
+    });
+  }
+
+  /**
+   * Remove contact from group
+   */
+  async removeFromGroup(contactResourceName: string, groupResourceName: string): Promise<void> {
+    await this.request(`/${groupResourceName}/members:modify`, {
+      method: 'POST',
+      body: JSON.stringify({
+        resourceNamesToRemove: [contactResourceName],
+      }),
+    });
+  }
+
+  // ============================================
+  // BATCH OPERATIONS
+  // ============================================
+
+  /**
+   * Delete multiple contacts
+   */
+  async batchDelete(resourceNames: string[]): Promise<void> {
+    await this.request('/people:batchDeleteContacts', {
+      method: 'POST',
+      body: JSON.stringify({ resourceNames }),
+    });
+  }
+
+  /**
+   * Export contacts as vCard-like format
+   */
+  async exportContacts(limit = 100): Promise<string> {
+    const contacts = await this.listContacts(limit);
+    const lines: string[] = [];
+
+    for (const contact of contacts) {
+      const name = this.getDisplayName(contact);
+      const email = this.getEmail(contact);
+      const phone = this.getPhone(contact);
+      const company = this.getCompany(contact);
+
+      lines.push(`BEGIN:VCARD`);
+      lines.push(`VERSION:3.0`);
+      lines.push(`FN:${name}`);
+      if (email) lines.push(`EMAIL:${email}`);
+      if (phone) lines.push(`TEL:${phone}`);
+      if (company) lines.push(`ORG:${company}`);
+      lines.push(`END:VCARD`);
+      lines.push('');
+    }
+
+    return lines.join('\n');
+  }
 }
 
 export const gcontacts = new GContactsClient();
