@@ -1139,12 +1139,17 @@ Add text to a slide
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
 | `--slide` | -s | string |  | Slide number (default: last slide) |
+| `--x` |  | string |  | X position in points (default: 50) |
+| `--y` |  | string |  | Y position in points (default: 100) |
+| `--width` | -w | string |  | Width in points (default: 500) |
+| `--height` | -h | string |  | Height in points (default: 300) |
 
 **Examples:**
 
 ```bash
 uni gslides add-text <id> "Hello World"
 uni gslides add-text <id> "Title" --slide 1
+uni gslides add-text <id> "Content" --x 100 --y 200 --width 400 --height 50
 ```
 
 ---

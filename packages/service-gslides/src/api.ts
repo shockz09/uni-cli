@@ -157,7 +157,13 @@ export class GoogleSlidesClient extends GoogleAuthClient {
   /**
    * Add text to a slide
    */
-  async addText(presentationId: string, slideId: string, text: string): Promise<void> {
+  async addText(
+    presentationId: string,
+    slideId: string,
+    text: string,
+    options: { x?: number; y?: number; width?: number; height?: number } = {}
+  ): Promise<string> {
+    const { x = 50, y = 100, width = 500, height = 300 } = options;
     const shapeId = `textbox_${Date.now()}`;
 
     const requests = [
@@ -168,14 +174,14 @@ export class GoogleSlidesClient extends GoogleAuthClient {
           elementProperties: {
             pageObjectId: slideId,
             size: {
-              width: { magnitude: 500, unit: 'PT' },
-              height: { magnitude: 300, unit: 'PT' },
+              width: { magnitude: width, unit: 'PT' },
+              height: { magnitude: height, unit: 'PT' },
             },
             transform: {
               scaleX: 1,
               scaleY: 1,
-              translateX: 50,
-              translateY: 100,
+              translateX: x,
+              translateY: y,
               unit: 'PT',
             },
           },
@@ -194,6 +200,8 @@ export class GoogleSlidesClient extends GoogleAuthClient {
       method: 'POST',
       body: JSON.stringify({ requests }),
     });
+
+    return shapeId;
   }
 
   /**
@@ -859,11 +867,13 @@ export class GoogleSlidesClient extends GoogleAuthClient {
       fields.push('fontFamily');
     }
 
-    const textRange: Record<string, unknown> = { type: 'FIXED_RANGE', startIndex };
+    let textRange: Record<string, unknown>;
     if (endIndex !== undefined) {
-      textRange.endIndex = endIndex;
+      textRange = { type: 'FIXED_RANGE', startIndex, endIndex };
+    } else if (startIndex > 0) {
+      textRange = { type: 'FROM_START_INDEX', startIndex };
     } else {
-      textRange.type = 'ALL';
+      textRange = { type: 'ALL' };
     }
 
     await this.request(`/presentations/${presentationId}:batchUpdate`, {
@@ -907,11 +917,13 @@ export class GoogleSlidesClient extends GoogleAuthClient {
     elementId: string,
     transform: { x?: number; y?: number; scaleX?: number; scaleY?: number }
   ): Promise<void> {
-    const transformUpdate: Record<string, unknown> = { unit: 'PT' };
-    if (transform.x !== undefined) transformUpdate.translateX = transform.x;
-    if (transform.y !== undefined) transformUpdate.translateY = transform.y;
-    if (transform.scaleX !== undefined) transformUpdate.scaleX = transform.scaleX;
-    if (transform.scaleY !== undefined) transformUpdate.scaleY = transform.scaleY;
+    const transformUpdate: Record<string, unknown> = {
+      unit: 'PT',
+      scaleX: transform.scaleX ?? 1,
+      scaleY: transform.scaleY ?? 1,
+      translateX: transform.x ?? 0,
+      translateY: transform.y ?? 0,
+    };
 
     await this.request(`/presentations/${presentationId}:batchUpdate`, {
       method: 'POST',

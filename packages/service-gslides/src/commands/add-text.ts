@@ -27,10 +27,15 @@ export const addTextCommand: Command = {
       type: 'string',
       description: 'Slide number (default: last slide)',
     },
+    { name: 'x', type: 'string', description: 'X position in points (default: 50)' },
+    { name: 'y', type: 'string', description: 'Y position in points (default: 100)' },
+    { name: 'width', short: 'w', type: 'string', description: 'Width in points (default: 500)' },
+    { name: 'height', short: 'h', type: 'string', description: 'Height in points (default: 300)' },
   ],
   examples: [
     'uni gslides add-text <id> "Hello World"',
     'uni gslides add-text <id> "Title" --slide 1',
+    'uni gslides add-text <id> "Content" --x 100 --y 200 --width 400 --height 50',
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
@@ -58,18 +63,26 @@ export const addTextCommand: Command = {
     }
 
     const slideId = presentation.slides[slideIndex].objectId;
-    await gslides.addText(presentationId, slideId, text);
+
+    const options: { x?: number; y?: number; width?: number; height?: number } = {};
+    if (flags.x) options.x = parseFloat(flags.x as string);
+    if (flags.y) options.y = parseFloat(flags.y as string);
+    if (flags.width) options.width = parseFloat(flags.width as string);
+    if (flags.height) options.height = parseFloat(flags.height as string);
+
+    const textboxId = await gslides.addText(presentationId, slideId, text, options);
 
     if (globalFlags.json) {
       output.json({
         presentationId,
         slideNumber: slideIndex + 1,
         slideId,
+        textboxId,
         textAdded: text,
       });
       return;
     }
 
-    output.success(`Added text to slide ${slideIndex + 1}`);
+    output.success(`Added text to slide ${slideIndex + 1} (element: ${textboxId})`);
   },
 };
