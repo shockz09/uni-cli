@@ -18,6 +18,15 @@ import { exportCommand } from './commands/export';
 import { deleteCommand } from './commands/delete';
 import { renameCommand } from './commands/rename';
 import { authCommand } from './commands/auth';
+// New commands
+import { formatCommand } from './commands/format';
+import { styleCommand } from './commands/style';
+import { bulletsCommand } from './commands/bullets';
+import { tableCommand } from './commands/table';
+import { linkCommand } from './commands/link';
+import { pageBreakCommand } from './commands/page-break';
+import { headerCommand } from './commands/header';
+import { footerCommand } from './commands/footer';
 import { gdocs } from './api';
 
 const gdocsService: UniService = {
@@ -39,6 +48,15 @@ const gdocsService: UniService = {
     exportCommand,
     deleteCommand,
     renameCommand,
+    // New commands
+    formatCommand,
+    styleCommand,
+    bulletsCommand,
+    tableCommand,
+    linkCommand,
+    pageBreakCommand,
+    headerCommand,
+    footerCommand,
     authCommand,
   ],
 

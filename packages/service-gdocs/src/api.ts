@@ -359,6 +359,464 @@ export class GoogleDocsClient extends GoogleAuthClient {
 
     return response.arrayBuffer();
   }
+
+  // ============================================
+  // TEXT FORMATTING
+  // ============================================
+
+  /**
+   * Update text style in a range
+   */
+  async updateTextStyle(
+    documentId: string,
+    startIndex: number,
+    endIndex: number,
+    style: {
+      bold?: boolean;
+      italic?: boolean;
+      underline?: boolean;
+      strikethrough?: boolean;
+      fontSize?: number;
+      foregroundColor?: { red: number; green: number; blue: number };
+      backgroundColor?: { red: number; green: number; blue: number };
+      fontFamily?: string;
+    }
+  ): Promise<void> {
+    const textStyle: Record<string, unknown> = {};
+    const fields: string[] = [];
+
+    if (style.bold !== undefined) {
+      textStyle.bold = style.bold;
+      fields.push('bold');
+    }
+    if (style.italic !== undefined) {
+      textStyle.italic = style.italic;
+      fields.push('italic');
+    }
+    if (style.underline !== undefined) {
+      textStyle.underline = style.underline;
+      fields.push('underline');
+    }
+    if (style.strikethrough !== undefined) {
+      textStyle.strikethrough = style.strikethrough;
+      fields.push('strikethrough');
+    }
+    if (style.fontSize !== undefined) {
+      textStyle.fontSize = { magnitude: style.fontSize, unit: 'PT' };
+      fields.push('fontSize');
+    }
+    if (style.foregroundColor) {
+      textStyle.foregroundColor = { color: { rgbColor: style.foregroundColor } };
+      fields.push('foregroundColor');
+    }
+    if (style.backgroundColor) {
+      textStyle.backgroundColor = { color: { rgbColor: style.backgroundColor } };
+      fields.push('backgroundColor');
+    }
+    if (style.fontFamily) {
+      textStyle.weightedFontFamily = { fontFamily: style.fontFamily };
+      fields.push('weightedFontFamily');
+    }
+
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateTextStyle: {
+            range: { startIndex, endIndex },
+            textStyle,
+            fields: fields.join(','),
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // PARAGRAPH STYLES
+  // ============================================
+
+  /**
+   * Update paragraph style (headings, alignment, etc.)
+   */
+  async updateParagraphStyle(
+    documentId: string,
+    startIndex: number,
+    endIndex: number,
+    style: {
+      namedStyleType?: 'NORMAL_TEXT' | 'TITLE' | 'SUBTITLE' | 'HEADING_1' | 'HEADING_2' | 'HEADING_3' | 'HEADING_4' | 'HEADING_5' | 'HEADING_6';
+      alignment?: 'START' | 'CENTER' | 'END' | 'JUSTIFIED';
+      lineSpacing?: number;
+      spaceAbove?: number;
+      spaceBelow?: number;
+      indentFirstLine?: number;
+      indentStart?: number;
+    }
+  ): Promise<void> {
+    const paragraphStyle: Record<string, unknown> = {};
+    const fields: string[] = [];
+
+    if (style.namedStyleType) {
+      paragraphStyle.namedStyleType = style.namedStyleType;
+      fields.push('namedStyleType');
+    }
+    if (style.alignment) {
+      paragraphStyle.alignment = style.alignment;
+      fields.push('alignment');
+    }
+    if (style.lineSpacing !== undefined) {
+      paragraphStyle.lineSpacing = style.lineSpacing;
+      fields.push('lineSpacing');
+    }
+    if (style.spaceAbove !== undefined) {
+      paragraphStyle.spaceAbove = { magnitude: style.spaceAbove, unit: 'PT' };
+      fields.push('spaceAbove');
+    }
+    if (style.spaceBelow !== undefined) {
+      paragraphStyle.spaceBelow = { magnitude: style.spaceBelow, unit: 'PT' };
+      fields.push('spaceBelow');
+    }
+    if (style.indentFirstLine !== undefined) {
+      paragraphStyle.indentFirstLine = { magnitude: style.indentFirstLine, unit: 'PT' };
+      fields.push('indentFirstLine');
+    }
+    if (style.indentStart !== undefined) {
+      paragraphStyle.indentStart = { magnitude: style.indentStart, unit: 'PT' };
+      fields.push('indentStart');
+    }
+
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateParagraphStyle: {
+            range: { startIndex, endIndex },
+            paragraphStyle,
+            fields: fields.join(','),
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // LISTS (BULLETS & NUMBERED)
+  // ============================================
+
+  /**
+   * Create bullets or numbered list
+   */
+  async createParagraphBullets(
+    documentId: string,
+    startIndex: number,
+    endIndex: number,
+    bulletPreset: 'BULLET_DISC_CIRCLE_SQUARE' | 'BULLET_DIAMONDX_ARROW3D_SQUARE' | 'BULLET_CHECKBOX' | 'BULLET_ARROW_DIAMOND_DISC' | 'BULLET_STAR_CIRCLE_SQUARE' | 'BULLET_ARROW3D_CIRCLE_SQUARE' | 'BULLET_LEFTTRIANGLE_DIAMOND_DISC' | 'BULLET_DIAMONDX_HOLLOWDIAMOND_SQUARE' | 'NUMBERED_DECIMAL_ALPHA_ROMAN' | 'NUMBERED_DECIMAL_ALPHA_ROMAN_PARENS' | 'NUMBERED_DECIMAL_NESTED' | 'NUMBERED_UPPERALPHA_ALPHA_ROMAN' | 'NUMBERED_UPPERROMAN_UPPERALPHA_DECIMAL' | 'NUMBERED_ZERODECIMAL_ALPHA_ROMAN'
+  ): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          createParagraphBullets: {
+            range: { startIndex, endIndex },
+            bulletPreset,
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Remove bullets from paragraphs
+   */
+  async deleteParagraphBullets(documentId: string, startIndex: number, endIndex: number): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteParagraphBullets: {
+            range: { startIndex, endIndex },
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // TABLES
+  // ============================================
+
+  /**
+   * Insert a table
+   */
+  async insertTable(documentId: string, rows: number, columns: number, insertIndex?: number): Promise<void> {
+    let index: number;
+    if (insertIndex !== undefined) {
+      index = insertIndex;
+    } else {
+      const doc = await this.getDocument(documentId);
+      index = (doc.body?.content?.slice(-1)[0]?.endIndex || 2) - 1;
+    }
+
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          insertTable: {
+            rows,
+            columns,
+            location: { index },
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Delete a table row
+   */
+  async deleteTableRow(documentId: string, tableStartIndex: number, rowIndex: number): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteTableRow: {
+            tableCellLocation: {
+              tableStartLocation: { index: tableStartIndex },
+              rowIndex,
+              columnIndex: 0,
+            },
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Delete a table column
+   */
+  async deleteTableColumn(documentId: string, tableStartIndex: number, columnIndex: number): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteTableColumn: {
+            tableCellLocation: {
+              tableStartLocation: { index: tableStartIndex },
+              rowIndex: 0,
+              columnIndex,
+            },
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Insert a table row
+   */
+  async insertTableRow(documentId: string, tableStartIndex: number, rowIndex: number, insertBelow = true): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          insertTableRow: {
+            tableCellLocation: {
+              tableStartLocation: { index: tableStartIndex },
+              rowIndex,
+              columnIndex: 0,
+            },
+            insertBelow,
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Insert a table column
+   */
+  async insertTableColumn(documentId: string, tableStartIndex: number, columnIndex: number, insertRight = true): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          insertTableColumn: {
+            tableCellLocation: {
+              tableStartLocation: { index: tableStartIndex },
+              rowIndex: 0,
+              columnIndex,
+            },
+            insertRight,
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // LINKS
+  // ============================================
+
+  /**
+   * Insert a link
+   */
+  async insertLink(documentId: string, startIndex: number, endIndex: number, url: string): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateTextStyle: {
+            range: { startIndex, endIndex },
+            textStyle: {
+              link: { url },
+            },
+            fields: 'link',
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Remove link from text
+   */
+  async removeLink(documentId: string, startIndex: number, endIndex: number): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateTextStyle: {
+            range: { startIndex, endIndex },
+            textStyle: {
+              link: null,
+            },
+            fields: 'link',
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // PAGE BREAKS
+  // ============================================
+
+  /**
+   * Insert a page break
+   */
+  async insertPageBreak(documentId: string, insertIndex?: number): Promise<void> {
+    let index: number;
+    if (insertIndex !== undefined) {
+      index = insertIndex;
+    } else {
+      const doc = await this.getDocument(documentId);
+      index = (doc.body?.content?.slice(-1)[0]?.endIndex || 2) - 1;
+    }
+
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          insertPageBreak: {
+            location: { index },
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // HEADERS & FOOTERS
+  // ============================================
+
+  /**
+   * Create a header
+   */
+  async createHeader(documentId: string, sectionBreakLocation?: number): Promise<string> {
+    const requests: Record<string, unknown>[] = [{
+      createHeader: {
+        type: 'DEFAULT',
+        sectionBreakLocation: sectionBreakLocation !== undefined ? { index: sectionBreakLocation } : undefined,
+      },
+    }];
+
+    const response = await this.request<{ replies: Array<{ createHeader?: { headerId: string } }> }>(
+      `/documents/${documentId}:batchUpdate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ requests }),
+      }
+    );
+
+    return response.replies?.[0]?.createHeader?.headerId || '';
+  }
+
+  /**
+   * Delete a header
+   */
+  async deleteHeader(documentId: string, headerId: string): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteHeader: { headerId },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Create a footer
+   */
+  async createFooter(documentId: string, sectionBreakLocation?: number): Promise<string> {
+    const requests: Record<string, unknown>[] = [{
+      createFooter: {
+        type: 'DEFAULT',
+        sectionBreakLocation: sectionBreakLocation !== undefined ? { index: sectionBreakLocation } : undefined,
+      },
+    }];
+
+    const response = await this.request<{ replies: Array<{ createFooter?: { footerId: string } }> }>(
+      `/documents/${documentId}:batchUpdate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ requests }),
+      }
+    );
+
+    return response.replies?.[0]?.createFooter?.footerId || '';
+  }
+
+  /**
+   * Delete a footer
+   */
+  async deleteFooter(documentId: string, footerId: string): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteFooter: { footerId },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Insert text into header or footer
+   */
+  async insertTextInHeaderFooter(documentId: string, segmentId: string, text: string): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          insertText: {
+            location: { segmentId, index: 0 },
+            text,
+          },
+        }],
+      }),
+    });
+  }
 }
 
 export const gdocs = new GoogleDocsClient();

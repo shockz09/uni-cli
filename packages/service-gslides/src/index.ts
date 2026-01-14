@@ -20,6 +20,16 @@ import { exportCommand } from './commands/export';
 import { deleteCommand } from './commands/delete';
 import { renameCommand } from './commands/rename';
 import { authCommand } from './commands/auth';
+// New commands
+import { addShapeCommand } from './commands/add-shape';
+import { addLineCommand } from './commands/add-line';
+import { notesCommand } from './commands/notes';
+import { reorderCommand } from './commands/reorder';
+import { addTableCommand } from './commands/add-table';
+import { backgroundCommand } from './commands/background';
+import { formatTextCommand } from './commands/format-text';
+import { deleteElementCommand } from './commands/delete-element';
+import { transformCommand } from './commands/transform';
 import { gslides } from './api';
 
 const gslidesService: UniService = {
@@ -43,6 +53,16 @@ const gslidesService: UniService = {
     exportCommand,
     deleteCommand,
     renameCommand,
+    // New commands
+    addShapeCommand,
+    addLineCommand,
+    notesCommand,
+    reorderCommand,
+    addTableCommand,
+    backgroundCommand,
+    formatTextCommand,
+    deleteElementCommand,
+    transformCommand,
     authCommand,
   ],
 

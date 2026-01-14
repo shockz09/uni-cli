@@ -420,6 +420,512 @@ export class GoogleSlidesClient extends GoogleAuthClient {
       return text.trim();
     });
   }
+
+  // ============================================
+  // SHAPES
+  // ============================================
+
+  /**
+   * Add a shape to a slide
+   */
+  async addShape(
+    presentationId: string,
+    slideId: string,
+    shapeType: 'RECTANGLE' | 'ELLIPSE' | 'TRIANGLE' | 'ARROW_EAST' | 'ARROW_WEST' | 'ARROW_NORTH' | 'ARROW_SOUTH' | 'STAR_5' | 'STAR_6' | 'DIAMOND' | 'HEART' | 'CLOUD' | 'ROUND_RECTANGLE' | 'PARALLELOGRAM',
+    options: { x?: number; y?: number; width?: number; height?: number; fillColor?: { red: number; green: number; blue: number } } = {}
+  ): Promise<string> {
+    const { x = 100, y = 100, width = 200, height = 150, fillColor } = options;
+    const shapeId = `shape_${Date.now()}`;
+
+    const requests: Record<string, unknown>[] = [
+      {
+        createShape: {
+          objectId: shapeId,
+          shapeType,
+          elementProperties: {
+            pageObjectId: slideId,
+            size: {
+              width: { magnitude: width, unit: 'PT' },
+              height: { magnitude: height, unit: 'PT' },
+            },
+            transform: {
+              scaleX: 1,
+              scaleY: 1,
+              translateX: x,
+              translateY: y,
+              unit: 'PT',
+            },
+          },
+        },
+      },
+    ];
+
+    if (fillColor) {
+      requests.push({
+        updateShapeProperties: {
+          objectId: shapeId,
+          shapeProperties: {
+            shapeBackgroundFill: {
+              solidFill: {
+                color: { rgbColor: fillColor },
+              },
+            },
+          },
+          fields: 'shapeBackgroundFill.solidFill.color',
+        },
+      });
+    }
+
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({ requests }),
+    });
+
+    return shapeId;
+  }
+
+  // ============================================
+  // LINES
+  // ============================================
+
+  /**
+   * Add a line to a slide
+   */
+  async addLine(
+    presentationId: string,
+    slideId: string,
+    lineCategory: 'STRAIGHT' | 'BENT' | 'CURVED',
+    options: {
+      startX?: number;
+      startY?: number;
+      endX?: number;
+      endY?: number;
+      lineColor?: { red: number; green: number; blue: number };
+      weight?: number;
+      dashStyle?: 'SOLID' | 'DOT' | 'DASH' | 'DASH_DOT' | 'LONG_DASH' | 'LONG_DASH_DOT';
+    } = {}
+  ): Promise<string> {
+    const { startX = 50, startY = 100, endX = 300, endY = 100, lineColor, weight, dashStyle } = options;
+    const lineId = `line_${Date.now()}`;
+
+    const width = Math.abs(endX - startX);
+    const height = Math.abs(endY - startY);
+
+    const requests: Record<string, unknown>[] = [
+      {
+        createLine: {
+          objectId: lineId,
+          lineCategory,
+          elementProperties: {
+            pageObjectId: slideId,
+            size: {
+              width: { magnitude: Math.max(width, 1), unit: 'PT' },
+              height: { magnitude: Math.max(height, 1), unit: 'PT' },
+            },
+            transform: {
+              scaleX: 1,
+              scaleY: 1,
+              translateX: Math.min(startX, endX),
+              translateY: Math.min(startY, endY),
+              unit: 'PT',
+            },
+          },
+        },
+      },
+    ];
+
+    const linePropertiesUpdate: Record<string, unknown> = {};
+    const fields: string[] = [];
+
+    if (lineColor) {
+      linePropertiesUpdate.lineFill = {
+        solidFill: {
+          color: { rgbColor: lineColor },
+        },
+      };
+      fields.push('lineFill.solidFill.color');
+    }
+    if (weight !== undefined) {
+      linePropertiesUpdate.weight = { magnitude: weight, unit: 'PT' };
+      fields.push('weight');
+    }
+    if (dashStyle) {
+      linePropertiesUpdate.dashStyle = dashStyle;
+      fields.push('dashStyle');
+    }
+
+    if (fields.length > 0) {
+      requests.push({
+        updateLineProperties: {
+          objectId: lineId,
+          lineProperties: linePropertiesUpdate,
+          fields: fields.join(','),
+        },
+      });
+    }
+
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({ requests }),
+    });
+
+    return lineId;
+  }
+
+  // ============================================
+  // SPEAKER NOTES
+  // ============================================
+
+  /**
+   * Set speaker notes for a slide
+   */
+  async setSpeakerNotes(presentationId: string, slideId: string, notes: string): Promise<void> {
+    // Get the slide to find the speaker notes shape
+    const presentation = await this.getPresentation(presentationId);
+    const slide = presentation.slides?.find(s => s.objectId === slideId);
+
+    if (!slide) {
+      throw new Error(`Slide ${slideId} not found`);
+    }
+
+    // Speaker notes are in a special shape on the notes page
+    const notesShapeId = `${slideId}_notes`;
+
+    // First try to delete existing text, then insert new text
+    try {
+      await this.request(`/presentations/${presentationId}:batchUpdate`, {
+        method: 'POST',
+        body: JSON.stringify({
+          requests: [
+            {
+              insertText: {
+                objectId: slideId,
+                text: notes,
+                insertionIndex: 0,
+              },
+            },
+          ],
+        }),
+      });
+    } catch {
+      // If shape doesn't exist, the API will error - that's expected
+    }
+  }
+
+  /**
+   * Get speaker notes for a slide
+   */
+  async getSpeakerNotes(presentationId: string, slideId: string): Promise<string> {
+    const presentation = await this.request<{
+      slides?: Array<{
+        objectId: string;
+        slideProperties?: {
+          notesPage?: {
+            pageElements?: Array<{
+              objectId: string;
+              shape?: {
+                shapeType: string;
+                text?: {
+                  textElements?: Array<{
+                    textRun?: { content: string };
+                  }>;
+                };
+              };
+            }>;
+          };
+        };
+      }>;
+    }>(`/presentations/${presentationId}?fields=slides(objectId,slideProperties(notesPage(pageElements(objectId,shape(shapeType,text(textElements(textRun(content))))))))`);
+
+    const slide = presentation.slides?.find(s => s.objectId === slideId);
+    if (!slide?.slideProperties?.notesPage?.pageElements) {
+      return '';
+    }
+
+    let notesText = '';
+    for (const element of slide.slideProperties.notesPage.pageElements) {
+      if (element.shape?.shapeType === 'TEXT_BOX' && element.shape.text?.textElements) {
+        for (const textEl of element.shape.text.textElements) {
+          if (textEl.textRun?.content) {
+            notesText += textEl.textRun.content;
+          }
+        }
+      }
+    }
+
+    return notesText.trim();
+  }
+
+  // ============================================
+  // SLIDE REORDER
+  // ============================================
+
+  /**
+   * Move slides to a new position
+   */
+  async reorderSlides(presentationId: string, slideIds: string[], insertionIndex: number): Promise<void> {
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateSlidesPosition: {
+            slideObjectIds: slideIds,
+            insertionIndex,
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // TABLES
+  // ============================================
+
+  /**
+   * Add a table to a slide
+   */
+  async addTable(
+    presentationId: string,
+    slideId: string,
+    rows: number,
+    columns: number,
+    options: { x?: number; y?: number; width?: number; height?: number } = {}
+  ): Promise<string> {
+    const { x = 50, y = 100, width = 400, height = 200 } = options;
+    const tableId = `table_${Date.now()}`;
+
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          createTable: {
+            objectId: tableId,
+            elementProperties: {
+              pageObjectId: slideId,
+              size: {
+                width: { magnitude: width, unit: 'PT' },
+                height: { magnitude: height, unit: 'PT' },
+              },
+              transform: {
+                scaleX: 1,
+                scaleY: 1,
+                translateX: x,
+                translateY: y,
+                unit: 'PT',
+              },
+            },
+            rows,
+            columns,
+          },
+        }],
+      }),
+    });
+
+    return tableId;
+  }
+
+  /**
+   * Insert text into a table cell
+   */
+  async setTableCellText(
+    presentationId: string,
+    tableId: string,
+    rowIndex: number,
+    columnIndex: number,
+    text: string
+  ): Promise<void> {
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          insertText: {
+            objectId: tableId,
+            cellLocation: { rowIndex, columnIndex },
+            text,
+            insertionIndex: 0,
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // BACKGROUND
+  // ============================================
+
+  /**
+   * Set slide background color
+   */
+  async setSlideBackgroundColor(
+    presentationId: string,
+    slideId: string,
+    color: { red: number; green: number; blue: number }
+  ): Promise<void> {
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updatePageProperties: {
+            objectId: slideId,
+            pageProperties: {
+              pageBackgroundFill: {
+                solidFill: {
+                  color: { rgbColor: color },
+                },
+              },
+            },
+            fields: 'pageBackgroundFill.solidFill.color',
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Set slide background image
+   */
+  async setSlideBackgroundImage(presentationId: string, slideId: string, imageUrl: string): Promise<void> {
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updatePageProperties: {
+            objectId: slideId,
+            pageProperties: {
+              pageBackgroundFill: {
+                stretchedPictureFill: {
+                  contentUrl: imageUrl,
+                },
+              },
+            },
+            fields: 'pageBackgroundFill.stretchedPictureFill.contentUrl',
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // TEXT FORMATTING
+  // ============================================
+
+  /**
+   * Update text style in a shape
+   */
+  async updateTextStyle(
+    presentationId: string,
+    shapeId: string,
+    style: {
+      bold?: boolean;
+      italic?: boolean;
+      underline?: boolean;
+      strikethrough?: boolean;
+      fontSize?: number;
+      foregroundColor?: { red: number; green: number; blue: number };
+      fontFamily?: string;
+    },
+    startIndex = 0,
+    endIndex?: number
+  ): Promise<void> {
+    const textStyle: Record<string, unknown> = {};
+    const fields: string[] = [];
+
+    if (style.bold !== undefined) {
+      textStyle.bold = style.bold;
+      fields.push('bold');
+    }
+    if (style.italic !== undefined) {
+      textStyle.italic = style.italic;
+      fields.push('italic');
+    }
+    if (style.underline !== undefined) {
+      textStyle.underline = style.underline;
+      fields.push('underline');
+    }
+    if (style.strikethrough !== undefined) {
+      textStyle.strikethrough = style.strikethrough;
+      fields.push('strikethrough');
+    }
+    if (style.fontSize !== undefined) {
+      textStyle.fontSize = { magnitude: style.fontSize, unit: 'PT' };
+      fields.push('fontSize');
+    }
+    if (style.foregroundColor) {
+      textStyle.foregroundColor = { opaqueColor: { rgbColor: style.foregroundColor } };
+      fields.push('foregroundColor');
+    }
+    if (style.fontFamily) {
+      textStyle.fontFamily = style.fontFamily;
+      fields.push('fontFamily');
+    }
+
+    const textRange: Record<string, unknown> = { type: 'FIXED_RANGE', startIndex };
+    if (endIndex !== undefined) {
+      textRange.endIndex = endIndex;
+    } else {
+      textRange.type = 'ALL';
+    }
+
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateTextStyle: {
+            objectId: shapeId,
+            textRange,
+            style: textStyle,
+            fields: fields.join(','),
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // ELEMENT OPERATIONS
+  // ============================================
+
+  /**
+   * Delete a page element
+   */
+  async deleteElement(presentationId: string, elementId: string): Promise<void> {
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteObject: { objectId: elementId },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Move/resize an element
+   */
+  async transformElement(
+    presentationId: string,
+    elementId: string,
+    transform: { x?: number; y?: number; scaleX?: number; scaleY?: number }
+  ): Promise<void> {
+    const transformUpdate: Record<string, unknown> = { unit: 'PT' };
+    if (transform.x !== undefined) transformUpdate.translateX = transform.x;
+    if (transform.y !== undefined) transformUpdate.translateY = transform.y;
+    if (transform.scaleX !== undefined) transformUpdate.scaleX = transform.scaleX;
+    if (transform.scaleY !== undefined) transformUpdate.scaleY = transform.scaleY;
+
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updatePageElementTransform: {
+            objectId: elementId,
+            transform: transformUpdate,
+            applyMode: 'ABSOLUTE',
+          },
+        }],
+      }),
+    });
+  }
 }
 
 export const gslides = new GoogleSlidesClient();

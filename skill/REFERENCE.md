@@ -1411,6 +1411,278 @@ uni gslides rename 1abc123XYZ "Q1 Review 2025"
 
 ---
 
+### `uni gslides add-shape`
+
+Add a shape to a slide
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--slide` | -s | string |  | Slide number (1-indexed). Default: last slide |
+| `--type` | -t | string |  | Shape type: rectangle, ellipse, triangle, arrow, star, diamond, heart, cloud |
+| `--x` |  | string |  | X position in points (default: 100) |
+| `--y` |  | string |  | Y position in points (default: 100) |
+| `--width` | -w | string |  | Width in points (default: 200) |
+| `--height` | -h | string |  | Height in points (default: 150) |
+| `--color` | -c | string |  | Fill color (hex or name) |
+
+**Examples:**
+
+```bash
+uni gslides add-shape ID --type rectangle
+uni gslides add-shape ID --type ellipse --slide 2 --color blue
+uni gslides add-shape ID --type star --x 200 --y 150 --width 100 --height 100
+uni gslides add-shape ID --type arrow --color "#FF5500"
+```
+
+---
+
+### `uni gslides add-line`
+
+Add a line to a slide
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--slide` | -s | string |  | Slide number (1-indexed). Default: last slide |
+| `--type` | -t | string |  | Line type: straight, bent, curved (default: straight) |
+| `--start-x` |  | string |  | Start X position (default: 50) |
+| `--start-y` |  | string |  | Start Y position (default: 100) |
+| `--end-x` |  | string |  | End X position (default: 300) |
+| `--end-y` |  | string |  | End Y position (default: 100) |
+| `--color` | -c | string |  | Line color (hex or name) |
+| `--weight` | -w | string |  | Line weight in points |
+| `--dash` | -d | string |  | Dash style: solid, dot, dash, dash-dot |
+
+**Examples:**
+
+```bash
+uni gslides add-line ID
+uni gslides add-line ID --slide 2 --color red --weight 3
+uni gslides add-line ID --start-x 50 --start-y 100 --end-x 400 --end-y 300
+uni gslides add-line ID --type curved --dash dot --color blue
+```
+
+---
+
+### `uni gslides notes`
+
+Get or set speaker notes for a slide
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--slide` | -s | string |  | Slide number (1-indexed). Default: 1 |
+| `--text` | -t | string |  | Set speaker notes text |
+| `--get` | -g | boolean |  | Get current speaker notes |
+
+**Examples:**
+
+```bash
+uni gslides notes ID --slide 1 --get
+uni gslides notes ID --slide 2 --text "Remember to mention the key points"
+uni gslides notes ID -s 3 -t "Transition to demo here"
+```
+
+---
+
+### `uni gslides reorder`
+
+Move slides to a new position
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `slide` | Yes | Slide number to move (1-indexed) |
+| `to` | Yes | New position (1-indexed) |
+
+**Examples:**
+
+```bash
+uni gslides reorder ID 3 1
+uni gslides reorder ID 5 2
+uni gslides reorder ID 1 10
+```
+
+---
+
+### `uni gslides add-table`
+
+Add a table to a slide
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--slide` | -s | string |  | Slide number (1-indexed). Default: last slide |
+| `--rows` | -r | string |  | Number of rows (default: 3) |
+| `--cols` | -c | string |  | Number of columns (default: 3) |
+| `--x` |  | string |  | X position in points (default: 50) |
+| `--y` |  | string |  | Y position in points (default: 100) |
+| `--width` | -w | string |  | Width in points (default: 400) |
+| `--height` | -h | string |  | Height in points (default: 200) |
+
+**Examples:**
+
+```bash
+uni gslides add-table ID --rows 3 --cols 4
+uni gslides add-table ID --slide 2 --rows 5 --cols 2
+uni gslides add-table ID --rows 2 --cols 3 --x 100 --y 150 --width 300
+```
+
+---
+
+### `uni gslides background`
+
+Set slide background color or image
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--slide` | -s | string |  | Slide number (1-indexed). Default: all slides |
+| `--color` | -c | string |  | Background color (hex or name) |
+| `--image` | -i | string |  | Background image URL |
+
+**Examples:**
+
+```bash
+uni gslides background ID --color blue
+uni gslides background ID --slide 1 --color "#FF5500"
+uni gslides background ID --slide 2 --image "https://example.com/bg.jpg"
+uni gslides background ID --color white
+```
+
+---
+
+### `uni gslides format-text`
+
+Format text in a shape element
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `elementId` | Yes | Element (shape/textbox) ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--bold` | -b | boolean |  | Make text bold |
+| `--italic` | -i | boolean |  | Make text italic |
+| `--underline` | -u | boolean |  | Underline text |
+| `--strike` |  | boolean |  | Strikethrough text |
+| `--size` | -s | string |  | Font size in points |
+| `--color` | -c | string |  | Text color (hex or name) |
+| `--font` | -f | string |  | Font family |
+| `--start` |  | string |  | Start index (default: all text) |
+| `--end` |  | string |  | End index (default: all text) |
+
+**Examples:**
+
+```bash
+uni gslides format-text ID textbox_123 --bold
+uni gslides format-text ID shape_456 --size 24 --color red
+uni gslides format-text ID element_789 --font "Arial" --italic
+uni gslides format-text ID textbox_123 --bold --start 0 --end 10
+```
+
+---
+
+### `uni gslides delete-element`
+
+Delete a page element (shape, image, table, etc.)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `elementId` | Yes | Element ID to delete |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--force` | -f | boolean |  | Skip confirmation |
+
+**Examples:**
+
+```bash
+uni gslides delete-element ID textbox_123
+uni gslides delete-element ID shape_456 --force
+uni gslides delete-element ID image_789
+```
+
+---
+
+### `uni gslides transform`
+
+Move or resize a page element
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `elementId` | Yes | Element ID to transform |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--x` |  | string |  | X position in points |
+| `--y` |  | string |  | Y position in points |
+| `--scale-x` |  | string |  | Scale factor for width (1 = 100%) |
+| `--scale-y` |  | string |  | Scale factor for height (1 = 100%) |
+
+**Examples:**
+
+```bash
+uni gslides transform ID shape_123 --x 200 --y 150
+uni gslides transform ID textbox_456 --scale-x 1.5 --scale-y 1.5
+uni gslides transform ID image_789 --x 100 --y 100 --scale-x 0.5
+```
+
+---
+
 ### `uni gslides auth`
 
 Authenticate with Google Slides
@@ -3680,6 +3952,253 @@ Rename a document
 ```bash
 uni gdocs rename 1abc123XYZ "New Title"
 uni gdocs rename 1abc123XYZ "Meeting Notes - Q1"
+```
+
+---
+
+### `uni gdocs format`
+
+Apply text formatting (bold, italic, underline, etc.)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `start` | Yes | Start index |
+| `end` | Yes | End index |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--bold` | -b | boolean |  | Make text bold |
+| `--italic` | -i | boolean |  | Make text italic |
+| `--underline` | -u | boolean |  | Underline text |
+| `--strike` |  | boolean |  | Strikethrough text |
+| `--size` | -s | string |  | Font size in points |
+| `--color` | -c | string |  | Text color (hex or name) |
+| `--bg` |  | string |  | Background color (hex or name) |
+| `--font` | -f | string |  | Font family |
+
+**Examples:**
+
+```bash
+uni gdocs format ID 1 10 --bold
+uni gdocs format ID 5 20 --italic --underline
+uni gdocs format ID 1 50 --size 14 --color red
+uni gdocs format ID 10 30 --font "Arial" --bold
+```
+
+---
+
+### `uni gdocs style`
+
+Apply paragraph style (heading, alignment, spacing)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `start` | Yes | Start index |
+| `end` | Yes | End index |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--heading` | -h | string |  | Heading level: title, subtitle, 1-6, normal |
+| `--align` | -a | string |  | Alignment: left, center, right, justified |
+| `--line-spacing` |  | string |  | Line spacing (e.g., 100 for single, 200 for double) |
+| `--space-above` |  | string |  | Space above paragraph (points) |
+| `--space-below` |  | string |  | Space below paragraph (points) |
+| `--indent` |  | string |  | First line indent (points) |
+
+**Examples:**
+
+```bash
+uni gdocs style ID 1 20 --heading 1
+uni gdocs style ID 1 50 --heading title --align center
+uni gdocs style ID 10 100 --align justified --line-spacing 150
+uni gdocs style ID 1 30 --heading 2 --space-below 12
+```
+
+---
+
+### `uni gdocs bullets`
+
+Create or remove bulleted/numbered lists
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `start` | Yes | Start index |
+| `end` | Yes | End index |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--type` | -t | string |  | List type: bullet, numbered, checkbox, or remove |
+| `--style` | -s | string |  | Bullet style: disc, diamond, arrow, star (for bullets) or decimal, alpha, roman (for numbered) |
+
+**Examples:**
+
+```bash
+uni gdocs bullets ID 1 100 --type bullet
+uni gdocs bullets ID 1 50 --type numbered
+uni gdocs bullets ID 10 80 --type checkbox
+uni gdocs bullets ID 1 100 --type bullet --style star
+uni gdocs bullets ID 1 100 --type numbered --style roman
+uni gdocs bullets ID 1 100 --type remove
+```
+
+---
+
+### `uni gdocs table`
+
+Insert a table or manage table rows/columns
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--insert` |  | boolean |  | Insert a new table |
+| `--rows` | -r | string |  | Number of rows (for insert) |
+| `--cols` | -c | string |  | Number of columns (for insert) |
+| `--at` |  | string |  | Insert position (index) |
+| `--add-row` |  | string |  | Add row at table (tableStartIndex:rowIndex) |
+| `--add-col` |  | string |  | Add column at table (tableStartIndex:colIndex) |
+| `--del-row` |  | string |  | Delete row from table (tableStartIndex:rowIndex) |
+| `--del-col` |  | string |  | Delete column from table (tableStartIndex:colIndex) |
+
+**Examples:**
+
+```bash
+uni gdocs table ID --insert --rows 3 --cols 4
+uni gdocs table ID --insert --rows 5 --cols 2 --at 100
+uni gdocs table ID --add-row 50:2
+uni gdocs table ID --add-col 50:1
+uni gdocs table ID --del-row 50:0
+uni gdocs table ID --del-col 50:3
+```
+
+---
+
+### `uni gdocs link`
+
+Insert or remove hyperlinks from text
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `start` | Yes | Start index |
+| `end` | Yes | End index |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--url` | -u | string |  | URL to link to |
+| `--remove` | -r | boolean |  | Remove existing link |
+
+**Examples:**
+
+```bash
+uni gdocs link ID 10 20 --url "https://example.com"
+uni gdocs link ID 5 15 --url "https://google.com"
+uni gdocs link ID 10 20 --remove
+```
+
+---
+
+### `uni gdocs page-break`
+
+Insert a page break
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--at` |  | string |  | Insert position (index). Default: end of document |
+
+**Examples:**
+
+```bash
+uni gdocs page-break ID
+uni gdocs page-break ID --at 100
+uni gdocs page-break ID --at 50
+```
+
+---
+
+### `uni gdocs header`
+
+Add, update, or remove document header
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--text` | -t | string |  | Header text to add |
+| `--remove` | -r | string |  | Header ID to remove |
+
+**Examples:**
+
+```bash
+uni gdocs header ID --text "Company Name"
+uni gdocs header ID --text "Confidential Document"
+uni gdocs header ID --remove kix.abc123
+```
+
+---
+
+### `uni gdocs footer`
+
+Add, update, or remove document footer
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--text` | -t | string |  | Footer text to add |
+| `--remove` | -r | string |  | Footer ID to remove |
+
+**Examples:**
+
+```bash
+uni gdocs footer ID --text "Page 1"
+uni gdocs footer ID --text "© 2025 Company"
+uni gdocs footer ID --remove kix.xyz789
 ```
 
 ---
