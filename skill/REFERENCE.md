@@ -4785,6 +4785,425 @@ uni gsheets protect ID --list
 
 ---
 
+### `uni gsheets named-range`
+
+Manage named ranges
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | boolean |  | List all named ranges |
+| `--add` | -a | string |  | Add named range (name) |
+| `--range` | -r | string |  | Range for add/update (e.g., A1:D10) |
+| `--remove` |  | string |  | Remove named range by name or ID |
+| `--update` | -u | string |  | Update named range (name or ID) |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets named-range ID --list
+uni gsheets named-range ID --add "DataRange" --range A1:D100
+uni gsheets named-range ID --remove "DataRange"
+uni gsheets named-range ID --update "DataRange" --range A1:E200
+```
+
+---
+
+### `uni gsheets validate`
+
+Set data validation rules on cells
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Cell range (e.g., A1:A100) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--type` | -t | string |  | Validation type: list, number, date, checkbox, text, custom |
+| `--values` | -v | string |  | Comma-separated values for list validation |
+| `--min` |  | string |  | Minimum value for number validation |
+| `--max` |  | string |  | Maximum value for number validation |
+| `--operator` | -o | string |  | Operator: gt, gte, lt, lte, eq, ne, between |
+| `--date` | -d | string |  | Date value (YYYY-MM-DD) |
+| `--date2` |  | string |  | Second date for between operator |
+| `--date-op` |  | string |  | Date operator: before, after, on, between |
+| `--formula` | -f | string |  | Custom formula (e.g., =A1>0) |
+| `--message` | -m | string |  | Input message to show user |
+| `--strict` |  | boolean |  | Reject invalid data (default: true) |
+| `--no-dropdown` |  | boolean |  | Hide dropdown UI for list validation |
+| `--clear` | -c | boolean |  | Clear validation from range |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets validate ID A1:A100 --type list --values "Yes,No,Maybe"
+uni gsheets validate ID B1:B50 --type number --min 0 --max 100
+uni gsheets validate ID C1:C100 --type number --operator gt --min 0
+uni gsheets validate ID D1:D50 --type date --date-op after --date 2024-01-01
+uni gsheets validate ID E1:E100 --type checkbox
+uni gsheets validate ID F1:F50 --type custom --formula "=LEN(F1)<=100"
+uni gsheets validate ID A1:A100 --clear
+```
+
+---
+
+### `uni gsheets freeze`
+
+Freeze rows and/or columns
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--rows` | -r | string |  | Number of rows to freeze |
+| `--cols` | -c | string |  | Number of columns to freeze |
+| `--clear` |  | boolean |  | Unfreeze all rows and columns |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets freeze ID --rows 1
+uni gsheets freeze ID --cols 2
+uni gsheets freeze ID --rows 1 --cols 1
+uni gsheets freeze ID --clear
+uni gsheets freeze ID --sheet "Data" --rows 2
+```
+
+---
+
+### `uni gsheets border`
+
+Set cell borders
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Cell range (e.g., A1:D10) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--all` | -a | boolean |  | Apply border to all sides and inner lines |
+| `--outer` | -o | boolean |  | Apply border to outer edges only |
+| `--inner` | -i | boolean |  | Apply border to inner lines only |
+| `--top` |  | boolean |  | Apply border to top |
+| `--bottom` |  | boolean |  | Apply border to bottom |
+| `--left` |  | boolean |  | Apply border to left |
+| `--right` |  | boolean |  | Apply border to right |
+| `--style` | -s | string |  | Border style: solid, solid-medium, solid-thick, dashed, dotted, double |
+| `--color` | -c | string |  | Border color (name or hex) |
+| `--clear` |  | boolean |  | Clear all borders |
+| `--sheet` |  | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets border ID A1:D10 --all
+uni gsheets border ID A1:D10 --all --style solid-thick --color blue
+uni gsheets border ID A1:D10 --outer --style double
+uni gsheets border ID A1:D10 --inner --style dashed --color gray
+uni gsheets border ID A1:D10 --top --bottom --style solid
+uni gsheets border ID A1:D10 --clear
+```
+
+---
+
+### `uni gsheets resize`
+
+Auto-resize or manually set row/column sizes
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--cols` | -c | string |  | Column range to resize (e.g., A:D, A) |
+| `--rows` | -r | string |  | Row range to resize (e.g., 1:10, 5) |
+| `--size` | -p | string |  | Pixel size (if not specified, auto-fit to content) |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets resize ID --cols A:D
+uni gsheets resize ID --cols A:Z
+uni gsheets resize ID --rows 1:10
+uni gsheets resize ID --cols B --size 200
+uni gsheets resize ID --rows 1:5 --size 50
+```
+
+---
+
+### `uni gsheets hide`
+
+Hide or show rows/columns
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--cols` | -c | string |  | Column range to hide/show (e.g., B:D, C) |
+| `--rows` | -r | string |  | Row range to hide/show (e.g., 5:10, 3) |
+| `--show` | -s | boolean |  | Show instead of hide |
+| `--sheet` |  | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets hide ID --cols B:D
+uni gsheets hide ID --rows 5:10
+uni gsheets hide ID --cols C
+uni gsheets hide ID --cols B:D --show
+uni gsheets hide ID --rows 5:10 --show
+```
+
+---
+
+### `uni gsheets insert`
+
+Insert rows or columns
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--rows` | -r | string |  | Row number to insert at (1-indexed) |
+| `--cols` | -c | string |  | Column letter to insert at (e.g., B) |
+| `--count` | -n | string |  | Number of rows/columns to insert (default: 1) |
+| `--inherit` | -i | boolean |  | Inherit formatting from row/column before |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets insert ID --rows 5
+uni gsheets insert ID --rows 5 --count 3
+uni gsheets insert ID --cols B
+uni gsheets insert ID --cols C --count 2
+uni gsheets insert ID --rows 10 --inherit
+```
+
+---
+
+### `uni gsheets delete-rows`
+
+Delete rows from spreadsheet
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Row range to delete (e.g., 5:10, 3) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets delete-rows ID 5
+uni gsheets delete-rows ID 5:10
+uni gsheets delete-rows ID 100:150 --sheet "Data"
+```
+
+---
+
+### `uni gsheets delete-cols`
+
+Delete columns from spreadsheet
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | Yes | Column range to delete (e.g., B:D, C) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets delete-cols ID B
+uni gsheets delete-cols ID B:D
+uni gsheets delete-cols ID E:G --sheet "Data"
+```
+
+---
+
+### `uni gsheets filter`
+
+Set or clear basic filter (dropdown filters)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `range` | No | Range to filter (e.g., A1:D100) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--clear` | -c | boolean |  | Clear existing filter |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets filter ID A1:D100
+uni gsheets filter ID --clear
+uni gsheets filter ID
+```
+
+---
+
+### `uni gsheets filter-view`
+
+Manage saved filter views
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | boolean |  | List all filter views |
+| `--add` | -a | string |  | Add filter view with name |
+| `--range` | -r | string |  | Range for new filter view (e.g., A1:D100) |
+| `--remove` |  | string |  | Remove filter view by ID |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets filter-view ID --list
+uni gsheets filter-view ID --add "My Filter" --range A1:E100
+uni gsheets filter-view ID --remove 123456789
+```
+
+---
+
+### `uni gsheets copy-paste`
+
+Copy and paste a range to another location
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+| `source` | Yes | Source range (e.g., A1:B10) |
+| `dest` | Yes | Destination cell (e.g., D1) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--type` | -t | string |  | Paste type: normal, values, format, formula, validation, conditional |
+| `--sheet` | -s | string |  | Source sheet name (default: first sheet) |
+| `--dest-sheet` |  | string |  | Destination sheet name (default: same as source) |
+
+**Examples:**
+
+```bash
+uni gsheets copy-paste ID A1:B10 D1
+uni gsheets copy-paste ID A1:C5 A10 --type values
+uni gsheets copy-paste ID A1:D10 A1 --sheet "Sheet1" --dest-sheet "Sheet2"
+uni gsheets copy-paste ID B2:E5 G2 --type format
+```
+
+---
+
+### `uni gsheets group`
+
+Create collapsible row/column groups
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Spreadsheet ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--rows` | -r | string |  | Row range to group (e.g., 5:10) |
+| `--cols` | -c | string |  | Column range to group (e.g., B:D) |
+| `--ungroup` | -u | boolean |  | Remove group instead of creating |
+| `--collapse` |  | boolean |  | Collapse the group |
+| `--expand` |  | boolean |  | Expand the group |
+| `--list` | -l | boolean |  | List all groups |
+| `--sheet` | -s | string |  | Sheet name (default: first sheet) |
+
+**Examples:**
+
+```bash
+uni gsheets group ID --rows 5:10
+uni gsheets group ID --cols B:D
+uni gsheets group ID --rows 5:10 --ungroup
+uni gsheets group ID --rows 5:10 --collapse
+uni gsheets group ID --rows 5:10 --expand
+uni gsheets group ID --list
+```
+
+---
+
 ### `uni gsheets auth`
 
 Authenticate with Google Sheets

@@ -34,6 +34,8 @@ export interface Sheet {
     gridProperties?: {
       rowCount: number;
       columnCount: number;
+      frozenRowCount?: number;
+      frozenColumnCount?: number;
     };
   };
   charts?: Array<{
@@ -1076,6 +1078,883 @@ export class GoogleSheetsClient extends GoogleAuthClient {
     }
 
     return protections;
+  }
+
+  // ============================================
+  // NAMED RANGES
+  // ============================================
+
+  /**
+   * List all named ranges in a spreadsheet
+   */
+  async listNamedRanges(spreadsheetId: string): Promise<Array<{
+    namedRangeId: string;
+    name: string;
+    range: string;
+    sheetId: number;
+  }>> {
+    const response = await this.request<{
+      namedRanges?: Array<{
+        namedRangeId: string;
+        name: string;
+        range: {
+          sheetId: number;
+          startRowIndex?: number;
+          endRowIndex?: number;
+          startColumnIndex?: number;
+          endColumnIndex?: number;
+        };
+      }>;
+    }>(`/spreadsheets/${spreadsheetId}?fields=namedRanges`);
+
+    const colToLetter = (col: number) => {
+      let letter = '';
+      let temp = col;
+      while (temp >= 0) {
+        letter = String.fromCharCode((temp % 26) + 65) + letter;
+        temp = Math.floor(temp / 26) - 1;
+      }
+      return letter;
+    };
+
+    return (response.namedRanges || []).map(nr => {
+      const r = nr.range;
+      const startCol = colToLetter(r.startColumnIndex || 0);
+      const endCol = colToLetter((r.endColumnIndex || 1) - 1);
+      const startRow = (r.startRowIndex || 0) + 1;
+      const endRow = r.endRowIndex || 1;
+      return {
+        namedRangeId: nr.namedRangeId,
+        name: nr.name,
+        range: `${startCol}${startRow}:${endCol}${endRow}`,
+        sheetId: r.sheetId,
+      };
+    });
+  }
+
+  /**
+   * Add a named range
+   */
+  async addNamedRange(
+    spreadsheetId: string,
+    name: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number }
+  ): Promise<string> {
+    const response = await this.request<{
+      replies: Array<{ addNamedRange: { namedRange: { namedRangeId: string } } }>;
+    }>(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          addNamedRange: {
+            namedRange: { name, range },
+          },
+        }],
+      }),
+    });
+    return response.replies[0].addNamedRange.namedRange.namedRangeId;
+  }
+
+  /**
+   * Delete a named range
+   */
+  async deleteNamedRange(spreadsheetId: string, namedRangeId: string): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteNamedRange: { namedRangeId },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Update a named range
+   */
+  async updateNamedRange(
+    spreadsheetId: string,
+    namedRangeId: string,
+    name?: string,
+    range?: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number }
+  ): Promise<void> {
+    const namedRange: Record<string, unknown> = { namedRangeId };
+    const fields: string[] = [];
+
+    if (name) {
+      namedRange.name = name;
+      fields.push('name');
+    }
+    if (range) {
+      namedRange.range = range;
+      fields.push('range');
+    }
+
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateNamedRange: {
+            namedRange,
+            fields: fields.join(','),
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // DATA VALIDATION
+  // ============================================
+
+  /**
+   * Set data validation on a range
+   */
+  async setDataValidation(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    rule: {
+      type: 'list' | 'number' | 'date' | 'checkbox' | 'custom' | 'text';
+      values?: string[];           // for list
+      min?: number;                // for number range
+      max?: number;                // for number range
+      operator?: 'gt' | 'gte' | 'lt' | 'lte' | 'eq' | 'ne' | 'between';
+      dateOperator?: 'before' | 'after' | 'on' | 'between';
+      date?: string;               // ISO date string
+      date2?: string;              // for between
+      formula?: string;            // for custom
+      strict?: boolean;            // reject invalid
+      showDropdown?: boolean;      // show UI
+      inputMessage?: string;       // help text
+    } | null
+  ): Promise<void> {
+    if (rule === null) {
+      // Clear validation
+      await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+        method: 'POST',
+        body: JSON.stringify({
+          requests: [{
+            setDataValidation: { range },
+          }],
+        }),
+      });
+      return;
+    }
+
+    let condition: Record<string, unknown>;
+
+    switch (rule.type) {
+      case 'list':
+        condition = {
+          type: 'ONE_OF_LIST',
+          values: (rule.values || []).map(v => ({ userEnteredValue: v })),
+        };
+        break;
+      case 'checkbox':
+        condition = { type: 'BOOLEAN' };
+        break;
+      case 'number': {
+        const numOps: Record<string, string> = {
+          gt: 'NUMBER_GREATER',
+          gte: 'NUMBER_GREATER_THAN_EQ',
+          lt: 'NUMBER_LESS',
+          lte: 'NUMBER_LESS_THAN_EQ',
+          eq: 'NUMBER_EQ',
+          ne: 'NUMBER_NOT_EQ',
+          between: 'NUMBER_BETWEEN',
+        };
+        const op = rule.operator || (rule.min !== undefined && rule.max !== undefined ? 'between' : 'gte');
+        condition = { type: numOps[op] || 'NUMBER_GREATER_THAN_EQ' };
+        if (op === 'between' && rule.min !== undefined && rule.max !== undefined) {
+          condition.values = [
+            { userEnteredValue: String(rule.min) },
+            { userEnteredValue: String(rule.max) },
+          ];
+        } else if (rule.min !== undefined) {
+          condition.values = [{ userEnteredValue: String(rule.min) }];
+        } else if (rule.max !== undefined) {
+          condition.values = [{ userEnteredValue: String(rule.max) }];
+        }
+        break;
+      }
+      case 'date': {
+        const dateOps: Record<string, string> = {
+          before: 'DATE_BEFORE',
+          after: 'DATE_AFTER',
+          on: 'DATE_EQ',
+          between: 'DATE_BETWEEN',
+        };
+        const dateOp = rule.dateOperator || 'after';
+        condition = { type: dateOps[dateOp] || 'DATE_AFTER' };
+        if (dateOp === 'between' && rule.date && rule.date2) {
+          condition.values = [
+            { userEnteredValue: rule.date },
+            { userEnteredValue: rule.date2 },
+          ];
+        } else if (rule.date) {
+          condition.values = [{ userEnteredValue: rule.date }];
+        }
+        break;
+      }
+      case 'text':
+        condition = { type: 'TEXT_NOT_EQ', values: [{ userEnteredValue: '' }] };
+        break;
+      case 'custom':
+        condition = {
+          type: 'CUSTOM_FORMULA',
+          values: [{ userEnteredValue: rule.formula || '=TRUE' }],
+        };
+        break;
+      default:
+        throw new Error(`Unknown validation type: ${rule.type}`);
+    }
+
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          setDataValidation: {
+            range,
+            rule: {
+              condition,
+              strict: rule.strict ?? true,
+              showCustomUi: rule.showDropdown ?? true,
+              inputMessage: rule.inputMessage,
+            },
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // FREEZE ROWS/COLUMNS
+  // ============================================
+
+  /**
+   * Freeze rows and/or columns
+   */
+  async freezeRowsColumns(
+    spreadsheetId: string,
+    sheetId: number,
+    frozenRowCount?: number,
+    frozenColumnCount?: number
+  ): Promise<void> {
+    const gridProperties: Record<string, number> = {};
+    const fields: string[] = [];
+
+    if (frozenRowCount !== undefined) {
+      gridProperties.frozenRowCount = frozenRowCount;
+      fields.push('gridProperties.frozenRowCount');
+    }
+    if (frozenColumnCount !== undefined) {
+      gridProperties.frozenColumnCount = frozenColumnCount;
+      fields.push('gridProperties.frozenColumnCount');
+    }
+
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateSheetProperties: {
+            properties: { sheetId, gridProperties },
+            fields: fields.join(','),
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Get current freeze state
+   */
+  async getFreezeState(spreadsheetId: string, sheetId: number): Promise<{ rows: number; cols: number }> {
+    const spreadsheet = await this.getSpreadsheet(spreadsheetId);
+    const sheet = spreadsheet.sheets?.find(s => s.properties.sheetId === sheetId);
+    return {
+      rows: sheet?.properties.gridProperties?.frozenRowCount || 0,
+      cols: sheet?.properties.gridProperties?.frozenColumnCount || 0,
+    };
+  }
+
+  // ============================================
+  // BORDERS
+  // ============================================
+
+  /**
+   * Update cell borders
+   */
+  async updateBorders(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    borders: {
+      top?: { style: string; color?: { red: number; green: number; blue: number } };
+      bottom?: { style: string; color?: { red: number; green: number; blue: number } };
+      left?: { style: string; color?: { red: number; green: number; blue: number } };
+      right?: { style: string; color?: { red: number; green: number; blue: number } };
+      innerHorizontal?: { style: string; color?: { red: number; green: number; blue: number } };
+      innerVertical?: { style: string; color?: { red: number; green: number; blue: number } };
+    }
+  ): Promise<void> {
+    const styleMap: Record<string, string> = {
+      solid: 'SOLID',
+      'solid-medium': 'SOLID_MEDIUM',
+      'solid-thick': 'SOLID_THICK',
+      dashed: 'DASHED',
+      dotted: 'DOTTED',
+      double: 'DOUBLE',
+      none: 'NONE',
+    };
+
+    const mapBorder = (b?: { style: string; color?: { red: number; green: number; blue: number } }) => {
+      if (!b) return undefined;
+      return {
+        style: styleMap[b.style] || 'SOLID',
+        color: b.color || { red: 0, green: 0, blue: 0 },
+      };
+    };
+
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateBorders: {
+            range,
+            top: mapBorder(borders.top),
+            bottom: mapBorder(borders.bottom),
+            left: mapBorder(borders.left),
+            right: mapBorder(borders.right),
+            innerHorizontal: mapBorder(borders.innerHorizontal),
+            innerVertical: mapBorder(borders.innerVertical),
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // AUTO-RESIZE DIMENSIONS
+  // ============================================
+
+  /**
+   * Auto-resize columns to fit content
+   */
+  async autoResizeColumns(
+    spreadsheetId: string,
+    sheetId: number,
+    startIndex: number,
+    endIndex: number
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          autoResizeDimensions: {
+            dimensions: {
+              sheetId,
+              dimension: 'COLUMNS',
+              startIndex,
+              endIndex,
+            },
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Auto-resize rows to fit content
+   */
+  async autoResizeRows(
+    spreadsheetId: string,
+    sheetId: number,
+    startIndex: number,
+    endIndex: number
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          autoResizeDimensions: {
+            dimensions: {
+              sheetId,
+              dimension: 'ROWS',
+              startIndex,
+              endIndex,
+            },
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Set specific dimension size
+   */
+  async setDimensionSize(
+    spreadsheetId: string,
+    sheetId: number,
+    dimension: 'ROWS' | 'COLUMNS',
+    startIndex: number,
+    endIndex: number,
+    pixelSize: number
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateDimensionProperties: {
+            range: {
+              sheetId,
+              dimension,
+              startIndex,
+              endIndex,
+            },
+            properties: { pixelSize },
+            fields: 'pixelSize',
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // HIDE/SHOW ROWS/COLUMNS
+  // ============================================
+
+  /**
+   * Hide or show rows/columns
+   */
+  async setDimensionVisibility(
+    spreadsheetId: string,
+    sheetId: number,
+    dimension: 'ROWS' | 'COLUMNS',
+    startIndex: number,
+    endIndex: number,
+    hidden: boolean
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateDimensionProperties: {
+            range: {
+              sheetId,
+              dimension,
+              startIndex,
+              endIndex,
+            },
+            properties: { hiddenByUser: hidden },
+            fields: 'hiddenByUser',
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // INSERT/DELETE ROWS/COLUMNS
+  // ============================================
+
+  /**
+   * Insert rows or columns
+   */
+  async insertDimension(
+    spreadsheetId: string,
+    sheetId: number,
+    dimension: 'ROWS' | 'COLUMNS',
+    startIndex: number,
+    endIndex: number,
+    inheritFromBefore?: boolean
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          insertDimension: {
+            range: {
+              sheetId,
+              dimension,
+              startIndex,
+              endIndex,
+            },
+            inheritFromBefore: inheritFromBefore ?? false,
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Delete rows or columns
+   */
+  async deleteDimension(
+    spreadsheetId: string,
+    sheetId: number,
+    dimension: 'ROWS' | 'COLUMNS',
+    startIndex: number,
+    endIndex: number
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteDimension: {
+            range: {
+              sheetId,
+              dimension,
+              startIndex,
+              endIndex,
+            },
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // BASIC FILTER
+  // ============================================
+
+  /**
+   * Set basic filter on a range
+   */
+  async setBasicFilter(
+    spreadsheetId: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number }
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          setBasicFilter: {
+            filter: { range },
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Clear basic filter from a sheet
+   */
+  async clearBasicFilter(spreadsheetId: string, sheetId: number): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          clearBasicFilter: { sheetId },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Get basic filter info
+   */
+  async getBasicFilter(spreadsheetId: string, sheetId: number): Promise<{
+    hasFilter: boolean;
+    range?: { startRow: number; endRow: number; startCol: number; endCol: number };
+  }> {
+    const response = await this.request<{
+      sheets: Array<{
+        properties: { sheetId: number };
+        basicFilter?: {
+          range: {
+            startRowIndex?: number;
+            endRowIndex?: number;
+            startColumnIndex?: number;
+            endColumnIndex?: number;
+          };
+        };
+      }>;
+    }>(`/spreadsheets/${spreadsheetId}?fields=sheets(properties.sheetId,basicFilter)`);
+
+    const sheet = response.sheets?.find(s => s.properties.sheetId === sheetId);
+    if (!sheet?.basicFilter) {
+      return { hasFilter: false };
+    }
+
+    const r = sheet.basicFilter.range;
+    return {
+      hasFilter: true,
+      range: {
+        startRow: (r.startRowIndex || 0) + 1,
+        endRow: r.endRowIndex || 0,
+        startCol: (r.startColumnIndex || 0) + 1,
+        endCol: r.endColumnIndex || 0,
+      },
+    };
+  }
+
+  // ============================================
+  // FILTER VIEWS
+  // ============================================
+
+  /**
+   * List filter views
+   */
+  async listFilterViews(spreadsheetId: string): Promise<Array<{
+    filterViewId: number;
+    title: string;
+    range: string;
+    sheetId: number;
+  }>> {
+    const response = await this.request<{
+      sheets: Array<{
+        properties: { sheetId: number };
+        filterViews?: Array<{
+          filterViewId: number;
+          title: string;
+          range: {
+            sheetId: number;
+            startRowIndex?: number;
+            endRowIndex?: number;
+            startColumnIndex?: number;
+            endColumnIndex?: number;
+          };
+        }>;
+      }>;
+    }>(`/spreadsheets/${spreadsheetId}?fields=sheets(properties.sheetId,filterViews)`);
+
+    const colToLetter = (col: number) => {
+      let letter = '';
+      let temp = col;
+      while (temp >= 0) {
+        letter = String.fromCharCode((temp % 26) + 65) + letter;
+        temp = Math.floor(temp / 26) - 1;
+      }
+      return letter;
+    };
+
+    const views: Array<{
+      filterViewId: number;
+      title: string;
+      range: string;
+      sheetId: number;
+    }> = [];
+
+    for (const sheet of response.sheets || []) {
+      for (const fv of sheet.filterViews || []) {
+        const r = fv.range;
+        const startCol = colToLetter(r.startColumnIndex || 0);
+        const endCol = colToLetter((r.endColumnIndex || 1) - 1);
+        const startRow = (r.startRowIndex || 0) + 1;
+        const endRow = r.endRowIndex || 1;
+        views.push({
+          filterViewId: fv.filterViewId,
+          title: fv.title,
+          range: `${startCol}${startRow}:${endCol}${endRow}`,
+          sheetId: r.sheetId,
+        });
+      }
+    }
+
+    return views;
+  }
+
+  /**
+   * Add a filter view
+   */
+  async addFilterView(
+    spreadsheetId: string,
+    title: string,
+    range: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number }
+  ): Promise<number> {
+    const response = await this.request<{
+      replies: Array<{ addFilterView: { filter: { filterViewId: number } } }>;
+    }>(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          addFilterView: {
+            filter: { title, range },
+          },
+        }],
+      }),
+    });
+    return response.replies[0].addFilterView.filter.filterViewId;
+  }
+
+  /**
+   * Delete a filter view
+   */
+  async deleteFilterView(spreadsheetId: string, filterViewId: number): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteFilterView: { filterId: filterViewId },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // COPY/PASTE
+  // ============================================
+
+  /**
+   * Copy and paste a range
+   */
+  async copyPaste(
+    spreadsheetId: string,
+    source: { sheetId: number; startRowIndex: number; endRowIndex: number; startColumnIndex: number; endColumnIndex: number },
+    destination: { sheetId: number; startRowIndex: number; startColumnIndex: number },
+    pasteType?: 'PASTE_NORMAL' | 'PASTE_VALUES' | 'PASTE_FORMAT' | 'PASTE_NO_BORDERS' | 'PASTE_FORMULA' | 'PASTE_DATA_VALIDATION' | 'PASTE_CONDITIONAL_FORMATTING'
+  ): Promise<void> {
+    const numRows = source.endRowIndex - source.startRowIndex;
+    const numCols = source.endColumnIndex - source.startColumnIndex;
+
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          copyPaste: {
+            source,
+            destination: {
+              sheetId: destination.sheetId,
+              startRowIndex: destination.startRowIndex,
+              endRowIndex: destination.startRowIndex + numRows,
+              startColumnIndex: destination.startColumnIndex,
+              endColumnIndex: destination.startColumnIndex + numCols,
+            },
+            pasteType: pasteType || 'PASTE_NORMAL',
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // ROW/COLUMN GROUPING
+  // ============================================
+
+  /**
+   * Add a dimension group (for collapsible rows/columns)
+   */
+  async addDimensionGroup(
+    spreadsheetId: string,
+    sheetId: number,
+    dimension: 'ROWS' | 'COLUMNS',
+    startIndex: number,
+    endIndex: number
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          addDimensionGroup: {
+            range: {
+              sheetId,
+              dimension,
+              startIndex,
+              endIndex,
+            },
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Delete a dimension group
+   */
+  async deleteDimensionGroup(
+    spreadsheetId: string,
+    sheetId: number,
+    dimension: 'ROWS' | 'COLUMNS',
+    startIndex: number,
+    endIndex: number
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteDimensionGroup: {
+            range: {
+              sheetId,
+              dimension,
+              startIndex,
+              endIndex,
+            },
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Update dimension group (collapse/expand)
+   */
+  async updateDimensionGroup(
+    spreadsheetId: string,
+    sheetId: number,
+    dimension: 'ROWS' | 'COLUMNS',
+    startIndex: number,
+    endIndex: number,
+    collapsed: boolean
+  ): Promise<void> {
+    await this.request(`/spreadsheets/${spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateDimensionGroup: {
+            dimensionGroup: {
+              range: {
+                sheetId,
+                dimension,
+                startIndex,
+                endIndex,
+              },
+              collapsed,
+            },
+            fields: 'collapsed',
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * List dimension groups
+   */
+  async listDimensionGroups(spreadsheetId: string, sheetId: number): Promise<{
+    rowGroups: Array<{ startIndex: number; endIndex: number; depth: number; collapsed: boolean }>;
+    columnGroups: Array<{ startIndex: number; endIndex: number; depth: number; collapsed: boolean }>;
+  }> {
+    const response = await this.request<{
+      sheets: Array<{
+        properties: { sheetId: number };
+        rowGroups?: Array<{
+          range: { startIndex: number; endIndex: number };
+          depth: number;
+          collapsed?: boolean;
+        }>;
+        columnGroups?: Array<{
+          range: { startIndex: number; endIndex: number };
+          depth: number;
+          collapsed?: boolean;
+        }>;
+      }>;
+    }>(`/spreadsheets/${spreadsheetId}?fields=sheets(properties.sheetId,rowGroups,columnGroups)`);
+
+    const sheet = response.sheets?.find(s => s.properties.sheetId === sheetId);
+
+    return {
+      rowGroups: (sheet?.rowGroups || []).map(g => ({
+        startIndex: g.range.startIndex,
+        endIndex: g.range.endIndex,
+        depth: g.depth,
+        collapsed: g.collapsed || false,
+      })),
+      columnGroups: (sheet?.columnGroups || []).map(g => ({
+        startIndex: g.range.startIndex,
+        endIndex: g.range.endIndex,
+        depth: g.depth,
+        collapsed: g.collapsed || false,
+      })),
+    };
   }
 }
 

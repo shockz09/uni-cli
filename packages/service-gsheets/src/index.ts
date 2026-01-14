@@ -31,6 +31,19 @@ import { condFormatCommand } from './commands/cond-format';
 import { mergeCommand } from './commands/merge';
 import { protectCommand } from './commands/protect';
 import { authCommand } from './commands/auth';
+// New commands
+import { namedRangeCommand } from './commands/named-range';
+import { validateCommand } from './commands/validate';
+import { freezeCommand } from './commands/freeze';
+import { borderCommand } from './commands/border';
+import { resizeCommand } from './commands/resize';
+import { hideCommand } from './commands/hide';
+import { insertCommand } from './commands/insert';
+import { deleteRowsCommand, deleteColsCommand } from './commands/delete-dim';
+import { filterCommand } from './commands/filter';
+import { filterViewCommand } from './commands/filter-view';
+import { copyPasteCommand } from './commands/copy-paste';
+import { groupCommand } from './commands/group';
 import { gsheets } from './api';
 
 const gsheetsService: UniService = {
@@ -65,6 +78,20 @@ const gsheetsService: UniService = {
     condFormatCommand,
     mergeCommand,
     protectCommand,
+    // New commands
+    namedRangeCommand,
+    validateCommand,
+    freezeCommand,
+    borderCommand,
+    resizeCommand,
+    hideCommand,
+    insertCommand,
+    deleteRowsCommand,
+    deleteColsCommand,
+    filterCommand,
+    filterViewCommand,
+    copyPasteCommand,
+    groupCommand,
     authCommand,
   ],
 
