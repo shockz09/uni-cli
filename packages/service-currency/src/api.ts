@@ -139,3 +139,59 @@ export function formatCurrency(amount: number, currency: string): string {
     maximumFractionDigits: decimals,
   });
 }
+
+export interface HistoricalRate {
+  date: string;
+  rate: number;
+}
+
+export async function getHistoricalRates(
+  from: string,
+  to: string,
+  startDate: string,
+  endDate: string
+): Promise<HistoricalRate[]> {
+  const fromUpper = from.toUpperCase();
+  const toUpper = to.toUpperCase();
+
+  const url = `${API_BASE}/${startDate}..${endDate}?from=${fromUpper}&to=${toUpper}`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+
+  // Convert to array of {date, rate}
+  const rates: HistoricalRate[] = Object.entries(data.rates)
+    .map(([date, rates]) => ({
+      date,
+      rate: (rates as Record<string, number>)[toUpper],
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  return rates;
+}
+
+export async function getRatesOnDate(
+  date: string,
+  base: string = 'EUR'
+): Promise<ExchangeRates> {
+  const url = `${API_BASE}/${date}?from=${base.toUpperCase()}`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(`Unknown currency or invalid date: ${base}, ${date}`);
+    }
+    throw new Error(`API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    base: data.base,
+    date: data.date,
+    rates: data.rates,
+  };
+}

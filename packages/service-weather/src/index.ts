@@ -4,13 +4,14 @@
 
 import type { UniService } from '@uni/shared';
 import { weatherCommand } from './commands/weather';
+import { hourlyCommand } from './commands/hourly';
 
 const weatherService: UniService = {
   name: 'weather',
   description: 'Weather forecasts (Open-Meteo)',
   version: '0.1.0',
 
-  commands: [weatherCommand],
+  commands: [weatherCommand, hourlyCommand],
 
   // No auth needed - Open-Meteo is free
 };

@@ -181,3 +181,53 @@ export function toFahrenheit(celsius: number): number {
 export function toMph(kmh: number): number {
   return Math.round(kmh * 0.621371);
 }
+
+export interface HourlyForecast {
+  time: string;
+  temperature: number;
+  feelsLike: number;
+  humidity: number;
+  precipitation: number;
+  windSpeed: number;
+  condition: string;
+  conditionCode: number;
+}
+
+export async function getHourlyForecast(
+  latitude: number,
+  longitude: number,
+  hours: number = 24
+): Promise<HourlyForecast[]> {
+  const url = `${WEATHER_API}?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&timezone=auto&forecast_hours=${Math.min(hours, 168)}`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Weather API failed: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+
+  return data.hourly.time.slice(0, hours).map((time: string, i: number) => ({
+    time,
+    temperature: data.hourly.temperature_2m[i],
+    feelsLike: data.hourly.apparent_temperature[i],
+    humidity: data.hourly.relative_humidity_2m[i],
+    precipitation: data.hourly.precipitation[i],
+    windSpeed: data.hourly.wind_speed_10m[i],
+    condition: getCondition(data.hourly.weather_code[i]),
+    conditionCode: data.hourly.weather_code[i],
+  }));
+}
+
+export async function getHourlyByCity(
+  city: string,
+  hours: number = 24
+): Promise<{ location: GeoLocation; hourly: HourlyForecast[] } | null> {
+  const location = await geocode(city);
+  if (!location) {
+    return null;
+  }
+
+  const hourly = await getHourlyForecast(location.latitude, location.longitude, hours);
+  return { location, hourly };
+}

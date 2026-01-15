@@ -164,3 +164,91 @@ export async function getFullArticle(title: string): Promise<WikiArticle | null>
     return null;
   }
 }
+
+export interface WikiLanguage {
+  lang: string;
+  langname: string;
+  title: string;
+  url: string;
+}
+
+export async function getLanguages(title: string): Promise<WikiLanguage[]> {
+  const data = await fetchAction({
+    action: 'query',
+    titles: title,
+    prop: 'langlinks',
+    lllimit: '500',
+  }) as Record<string, unknown>;
+
+  const queryData = data.query as Record<string, unknown>;
+  const pages = queryData.pages as Record<string, Record<string, unknown>>;
+  const pageId = Object.keys(pages)[0];
+
+  if (pageId === '-1') {
+    return [];
+  }
+
+  const page = pages[pageId];
+  const langlinks = (page.langlinks as Array<Record<string, string>>) || [];
+
+  return langlinks.map((link) => ({
+    lang: link.lang,
+    langname: link.langname || link.lang,
+    title: link['*'] || link.title || '',
+    url: `https://${link.lang}.wikipedia.org/wiki/${encodeURIComponent((link['*'] || link.title || '').replace(/ /g, '_'))}`,
+  }));
+}
+
+export interface RelatedPage {
+  title: string;
+  extract?: string;
+  pageId: number;
+  url: string;
+}
+
+export async function getRelatedPages(title: string, limit: number = 10): Promise<RelatedPage[]> {
+  // Use Wikipedia's "See also" links or related pages API
+  const encodedTitle = encodeURIComponent(title.replace(/ /g, '_'));
+
+  try {
+    // Try using the REST API's related pages endpoint
+    const data = await fetchRest<{ pages?: Array<Record<string, unknown>> }>(`/page/related/${encodedTitle}`);
+
+    if (data.pages && data.pages.length > 0) {
+      return data.pages.slice(0, limit).map((page) => ({
+        title: page.title as string,
+        extract: (page.extract as string) || undefined,
+        pageId: page.pageid as number || 0,
+        url: `https://en.wikipedia.org/wiki/${encodeURIComponent((page.title as string).replace(/ /g, '_'))}`,
+      }));
+    }
+  } catch {
+    // Fallback to links-based approach
+  }
+
+  // Fallback: get "See also" section links or category siblings
+  const linksData = await fetchAction({
+    action: 'query',
+    titles: title,
+    prop: 'links',
+    pllimit: String(limit * 2),
+    plnamespace: '0', // Main namespace only
+  }) as Record<string, unknown>;
+
+  const queryData = linksData.query as Record<string, unknown>;
+  const pages = queryData.pages as Record<string, Record<string, unknown>>;
+  const pageId = Object.keys(pages)[0];
+
+  if (pageId === '-1') {
+    return [];
+  }
+
+  const page = pages[pageId];
+  const links = (page.links as Array<Record<string, unknown>>) || [];
+
+  return links.slice(0, limit).map((link) => ({
+    title: link.title as string,
+    pageId: 0,
+    url: `https://en.wikipedia.org/wiki/${encodeURIComponent((link.title as string).replace(/ /g, '_'))}`,
+  }));
+}

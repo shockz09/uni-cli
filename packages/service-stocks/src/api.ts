@@ -188,3 +188,45 @@ export const POPULAR = {
   crypto: ['BTC-USD', 'ETH-USD', 'BNB-USD', 'SOL-USD', 'XRP-USD', 'DOGE-USD', 'ADA-USD'],
   indices: ['^GSPC', '^DJI', '^IXIC', '^RUT', '^VIX'],
 };
+
+export interface SearchResult {
+  symbol: string;
+  name: string;
+  type: string;
+  exchange: string;
+}
+
+/**
+ * Search for symbols by name
+ */
+export async function searchSymbols(query: string, limit: number = 10): Promise<SearchResult[]> {
+  const results = await yahooFinance.search(query, { quotesCount: limit });
+
+  if (!results.quotes || results.quotes.length === 0) {
+    return [];
+  }
+
+  return results.quotes.slice(0, limit).map((q) => ({
+    symbol: q.symbol || '',
+    name: q.shortname || q.longname || q.symbol || '',
+    type: q.quoteType || 'unknown',
+    exchange: q.exchange || '',
+  }));
+}
+
+/**
+ * Get quotes for multiple symbols
+ */
+export async function getQuotes(symbols: string[]): Promise<Quote[]> {
+  const quotes = await Promise.all(
+    symbols.map(async (symbol) => {
+      try {
+        return await getQuote(symbol);
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  return quotes.filter((q): q is Quote => q !== null);
+}

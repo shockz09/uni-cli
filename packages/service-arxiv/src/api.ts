@@ -134,14 +134,56 @@ export async function getRecentPapers(category: string, maxResults: number = 10)
 export const CATEGORIES: Record<string, string> = {
   'cs.AI': 'Artificial Intelligence',
   'cs.CL': 'Computation and Language',
+  'cs.CR': 'Cryptography and Security',
   'cs.CV': 'Computer Vision',
+  'cs.DB': 'Databases',
+  'cs.DC': 'Distributed Computing',
+  'cs.DS': 'Data Structures and Algorithms',
+  'cs.GT': 'Game Theory',
+  'cs.HC': 'Human-Computer Interaction',
+  'cs.IR': 'Information Retrieval',
+  'cs.IT': 'Information Theory',
   'cs.LG': 'Machine Learning',
-  'cs.NE': 'Neural/Evolutionary Computing',
+  'cs.MA': 'Multiagent Systems',
+  'cs.NE': 'Neural and Evolutionary Computing',
+  'cs.NI': 'Networking and Internet',
+  'cs.PL': 'Programming Languages',
   'cs.RO': 'Robotics',
+  'cs.SD': 'Sound',
   'cs.SE': 'Software Engineering',
+  'cs.SI': 'Social and Information Networks',
+  'cs.SY': 'Systems and Control',
   'stat.ML': 'Machine Learning (Stats)',
+  'stat.ME': 'Methodology',
+  'stat.TH': 'Statistics Theory',
+  'math.CO': 'Combinatorics',
   'math.OC': 'Optimization and Control',
-  'physics': 'Physics (all)',
+  'math.PR': 'Probability',
+  'math.ST': 'Statistics Theory',
+  'physics.comp-ph': 'Computational Physics',
   'quant-ph': 'Quantum Physics',
-  'econ': 'Economics',
+  'cond-mat': 'Condensed Matter',
+  'econ.EM': 'Econometrics',
+  'econ.GN': 'General Economics',
+  'econ.TH': 'Theoretical Economics',
+  'q-bio.NC': 'Neurons and Cognition',
+  'q-bio.QM': 'Quantitative Methods',
 };
+
+export async function searchByAuthor(author: string, maxResults: number = 10): Promise<ArxivPaper[]> {
+  const params = new URLSearchParams({
+    search_query: `au:${author}`,
+    start: '0',
+    max_results: String(maxResults),
+    sortBy: 'submittedDate',
+    sortOrder: 'descending',
+  });
+
+  const response = await fetch(`${ARXIV_API}?${params}`);
+  if (!response.ok) {
+    throw new Error(`arXiv API error: ${response.statusText}`);
+  }
+
+  const xml = await response.text();
+  return parseArxivXml(xml);
+}

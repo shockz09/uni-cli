@@ -818,6 +818,56 @@ uni stocks list indices
 
 ---
 
+### `uni stocks search`
+
+Search for stock/crypto symbols by name
+
+**Aliases:** `find`, `s`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `query` | Yes | Company or crypto name to search |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number |  | Number of results (default: 10) |
+
+**Examples:**
+
+```bash
+uni stocks search Apple
+uni stocks search "Bitcoin" -n 5
+uni stocks search Tesla
+```
+
+---
+
+### `uni stocks compare`
+
+Compare multiple stocks/cryptos side by side
+
+**Aliases:** `cmp`, `vs`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `symbols` | Yes | Comma-separated symbols (e.g., AAPL,MSFT,GOOGL) |
+
+**Examples:**
+
+```bash
+uni stocks compare AAPL,MSFT,GOOGL
+uni stocks compare BTC-USD,ETH-USD,SOL-USD
+uni stocks compare TSLA,F,GM
+```
+
+---
+
 ## uni linear
 
 Linear - issues, projects, and teams
@@ -3776,6 +3826,56 @@ uni arxiv recent --list
 
 ---
 
+### `uni arxiv author`
+
+Search papers by author name
+
+**Aliases:** `au`, `a`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `name` | Yes | Author name to search |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number |  | Number of results (default: 10) |
+
+**Examples:**
+
+```bash
+uni arxiv author "Yann LeCun"
+uni arxiv author "Geoffrey Hinton" -n 20
+uni arxiv author Bengio
+```
+
+---
+
+### `uni arxiv categories`
+
+List arXiv categories
+
+**Aliases:** `cats`, `cat`
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--filter` | -f | string |  | Filter by prefix (cs, stat, math, etc.) |
+
+**Examples:**
+
+```bash
+uni arxiv categories
+uni arxiv categories --filter cs
+uni arxiv categories -f stat
+```
+
+---
+
 ## uni weather
 
 Weather forecasts (Open-Meteo)
@@ -3805,6 +3905,35 @@ uni weather "New York, US"
 uni weather Tokyo --forecast 3
 uni weather London --units fahrenheit
 uni weather 40.7128,-74.0060
+```
+
+---
+
+### `uni weather hourly`
+
+Get hourly weather forecast
+
+**Aliases:** `h`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `location` | Yes | City name or lat,long coordinates |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--hours` | -n | number |  | Number of hours (default: 24, max: 168) |
+| `--units` | -u | string | `celsius` | Temperature units: celsius or fahrenheit |
+
+**Examples:**
+
+```bash
+uni weather hourly London
+uni weather hourly Tokyo --hours 48
+uni weather hourly "New York" -u fahrenheit
 ```
 
 ---
@@ -4426,6 +4555,62 @@ Get full Wikipedia article
 ```bash
 uni wiki full "Alan Turing"
 uni wiki full "Rust (programming language)"
+```
+
+---
+
+### `uni wiki related`
+
+Get related Wikipedia articles
+
+**Aliases:** `rel`, `similar`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Article title |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number |  | Number of results (default: 10) |
+
+**Examples:**
+
+```bash
+uni wiki related "Albert Einstein"
+uni wiki related Python -n 20
+uni wiki related "Machine learning"
+```
+
+---
+
+### `uni wiki languages`
+
+Get Wikipedia article in other languages
+
+**Aliases:** `lang`, `l`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Article title (English) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--filter` | -f | string |  | Filter by language code (e.g., es, de, fr) |
+
+**Examples:**
+
+```bash
+uni wiki languages "Albert Einstein"
+uni wiki languages Python --filter es
+uni wiki languages Tokyo
 ```
 
 ---
@@ -8040,6 +8225,58 @@ uni currency 100 usd eur
 uni currency 5000 jpy to usd
 uni currency 1000 eur to usd gbp jpy
 uni currency --list
+```
+
+---
+
+### `uni currency rates`
+
+Show all exchange rates for a currency
+
+**Aliases:** `r`, `all`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `base` | No | Base currency code (default: USD) |
+
+**Examples:**
+
+```bash
+uni currency rates
+uni currency rates USD
+uni currency rates EUR
+uni currency rates GBP
+```
+
+---
+
+### `uni currency history`
+
+Show historical exchange rates between two currencies
+
+**Aliases:** `hist`, `h`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `from` | Yes | Base currency code |
+| `to` | Yes | Target currency code |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--days` | -d | number |  | Number of days (default: 30, max: 365) |
+
+**Examples:**
+
+```bash
+uni currency history USD EUR
+uni currency history USD JPY --days 90
+uni currency history GBP USD -d 7
 ```
 
 ---
