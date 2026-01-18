@@ -817,6 +817,337 @@ export class GoogleDocsClient extends GoogleAuthClient {
       }),
     });
   }
+
+  // ============================================
+  // DOCUMENT OPERATIONS (Drive API)
+  // ============================================
+
+  /**
+   * Copy/duplicate a document
+   */
+  async copyDocument(documentId: string, name?: string): Promise<string> {
+    const body: Record<string, unknown> = {};
+    if (name) {
+      body.name = name;
+    }
+
+    const response = await this.apiRequest<{ id: string }>(DRIVE_API, `/files/${documentId}/copy`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+
+    return response.id;
+  }
+
+  /**
+   * Move document to a folder
+   */
+  async moveDocument(documentId: string, folderId: string): Promise<void> {
+    // Get current parents
+    const file = await this.apiRequest<{ parents: string[] }>(
+      DRIVE_API,
+      `/files/${documentId}?fields=parents`
+    );
+    const previousParents = file.parents?.join(',') || '';
+
+    await this.apiRequest(DRIVE_API, `/files/${documentId}?addParents=${folderId}&removeParents=${previousParents}`, {
+      method: 'PATCH',
+    });
+  }
+
+  /**
+   * Get document revision history
+   */
+  async getRevisions(documentId: string, limit = 10): Promise<Array<{
+    id: string;
+    modifiedTime: string;
+    lastModifyingUser?: { displayName: string; emailAddress: string };
+  }>> {
+    const params = new URLSearchParams({
+      pageSize: String(limit),
+      fields: 'revisions(id,modifiedTime,lastModifyingUser(displayName,emailAddress))',
+    });
+
+    const response = await this.apiRequest<{ revisions: Array<{
+      id: string;
+      modifiedTime: string;
+      lastModifyingUser?: { displayName: string; emailAddress: string };
+    }> }>(DRIVE_API, `/files/${documentId}/revisions?${params}`);
+
+    return response.revisions || [];
+  }
+
+  // ============================================
+  // COMMENTS
+  // ============================================
+
+  /**
+   * List comments on a document
+   */
+  async listComments(documentId: string): Promise<Array<{
+    id: string;
+    content: string;
+    author: { displayName: string };
+    createdTime: string;
+    resolved: boolean;
+    quotedContent?: string;
+  }>> {
+    const params = new URLSearchParams({
+      fields: 'comments(id,content,author(displayName),createdTime,resolved,quotedFileContent(value))',
+    });
+
+    const response = await this.apiRequest<{ comments: Array<{
+      id: string;
+      content: string;
+      author: { displayName: string };
+      createdTime: string;
+      resolved: boolean;
+      quotedFileContent?: { value: string };
+    }> }>(DRIVE_API, `/files/${documentId}/comments?${params}`);
+
+    return (response.comments || []).map(c => ({
+      id: c.id,
+      content: c.content,
+      author: c.author,
+      createdTime: c.createdTime,
+      resolved: c.resolved,
+      quotedContent: c.quotedFileContent?.value,
+    }));
+  }
+
+  /**
+   * Add a comment to document
+   */
+  async addComment(documentId: string, content: string, quotedText?: string): Promise<{ id: string }> {
+    const body: Record<string, unknown> = { content };
+    if (quotedText) {
+      body.quotedFileContent = { value: quotedText };
+    }
+
+    return this.apiRequest<{ id: string }>(DRIVE_API, `/files/${documentId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Resolve a comment
+   */
+  async resolveComment(documentId: string, commentId: string, resolve = true): Promise<void> {
+    await this.apiRequest(DRIVE_API, `/files/${documentId}/comments/${commentId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ resolved: resolve }),
+    });
+  }
+
+  /**
+   * Delete a comment
+   */
+  async deleteComment(documentId: string, commentId: string): Promise<void> {
+    await this.apiRequest(DRIVE_API, `/files/${documentId}/comments/${commentId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // ============================================
+  // DOCUMENT STATISTICS
+  // ============================================
+
+  /**
+   * Get document statistics
+   */
+  async getStats(documentId: string): Promise<{
+    characters: number;
+    words: number;
+    paragraphs: number;
+    pages: number;
+  }> {
+    const doc = await this.getDocument(documentId);
+    const text = this.extractText(doc);
+
+    const characters = text.length;
+    const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+    const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 0).length;
+    // Rough estimate: ~3000 chars per page
+    const pages = Math.max(1, Math.ceil(characters / 3000));
+
+    return { characters, words, paragraphs, pages };
+  }
+
+  // ============================================
+  // NAMED RANGES (Bookmarks)
+  // ============================================
+
+  /**
+   * Create a named range (bookmark)
+   */
+  async createNamedRange(documentId: string, name: string, startIndex: number, endIndex: number): Promise<string> {
+    const response = await this.request<{ replies: Array<{ createNamedRange?: { namedRangeId: string } }> }>(
+      `/documents/${documentId}:batchUpdate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          requests: [{
+            createNamedRange: {
+              name,
+              range: { startIndex, endIndex },
+            },
+          }],
+        }),
+      }
+    );
+
+    return response.replies?.[0]?.createNamedRange?.namedRangeId || '';
+  }
+
+  /**
+   * Delete a named range
+   */
+  async deleteNamedRange(documentId: string, namedRangeId: string): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteNamedRange: { namedRangeId },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // FOOTNOTES
+  // ============================================
+
+  /**
+   * Insert a footnote
+   */
+  async insertFootnote(documentId: string, insertIndex: number): Promise<string> {
+    const response = await this.request<{ replies: Array<{ createFootnote?: { footnoteId: string } }> }>(
+      `/documents/${documentId}:batchUpdate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          requests: [{
+            createFootnote: {
+              location: { index: insertIndex },
+            },
+          }],
+        }),
+      }
+    );
+
+    return response.replies?.[0]?.createFootnote?.footnoteId || '';
+  }
+
+  // ============================================
+  // DOCUMENT STYLE (Margins, etc.)
+  // ============================================
+
+  /**
+   * Update document margins
+   */
+  async updateMargins(documentId: string, margins: {
+    top?: number;
+    bottom?: number;
+    left?: number;
+    right?: number;
+  }): Promise<void> {
+    const documentStyle: Record<string, unknown> = {};
+    const fields: string[] = [];
+
+    if (margins.top !== undefined) {
+      documentStyle.marginTop = { magnitude: margins.top, unit: 'PT' };
+      fields.push('marginTop');
+    }
+    if (margins.bottom !== undefined) {
+      documentStyle.marginBottom = { magnitude: margins.bottom, unit: 'PT' };
+      fields.push('marginBottom');
+    }
+    if (margins.left !== undefined) {
+      documentStyle.marginLeft = { magnitude: margins.left, unit: 'PT' };
+      fields.push('marginLeft');
+    }
+    if (margins.right !== undefined) {
+      documentStyle.marginRight = { magnitude: margins.right, unit: 'PT' };
+      fields.push('marginRight');
+    }
+
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateDocumentStyle: {
+            documentStyle,
+            fields: fields.join(','),
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Update page size
+   */
+  async updatePageSize(documentId: string, width: number, height: number): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateDocumentStyle: {
+            documentStyle: {
+              pageSize: {
+                width: { magnitude: width, unit: 'PT' },
+                height: { magnitude: height, unit: 'PT' },
+              },
+            },
+            fields: 'pageSize',
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // SECTION BREAK (Columns)
+  // ============================================
+
+  /**
+   * Insert a section break
+   */
+  async insertSectionBreak(documentId: string, insertIndex: number, sectionType: 'CONTINUOUS' | 'NEXT_PAGE' = 'CONTINUOUS'): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          insertSectionBreak: {
+            location: { index: insertIndex },
+            sectionType,
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Update section column properties
+   */
+  async updateSectionColumns(documentId: string, sectionStartIndex: number, columnCount: number, gap = 36): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateSectionStyle: {
+            range: { startIndex: sectionStartIndex, endIndex: sectionStartIndex + 1 },
+            sectionStyle: {
+              columnProperties: Array(columnCount).fill({ width: { magnitude: (468 - gap * (columnCount - 1)) / columnCount, unit: 'PT' } }),
+              columnSeparatorStyle: 'NONE',
+            },
+            fields: 'columnProperties,columnSeparatorStyle',
+          },
+        }],
+      }),
+    });
+  }
 }
 
 export const gdocs = new GoogleDocsClient();

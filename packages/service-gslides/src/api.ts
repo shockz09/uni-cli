@@ -938,6 +938,328 @@ export class GoogleSlidesClient extends GoogleAuthClient {
       }),
     });
   }
+
+  // ============================================
+  // PRESENTATION OPERATIONS (Drive API)
+  // ============================================
+
+  /**
+   * Move presentation to a folder
+   */
+  async movePresentation(presentationId: string, folderId: string): Promise<void> {
+    const file = await this.apiRequest<{ parents: string[] }>(
+      DRIVE_API,
+      `/files/${presentationId}?fields=parents`
+    );
+    const previousParents = file.parents?.join(',') || '';
+
+    await this.apiRequest(DRIVE_API, `/files/${presentationId}?addParents=${folderId}&removeParents=${previousParents}`, {
+      method: 'PATCH',
+    });
+  }
+
+  /**
+   * Get presentation revision history
+   */
+  async getRevisions(presentationId: string, limit = 10): Promise<Array<{
+    id: string;
+    modifiedTime: string;
+    lastModifyingUser?: { displayName: string; emailAddress: string };
+  }>> {
+    const params = new URLSearchParams({
+      pageSize: String(limit),
+      fields: 'revisions(id,modifiedTime,lastModifyingUser(displayName,emailAddress))',
+    });
+
+    const response = await this.apiRequest<{ revisions: Array<{
+      id: string;
+      modifiedTime: string;
+      lastModifyingUser?: { displayName: string; emailAddress: string };
+    }> }>(DRIVE_API, `/files/${presentationId}/revisions?${params}`);
+
+    return response.revisions || [];
+  }
+
+  // ============================================
+  // COMMENTS
+  // ============================================
+
+  /**
+   * List comments on a presentation
+   */
+  async listComments(presentationId: string): Promise<Array<{
+    id: string;
+    content: string;
+    author: { displayName: string };
+    createdTime: string;
+    resolved: boolean;
+  }>> {
+    const params = new URLSearchParams({
+      fields: 'comments(id,content,author(displayName),createdTime,resolved)',
+    });
+
+    const response = await this.apiRequest<{ comments: Array<{
+      id: string;
+      content: string;
+      author: { displayName: string };
+      createdTime: string;
+      resolved: boolean;
+    }> }>(DRIVE_API, `/files/${presentationId}/comments?${params}`);
+
+    return response.comments || [];
+  }
+
+  /**
+   * Add a comment to presentation
+   */
+  async addComment(presentationId: string, content: string): Promise<{ id: string }> {
+    return this.apiRequest<{ id: string }>(DRIVE_API, `/files/${presentationId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  /**
+   * Resolve a comment
+   */
+  async resolveComment(presentationId: string, commentId: string, resolve = true): Promise<void> {
+    await this.apiRequest(DRIVE_API, `/files/${presentationId}/comments/${commentId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ resolved: resolve }),
+    });
+  }
+
+  /**
+   * Delete a comment
+   */
+  async deleteComment(presentationId: string, commentId: string): Promise<void> {
+    await this.apiRequest(DRIVE_API, `/files/${presentationId}/comments/${commentId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // ============================================
+  // STATISTICS
+  // ============================================
+
+  /**
+   * Get presentation statistics
+   */
+  async getStats(presentationId: string): Promise<{
+    slides: number;
+    elements: number;
+    textBoxes: number;
+    images: number;
+    tables: number;
+    shapes: number;
+  }> {
+    const presentation = await this.getPresentation(presentationId);
+
+    let elements = 0;
+    let textBoxes = 0;
+    let images = 0;
+    let tables = 0;
+    let shapes = 0;
+
+    for (const slide of presentation.slides || []) {
+      for (const el of slide.pageElements || []) {
+        elements++;
+        if (el.shape?.shapeType === 'TEXT_BOX') textBoxes++;
+        else if (el.shape) shapes++;
+        // Note: images and tables need different detection
+      }
+    }
+
+    return {
+      slides: presentation.slides?.length || 0,
+      elements,
+      textBoxes,
+      images,
+      tables,
+      shapes,
+    };
+  }
+
+  // ============================================
+  // VIDEO
+  // ============================================
+
+  /**
+   * Add a video to a slide (YouTube or Drive)
+   */
+  async addVideo(
+    presentationId: string,
+    slideId: string,
+    videoId: string,
+    source: 'YOUTUBE' | 'DRIVE' = 'YOUTUBE',
+    options: { x?: number; y?: number; width?: number; height?: number } = {}
+  ): Promise<string> {
+    const { x = 100, y = 100, width = 400, height = 225 } = options;
+    const objectId = `video_${Date.now()}`;
+
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          createVideo: {
+            objectId,
+            source,
+            id: videoId,
+            elementProperties: {
+              pageObjectId: slideId,
+              size: {
+                width: { magnitude: width, unit: 'PT' },
+                height: { magnitude: height, unit: 'PT' },
+              },
+              transform: {
+                scaleX: 1,
+                scaleY: 1,
+                translateX: x,
+                translateY: y,
+                unit: 'PT',
+              },
+            },
+          },
+        }],
+      }),
+    });
+
+    return objectId;
+  }
+
+  // ============================================
+  // LINKS
+  // ============================================
+
+  /**
+   * Add a link to text in a shape
+   */
+  async addLink(
+    presentationId: string,
+    shapeId: string,
+    url: string,
+    startIndex = 0,
+    endIndex?: number
+  ): Promise<void> {
+    let textRange: Record<string, unknown>;
+    if (endIndex !== undefined) {
+      textRange = { type: 'FIXED_RANGE', startIndex, endIndex };
+    } else if (startIndex > 0) {
+      textRange = { type: 'FROM_START_INDEX', startIndex };
+    } else {
+      textRange = { type: 'ALL' };
+    }
+
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          updateTextStyle: {
+            objectId: shapeId,
+            textRange,
+            style: {
+              link: { url },
+            },
+            fields: 'link',
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // GROUP ELEMENTS
+  // ============================================
+
+  /**
+   * Group multiple elements together
+   */
+  async groupElements(presentationId: string, elementIds: string[]): Promise<string> {
+    if (elementIds.length < 2) {
+      throw new Error('At least 2 elements are required to create a group');
+    }
+
+    const groupId = `group_${Date.now()}`;
+
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          groupObjects: {
+            groupObjectId: groupId,
+            childrenObjectIds: elementIds,
+          },
+        }],
+      }),
+    });
+
+    return groupId;
+  }
+
+  /**
+   * Ungroup elements
+   */
+  async ungroupElements(presentationId: string, groupId: string): Promise<void> {
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          ungroupObjects: {
+            objectIds: [groupId],
+          },
+        }],
+      }),
+    });
+  }
+
+  // ============================================
+  // LAYOUTS
+  // ============================================
+
+  /**
+   * Get available slide layouts
+   */
+  async getLayouts(presentationId: string): Promise<Array<{
+    objectId: string;
+    layoutType: string;
+    displayName: string;
+  }>> {
+    const response = await this.request<{
+      layouts?: Array<{
+        objectId: string;
+        layoutProperties?: {
+          name?: string;
+          displayName?: string;
+        };
+      }>;
+    }>(`/presentations/${presentationId}?fields=layouts(objectId,layoutProperties)`);
+
+    return (response.layouts || []).map(l => ({
+      objectId: l.objectId,
+      layoutType: l.layoutProperties?.name || 'CUSTOM',
+      displayName: l.layoutProperties?.displayName || l.objectId,
+    }));
+  }
+
+  /**
+   * Get master slides
+   */
+  async getMasters(presentationId: string): Promise<Array<{
+    objectId: string;
+    pageElements: number;
+  }>> {
+    const response = await this.request<{
+      masters?: Array<{
+        objectId: string;
+        pageElements?: PageElement[];
+      }>;
+    }>(`/presentations/${presentationId}?fields=masters(objectId,pageElements)`);
+
+    return (response.masters || []).map(m => ({
+      objectId: m.objectId,
+      pageElements: m.pageElements?.length || 0,
+    }));
+  }
 }
 
 export const gslides = new GoogleSlidesClient();

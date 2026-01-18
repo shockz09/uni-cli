@@ -27,6 +27,16 @@ import { linkCommand } from './commands/link';
 import { pageBreakCommand } from './commands/page-break';
 import { headerCommand } from './commands/header';
 import { footerCommand } from './commands/footer';
+// Enhanced commands
+import { statsCommand } from './commands/stats';
+import { commentsCommand } from './commands/comments';
+import { copyCommand } from './commands/copy';
+import { moveCommand } from './commands/move';
+import { versionsCommand } from './commands/versions';
+import { bookmarkCommand } from './commands/bookmark';
+import { footnoteCommand } from './commands/footnote';
+import { marginCommand } from './commands/margin';
+import { columnsCommand } from './commands/columns';
 import { gdocs } from './api';
 
 const gdocsService: UniService = {
@@ -57,6 +67,16 @@ const gdocsService: UniService = {
     pageBreakCommand,
     headerCommand,
     footerCommand,
+    // Enhanced commands
+    statsCommand,
+    commentsCommand,
+    copyCommand,
+    moveCommand,
+    versionsCommand,
+    bookmarkCommand,
+    footnoteCommand,
+    marginCommand,
+    columnsCommand,
     authCommand,
   ],
 

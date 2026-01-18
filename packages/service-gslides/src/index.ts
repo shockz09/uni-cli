@@ -30,6 +30,16 @@ import { backgroundCommand } from './commands/background';
 import { formatTextCommand } from './commands/format-text';
 import { deleteElementCommand } from './commands/delete-element';
 import { transformCommand } from './commands/transform';
+// Enhanced commands
+import { statsCommand } from './commands/stats';
+import { commentsCommand } from './commands/comments';
+import { moveCommand } from './commands/move';
+import { versionsCommand } from './commands/versions';
+import { addVideoCommand } from './commands/add-video';
+import { linkCommand } from './commands/link';
+import { groupCommand } from './commands/group';
+import { layoutsCommand } from './commands/layouts';
+import { mastersCommand } from './commands/masters';
 import { gslides } from './api';
 
 const gslidesService: UniService = {
@@ -63,6 +73,16 @@ const gslidesService: UniService = {
     formatTextCommand,
     deleteElementCommand,
     transformCommand,
+    // Enhanced commands
+    statsCommand,
+    commentsCommand,
+    moveCommand,
+    versionsCommand,
+    addVideoCommand,
+    linkCommand,
+    groupCommand,
+    layoutsCommand,
+    mastersCommand,
     authCommand,
   ],
 
