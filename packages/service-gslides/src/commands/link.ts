@@ -14,8 +14,8 @@ export const linkCommand: Command = {
     { name: 'url', description: 'URL to link to', required: true },
   ],
   options: [
-    { name: 'start', alias: 's', description: 'Start index (default: 0, all text)', type: 'number' },
-    { name: 'end', alias: 'e', description: 'End index', type: 'number' },
+    { name: 'start', short: 's', description: 'Start index (default: 0, all text)', type: 'number' },
+    { name: 'end', short: 'e', description: 'End index', type: 'number' },
   ],
   examples: [
     'uni gslides link PRES_ID SHAPE_ID "https://example.com"',
@@ -23,7 +23,7 @@ export const linkCommand: Command = {
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
-    const { output, args, options, globalFlags } = ctx;
+    const { output, args, flags, globalFlags } = ctx;
 
     if (!gslides.isAuthenticated()) {
       output.error('Not authenticated. Run "uni gslides auth" first.');
@@ -33,8 +33,8 @@ export const linkCommand: Command = {
     const presentationId = extractPresentationId(args.presentation as string);
     const shapeId = args.shape as string;
     const url = args.url as string;
-    const startIndex = (options.start as number) || 0;
-    const endIndex = options.end as number | undefined;
+    const startIndex = (flags.start as number) || 0;
+    const endIndex = flags.end as number | undefined;
 
     const spinner = output.spinner('Adding link...');
 

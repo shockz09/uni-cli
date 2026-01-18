@@ -910,7 +910,7 @@ export class GoogleDocsClient extends GoogleAuthClient {
       content: c.content,
       author: c.author,
       createdTime: c.createdTime,
-      resolved: c.resolved,
+      resolved: c.resolved === true,  // Default to false if not present
       quotedContent: c.quotedFileContent?.value,
     }));
   }
@@ -924,7 +924,7 @@ export class GoogleDocsClient extends GoogleAuthClient {
       body.quotedFileContent = { value: quotedText };
     }
 
-    return this.apiRequest<{ id: string }>(DRIVE_API, `/files/${documentId}/comments`, {
+    return this.apiRequest<{ id: string }>(DRIVE_API, `/files/${documentId}/comments?fields=id`, {
       method: 'POST',
       body: JSON.stringify(body),
     });
@@ -934,9 +934,15 @@ export class GoogleDocsClient extends GoogleAuthClient {
    * Resolve a comment
    */
   async resolveComment(documentId: string, commentId: string, resolve = true): Promise<void> {
-    await this.apiRequest(DRIVE_API, `/files/${documentId}/comments/${commentId}`, {
+    // First get the comment to preserve its content
+    const comment = await this.apiRequest<{ content: string }>(
+      DRIVE_API,
+      `/files/${documentId}/comments/${commentId}?fields=content`
+    );
+
+    await this.apiRequest(DRIVE_API, `/files/${documentId}/comments/${commentId}?fields=id,resolved`, {
       method: 'PATCH',
-      body: JSON.stringify({ resolved: resolve }),
+      body: JSON.stringify({ content: comment.content, resolved: resolve }),
     });
   }
 
@@ -1130,19 +1136,23 @@ export class GoogleDocsClient extends GoogleAuthClient {
 
   /**
    * Update section column properties
+   * Note: Google Docs API has limited column support - we set separator style only
    */
-  async updateSectionColumns(documentId: string, sectionStartIndex: number, columnCount: number, gap = 36): Promise<void> {
+  async updateSectionColumns(documentId: string, sectionStartIndex: number, columnCount: number): Promise<void> {
+    // Google Docs API doesn't support direct column width updates
+    // We can only set the column separator style
+    const sectionStyle: Record<string, unknown> = {
+      columnSeparatorStyle: columnCount > 1 ? 'BETWEEN_EACH_COLUMN' : 'NONE',
+    };
+
     await this.request(`/documents/${documentId}:batchUpdate`, {
       method: 'POST',
       body: JSON.stringify({
         requests: [{
           updateSectionStyle: {
             range: { startIndex: sectionStartIndex, endIndex: sectionStartIndex + 1 },
-            sectionStyle: {
-              columnProperties: Array(columnCount).fill({ width: { magnitude: (468 - gap * (columnCount - 1)) / columnCount, unit: 'PT' } }),
-              columnSeparatorStyle: 'NONE',
-            },
-            fields: 'columnProperties,columnSeparatorStyle',
+            sectionStyle,
+            fields: 'columnSeparatorStyle',
           },
         }],
       }),

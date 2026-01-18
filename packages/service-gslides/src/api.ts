@@ -1013,7 +1013,7 @@ export class GoogleSlidesClient extends GoogleAuthClient {
    * Add a comment to presentation
    */
   async addComment(presentationId: string, content: string): Promise<{ id: string }> {
-    return this.apiRequest<{ id: string }>(DRIVE_API, `/files/${presentationId}/comments`, {
+    return this.apiRequest<{ id: string }>(DRIVE_API, `/files/${presentationId}/comments?fields=id`, {
       method: 'POST',
       body: JSON.stringify({ content }),
     });
@@ -1023,9 +1023,15 @@ export class GoogleSlidesClient extends GoogleAuthClient {
    * Resolve a comment
    */
   async resolveComment(presentationId: string, commentId: string, resolve = true): Promise<void> {
-    await this.apiRequest(DRIVE_API, `/files/${presentationId}/comments/${commentId}`, {
+    // First get the comment to preserve its content
+    const comment = await this.apiRequest<{ content: string }>(
+      DRIVE_API,
+      `/files/${presentationId}/comments/${commentId}?fields=content`
+    );
+
+    await this.apiRequest(DRIVE_API, `/files/${presentationId}/comments/${commentId}?fields=id,resolved`, {
       method: 'PATCH',
-      body: JSON.stringify({ resolved: resolve }),
+      body: JSON.stringify({ content: comment.content, resolved: resolve }),
     });
   }
 

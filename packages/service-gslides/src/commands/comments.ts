@@ -14,7 +14,7 @@ export const commentsCommand: Command = {
     { name: 'presentation', description: 'Presentation ID or URL', required: true },
   ],
   options: [
-    { name: 'content', alias: 'c', description: 'Comment content (for add)', type: 'string' },
+    { name: 'content', short: 'c', description: 'Comment content (for add)', type: 'string' },
     { name: 'id', description: 'Comment ID (for resolve/delete)', type: 'string' },
   ],
   examples: [
@@ -25,7 +25,7 @@ export const commentsCommand: Command = {
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
-    const { output, args, options, globalFlags } = ctx;
+    const { output, args, flags, globalFlags } = ctx;
 
     if (!gslides.isAuthenticated()) {
       output.error('Not authenticated. Run "uni gslides auth" first.');
@@ -64,7 +64,7 @@ export const commentsCommand: Command = {
         throw error;
       }
     } else if (action === 'add') {
-      const content = options.content as string;
+      const content = flags.content as string;
       if (!content) {
         output.error('Content is required. Use -c "your comment"');
         return;
@@ -86,7 +86,7 @@ export const commentsCommand: Command = {
         throw error;
       }
     } else if (action === 'resolve' || action === 'unresolve') {
-      const commentId = options.id as string;
+      const commentId = flags.id as string;
       if (!commentId) {
         output.error('Comment ID is required. Use --id COMMENT_ID');
         return;
@@ -109,7 +109,7 @@ export const commentsCommand: Command = {
         throw error;
       }
     } else if (action === 'delete') {
-      const commentId = options.id as string;
+      const commentId = flags.id as string;
       if (!commentId) {
         output.error('Comment ID is required. Use --id COMMENT_ID');
         return;

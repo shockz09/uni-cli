@@ -13,7 +13,7 @@ export const versionsCommand: Command = {
     { name: 'document', description: 'Document ID or URL', required: true },
   ],
   options: [
-    { name: 'limit', alias: 'l', description: 'Max revisions to show (default: 10)', type: 'number' },
+    { name: 'limit', short: 'l', description: 'Max revisions to show (default: 10)', type: 'number' },
   ],
   examples: [
     'uni gdocs versions DOC_ID',
@@ -21,7 +21,7 @@ export const versionsCommand: Command = {
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
-    const { output, args, options, globalFlags } = ctx;
+    const { output, args, flags, globalFlags } = ctx;
 
     if (!gdocs.isAuthenticated()) {
       output.error('Not authenticated. Run "uni gdocs auth" first.');
@@ -29,7 +29,7 @@ export const versionsCommand: Command = {
     }
 
     const documentId = extractDocumentId(args.document as string);
-    const limit = (options.limit as number) || 10;
+    const limit = (flags.limit as number) || 10;
 
     const spinner = output.spinner('Fetching revisions...');
 

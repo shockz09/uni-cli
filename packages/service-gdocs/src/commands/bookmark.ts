@@ -14,9 +14,9 @@ export const bookmarkCommand: Command = {
     { name: 'document', description: 'Document ID or URL', required: true },
   ],
   options: [
-    { name: 'name', alias: 'n', description: 'Bookmark name (for create)', type: 'string' },
-    { name: 'start', alias: 's', description: 'Start index (for create)', type: 'number' },
-    { name: 'end', alias: 'e', description: 'End index (for create)', type: 'number' },
+    { name: 'name', short: 'n', description: 'Bookmark name (for create)', type: 'string' },
+    { name: 'start', short: 's', description: 'Start index (for create)', type: 'number' },
+    { name: 'end', short: 'e', description: 'End index (for create)', type: 'number' },
     { name: 'id', description: 'Named range ID (for delete)', type: 'string' },
   ],
   examples: [
@@ -25,7 +25,7 @@ export const bookmarkCommand: Command = {
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
-    const { output, args, options, globalFlags } = ctx;
+    const { output, args, flags, globalFlags } = ctx;
 
     if (!gdocs.isAuthenticated()) {
       output.error('Not authenticated. Run "uni gdocs auth" first.');
@@ -36,9 +36,9 @@ export const bookmarkCommand: Command = {
     const documentId = extractDocumentId(args.document as string);
 
     if (action === 'create') {
-      const name = options.name as string;
-      const start = options.start as number;
-      const end = options.end as number;
+      const name = flags.name as string;
+      const start = flags.start as number;
+      const end = flags.end as number;
 
       if (!name || start === undefined || end === undefined) {
         output.error('Name (-n), start (-s), and end (-e) are required for create');
@@ -62,7 +62,7 @@ export const bookmarkCommand: Command = {
         throw error;
       }
     } else if (action === 'delete') {
-      const rangeId = options.id as string;
+      const rangeId = flags.id as string;
       if (!rangeId) {
         output.error('Named range ID is required. Use --id RANGE_ID');
         return;

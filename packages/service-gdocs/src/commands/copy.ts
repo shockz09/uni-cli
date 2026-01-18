@@ -13,7 +13,7 @@ export const copyCommand: Command = {
     { name: 'document', description: 'Document ID or URL to copy', required: true },
   ],
   options: [
-    { name: 'name', alias: 'n', description: 'Name for the copy', type: 'string' },
+    { name: 'name', short: 'n', description: 'Name for the copy', type: 'string' },
   ],
   examples: [
     'uni gdocs copy DOC_ID',
@@ -21,7 +21,7 @@ export const copyCommand: Command = {
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
-    const { output, args, options, globalFlags } = ctx;
+    const { output, args, flags, globalFlags } = ctx;
 
     if (!gdocs.isAuthenticated()) {
       output.error('Not authenticated. Run "uni gdocs auth" first.');
@@ -29,7 +29,7 @@ export const copyCommand: Command = {
     }
 
     const documentId = extractDocumentId(args.document as string);
-    const name = options.name as string | undefined;
+    const name = flags.name as string | undefined;
 
     const spinner = output.spinner('Copying document...');
 

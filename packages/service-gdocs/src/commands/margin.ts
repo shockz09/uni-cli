@@ -13,11 +13,11 @@ export const marginCommand: Command = {
     { name: 'document', description: 'Document ID or URL', required: true },
   ],
   options: [
-    { name: 'top', alias: 't', description: 'Top margin in points', type: 'number' },
-    { name: 'bottom', alias: 'b', description: 'Bottom margin in points', type: 'number' },
-    { name: 'left', alias: 'l', description: 'Left margin in points', type: 'number' },
-    { name: 'right', alias: 'r', description: 'Right margin in points', type: 'number' },
-    { name: 'all', alias: 'a', description: 'Set all margins to this value', type: 'number' },
+    { name: 'top', short: 't', description: 'Top margin in points', type: 'number' },
+    { name: 'bottom', short: 'b', description: 'Bottom margin in points', type: 'number' },
+    { name: 'left', short: 'l', description: 'Left margin in points', type: 'number' },
+    { name: 'right', short: 'r', description: 'Right margin in points', type: 'number' },
+    { name: 'all', short: 'a', description: 'Set all margins to this value', type: 'number' },
   ],
   examples: [
     'uni gdocs margin DOC_ID --all 72',
@@ -26,7 +26,7 @@ export const marginCommand: Command = {
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
-    const { output, args, options, globalFlags } = ctx;
+    const { output, args, flags, globalFlags } = ctx;
 
     if (!gdocs.isAuthenticated()) {
       output.error('Not authenticated. Run "uni gdocs auth" first.');
@@ -37,17 +37,17 @@ export const marginCommand: Command = {
 
     const margins: { top?: number; bottom?: number; left?: number; right?: number } = {};
 
-    if (options.all !== undefined) {
-      const all = options.all as number;
+    if (flags.all !== undefined) {
+      const all = flags.all as number;
       margins.top = all;
       margins.bottom = all;
       margins.left = all;
       margins.right = all;
     } else {
-      if (options.top !== undefined) margins.top = options.top as number;
-      if (options.bottom !== undefined) margins.bottom = options.bottom as number;
-      if (options.left !== undefined) margins.left = options.left as number;
-      if (options.right !== undefined) margins.right = options.right as number;
+      if (flags.top !== undefined) margins.top = flags.top as number;
+      if (flags.bottom !== undefined) margins.bottom = flags.bottom as number;
+      if (flags.left !== undefined) margins.left = flags.left as number;
+      if (flags.right !== undefined) margins.right = flags.right as number;
     }
 
     if (Object.keys(margins).length === 0) {

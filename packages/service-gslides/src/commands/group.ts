@@ -14,7 +14,7 @@ export const groupCommand: Command = {
     { name: 'presentation', description: 'Presentation ID or URL', required: true },
   ],
   options: [
-    { name: 'elements', alias: 'e', description: 'Comma-separated element IDs to group (for create)', type: 'string' },
+    { name: 'elements', short: 'e', description: 'Comma-separated element IDs to group (for create)', type: 'string' },
     { name: 'id', description: 'Group ID to ungroup (for delete)', type: 'string' },
   ],
   examples: [
@@ -23,7 +23,7 @@ export const groupCommand: Command = {
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
-    const { output, args, options, globalFlags } = ctx;
+    const { output, args, flags, globalFlags } = ctx;
 
     if (!gslides.isAuthenticated()) {
       output.error('Not authenticated. Run "uni gslides auth" first.');
@@ -34,7 +34,7 @@ export const groupCommand: Command = {
     const presentationId = extractPresentationId(args.presentation as string);
 
     if (action === 'create') {
-      const elementsStr = options.elements as string;
+      const elementsStr = flags.elements as string;
       if (!elementsStr) {
         output.error('Elements are required. Use -e "elem1,elem2"');
         return;
@@ -63,7 +63,7 @@ export const groupCommand: Command = {
         throw error;
       }
     } else if (action === 'delete') {
-      const groupId = options.id as string;
+      const groupId = flags.id as string;
       if (!groupId) {
         output.error('Group ID is required. Use --id GROUP_ID');
         return;

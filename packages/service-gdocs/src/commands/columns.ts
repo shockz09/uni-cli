@@ -14,8 +14,8 @@ export const columnsCommand: Command = {
     { name: 'count', description: 'Number of columns (1-3)', required: true },
   ],
   options: [
-    { name: 'at', alias: 'a', description: 'Section start index (default: 1)', type: 'number' },
-    { name: 'gap', alias: 'g', description: 'Gap between columns in points (default: 36)', type: 'number' },
+    { name: 'at', short: 'a', description: 'Section start index (default: 1)', type: 'number' },
+    { name: 'gap', short: 'g', description: 'Gap between columns in points (default: 36)', type: 'number' },
   ],
   examples: [
     'uni gdocs columns DOC_ID 2',
@@ -24,7 +24,7 @@ export const columnsCommand: Command = {
   ],
 
   async handler(ctx: CommandContext): Promise<void> {
-    const { output, args, options, globalFlags } = ctx;
+    const { output, args, flags, globalFlags } = ctx;
 
     if (!gdocs.isAuthenticated()) {
       output.error('Not authenticated. Run "uni gdocs auth" first.');
@@ -33,8 +33,8 @@ export const columnsCommand: Command = {
 
     const documentId = extractDocumentId(args.document as string);
     const count = parseInt(args.count as string, 10);
-    const sectionIndex = (options.at as number) || 1;
-    const gap = (options.gap as number) || 36;
+    const sectionIndex = (flags.at as number) || 1;
+    const gap = (flags.gap as number) || 36;
 
     if (isNaN(count) || count < 1 || count > 3) {
       output.error('Column count must be 1, 2, or 3');
