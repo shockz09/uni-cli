@@ -4,19 +4,7 @@
 
 import type { UniService } from '@uni/shared';
 import { createGoogleServiceSetup } from '@uni/shared';
-import { listCommand } from './commands/list';
-import { addCommand } from './commands/add';
-import { updateCommand } from './commands/update';
-import { doneCommand } from './commands/done';
-import { undoneCommand } from './commands/undone';
-import { deleteCommand } from './commands/delete';
-import { listsCommand } from './commands/lists';
-import { authCommand } from './commands/auth';
-// New commands
-import { moveCommand } from './commands/move';
-import { clearCommand } from './commands/clear';
-import { subtaskCommand } from './commands/subtask';
-import { getCommand } from './commands/get';
+import { commands } from './commands';
 import { gtasks } from './api';
 
 const gtasksService: UniService = {
@@ -24,21 +12,7 @@ const gtasksService: UniService = {
   description: 'Google Tasks - manage todos',
   version: '0.1.0',
 
-  commands: [
-    listCommand,
-    addCommand,
-    updateCommand,
-    doneCommand,
-    undoneCommand,
-    deleteCommand,
-    listsCommand,
-    // New commands
-    moveCommand,
-    clearCommand,
-    subtaskCommand,
-    getCommand,
-    authCommand,
-  ],
+  commands: commands,
 
   auth: {
     type: 'oauth',

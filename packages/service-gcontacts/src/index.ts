@@ -4,17 +4,7 @@
 
 import type { UniService } from '@uni/shared';
 import { createGoogleServiceSetup } from '@uni/shared';
-import { listCommand } from './commands/list';
-import { searchCommand } from './commands/search';
-import { getCommand } from './commands/get';
-import { addCommand } from './commands/add';
-import { updateCommand } from './commands/update';
-import { deleteCommand } from './commands/delete';
-import { authCommand } from './commands/auth';
-// New commands
-import { groupsCommand } from './commands/groups';
-import { exportCommand } from './commands/export';
-import { batchDeleteCommand } from './commands/batch-delete';
+import { commands } from './commands';
 import { gcontacts } from './api';
 
 const gcontactsService: UniService = {
@@ -22,19 +12,7 @@ const gcontactsService: UniService = {
   description: 'Google Contacts - manage contacts',
   version: '0.1.0',
 
-  commands: [
-    listCommand,
-    searchCommand,
-    getCommand,
-    addCommand,
-    updateCommand,
-    deleteCommand,
-    // New commands
-    groupsCommand,
-    exportCommand,
-    batchDeleteCommand,
-    authCommand,
-  ],
+  commands: commands,
 
   auth: {
     type: 'oauth',

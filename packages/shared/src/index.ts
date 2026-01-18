@@ -24,3 +24,6 @@ export * from './colors';
 
 // Test utilities
 export * from './test-utils';
+
+// Declarative command system
+export * from './cmds';

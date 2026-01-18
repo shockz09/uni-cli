@@ -1416,6 +1416,92 @@ uni exa news "climate change" --days 30 --num 15
 
 Google Slides - presentations
 
+### `uni gslides create`
+
+Create a new presentation
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | The title |
+
+---
+
+### `uni gslides rename`
+
+Rename a presentation
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `presentation` | Yes | The presentation |
+| `title` | Yes | The title |
+
+---
+
+### `uni gslides delete`
+
+Delete a presentation (moves to trash)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `presentation` | Yes | The presentation |
+
+---
+
+### `uni gslides stats`
+
+Get presentation statistics
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `presentation` | Yes | The presentation |
+
+---
+
+### `uni gslides layouts`
+
+Get available slide layouts
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `presentation` | Yes | The presentation |
+
+---
+
+### `uni gslides masters`
+
+Get master slides
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `presentation` | Yes | The presentation |
+
+---
+
+### `uni gslides delete-element`
+
+Delete a page element
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `presentation` | Yes | The presentation |
+| `element` | Yes | The element |
+
+---
+
 ### `uni gslides list`
 
 List recent presentations
@@ -1425,13 +1511,6 @@ List recent presentations
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
 | `--limit` | -n | string |  | Number of presentations to show (default: 10) |
-
-**Examples:**
-
-```bash
-uni gslides list
-uni gslides list -n 20
-```
 
 ---
 
@@ -1444,227 +1523,6 @@ Get presentation details
 | Name | Required | Description |
 |------|----------|-------------|
 | `id` | Yes | Presentation ID or URL |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--text` | -t | boolean |  | Extract text from slides |
-
-**Examples:**
-
-```bash
-uni gslides get <presentation-id>
-uni gslides get <presentation-id> --text
-uni gslides get https://docs.google.com/presentation/d/xxx/edit
-```
-
----
-
-### `uni gslides create`
-
-Create a new presentation
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `title` | Yes | Presentation title |
-
-**Examples:**
-
-```bash
-uni gslides create "Q1 Review"
-uni gslides create "Product Launch"
-```
-
----
-
-### `uni gslides add-slide`
-
-Add a new slide to presentation
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-
-**Examples:**
-
-```bash
-uni gslides add-slide <presentation-id>
-```
-
----
-
-### `uni gslides add-text`
-
-Add text to a slide
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-| `text` | Yes | Text to add |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--slide` | -s | string |  | Slide number (default: last slide) |
-| `--x` |  | string |  | X position in points (default: 50) |
-| `--y` |  | string |  | Y position in points (default: 100) |
-| `--width` | -w | string |  | Width in points (default: 500) |
-| `--height` | -h | string |  | Height in points (default: 300) |
-
-**Examples:**
-
-```bash
-uni gslides add-text <id> "Hello World"
-uni gslides add-text <id> "Title" --slide 1
-uni gslides add-text <id> "Content" --x 100 --y 200 --width 400 --height 50
-```
-
----
-
-### `uni gslides add-image`
-
-Add an image to a slide
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-| `url` | Yes | Image URL |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--slide` | -s | number |  | Slide number (default: last slide) |
-| `--width` | -w | number |  | Image width in points (default: 300) |
-| `--height` | -h | number |  | Image height in points (default: auto) |
-| `--x` |  | number |  | X position in points (default: 100) |
-| `--y` |  | number |  | Y position in points (default: 100) |
-
-**Examples:**
-
-```bash
-uni gslides add-image ID "https://example.com/image.png"
-uni gslides add-image ID "https://example.com/logo.png" --slide 1
-uni gslides add-image ID "https://example.com/chart.png" --width 400 --x 50 --y 200
-```
-
----
-
-### `uni gslides duplicate-slide`
-
-Duplicate an existing slide
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--slide` | -s | number |  | Slide number to duplicate (default: last slide) |
-
-**Examples:**
-
-```bash
-uni gslides duplicate-slide ID
-uni gslides duplicate-slide ID --slide 1
-uni gslides duplicate-slide ID -s 3
-```
-
----
-
-### `uni gslides delete-slide`
-
-Delete a slide from presentation
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--slide` | -s | number |  | Slide number to delete (default: last slide) |
-| `--force` | -f | boolean |  | Skip confirmation |
-
-**Examples:**
-
-```bash
-uni gslides delete-slide ID
-uni gslides delete-slide ID --slide 2
-uni gslides delete-slide ID -s 1 --force
-```
-
----
-
-### `uni gslides clear-slide`
-
-Clear all content from a slide
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--slide` | -s | number |  | Slide number to clear (default: last slide) |
-| `--force` | -f | boolean |  | Skip confirmation |
-
-**Examples:**
-
-```bash
-uni gslides clear-slide ID
-uni gslides clear-slide ID --slide 2
-uni gslides clear-slide ID -s 1 --force
-```
-
----
-
-### `uni gslides replace-text`
-
-Replace text throughout the presentation
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-| `old` | Yes | Text to find |
-| `new` | Yes | Replacement text |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--case` | -c | boolean |  | Case-sensitive replacement |
-
-**Examples:**
-
-```bash
-uni gslides replace-text ID "old text" "new text"
-uni gslides replace-text ID "TODO" "DONE"
-uni gslides replace-text ID "2024" "2025" --case
-```
 
 ---
 
@@ -1682,15 +1540,7 @@ Create a copy of a presentation
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
-| `--name` | -n | string |  | Name for the copy (default: "Copy of <original>" |
-
-**Examples:**
-
-```bash
-uni gslides copy ID
-uni gslides copy ID --name "Q2 Review"
-uni gslides copy ID -n "Template Copy"
-```
+| `--name` | -n | string |  | Name for the copy |
 
 ---
 
@@ -1711,12 +1561,107 @@ Share a presentation with someone
 |--------|-------|------|---------|-------------|
 | `--role` | -r | string |  | Permission role: reader or writer (default: writer) |
 
-**Examples:**
+---
 
-```bash
-uni gslides share <id> colleague@example.com
-uni gslides share <id> viewer@example.com --role reader
-```
+### `uni gslides move`
+
+Move presentation to a different folder
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `presentation` | Yes | Presentation ID or URL |
+| `folder` | Yes | Destination folder ID |
+
+---
+
+### `uni gslides versions`
+
+Get presentation revision history
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `presentation` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -n | number |  | Number of revisions (default: 10) |
+
+---
+
+### `uni gslides add-slide`
+
+Add a new slide to presentation
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+
+---
+
+### `uni gslides delete-slide`
+
+Delete a slide from presentation
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `slide` | Yes | Slide number (1-indexed) or slide ID |
+
+---
+
+### `uni gslides duplicate-slide`
+
+Duplicate a slide
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `slide` | Yes | Slide number (1-indexed) or slide ID |
+
+---
+
+### `uni gslides clear-slide`
+
+Remove all elements from a slide
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `slide` | Yes | Slide number (1-indexed) or slide ID |
+
+---
+
+### `uni gslides replace-text`
+
+Replace text throughout presentation
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `find` | Yes | Text to find |
+| `replace` | Yes | Replacement text |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--case` | -c | boolean |  | Match case (default: false) |
 
 ---
 
@@ -1737,57 +1682,51 @@ Export presentation to PDF, PPTX, or other formats
 |--------|-------|------|---------|-------------|
 | `--output` | -o | string |  | Output file path |
 
-**Examples:**
-
-```bash
-uni gslides export <id> pdf
-uni gslides export <id> pptx -o presentation.pptx
-```
-
 ---
 
-### `uni gslides delete`
+### `uni gslides add-text`
 
-Delete a presentation (moves to trash)
+Add text to a slide
 
 **Arguments:**
 
 | Name | Required | Description |
 |------|----------|-------------|
 | `id` | Yes | Presentation ID or URL |
+| `slide` | Yes | Slide number or ID |
+| `text` | Yes | Text to add |
 
 **Options:**
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
-| `--force` | -f | boolean |  | Skip confirmation |
-
-**Examples:**
-
-```bash
-uni gslides delete 1abc123XYZ
-uni gslides delete 1abc123XYZ --force
-```
+| `--x` |  | number |  | X position (default: 50) |
+| `--y` |  | number |  | Y position (default: 100) |
+| `--width` | -w | number |  | Width (default: 500) |
+| `--height` | -h | number |  | Height (default: 300) |
 
 ---
 
-### `uni gslides rename`
+### `uni gslides add-image`
 
-Rename a presentation
+Add an image to a slide
 
 **Arguments:**
 
 | Name | Required | Description |
 |------|----------|-------------|
 | `id` | Yes | Presentation ID or URL |
-| `title` | Yes | New title |
+| `slide` | Yes | Slide number or ID |
+| `url` | Yes | Image URL |
 
-**Examples:**
+**Options:**
 
-```bash
-uni gslides rename 1abc123XYZ "New Title"
-uni gslides rename 1abc123XYZ "Q1 Review 2025"
-```
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--x` |  | number |  | X position (default: 100) |
+| `--y` |  | number |  | Y position (default: 100) |
+| `--width` | -w | number |  | Width (default: 300) |
+| `--height` | -h | number |  | Height |
 
 ---
 
@@ -1800,27 +1739,18 @@ Add a shape to a slide
 | Name | Required | Description |
 |------|----------|-------------|
 | `id` | Yes | Presentation ID or URL |
+| `slide` | Yes | Slide number or ID |
+| `type` | Yes | Shape type |
 
 **Options:**
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
-| `--slide` | -s | string |  | Slide number (1-indexed). Default: last slide |
-| `--type` | -t | string |  | Shape type: rectangle, ellipse, triangle, arrow, star, diamond, heart, cloud |
-| `--x` |  | string |  | X position in points (default: 100) |
-| `--y` |  | string |  | Y position in points (default: 100) |
-| `--width` | -w | string |  | Width in points (default: 200) |
-| `--height` | -h | string |  | Height in points (default: 150) |
+| `--x` |  | number |  | X position (default: 100) |
+| `--y` |  | number |  | Y position (default: 100) |
+| `--width` | -w | number |  | Width (default: 200) |
+| `--height` | -h | number |  | Height (default: 150) |
 | `--color` | -c | string |  | Fill color (hex or name) |
-
-**Examples:**
-
-```bash
-uni gslides add-shape ID --type rectangle
-uni gslides add-shape ID --type ellipse --slide 2 --color blue
-uni gslides add-shape ID --type star --x 200 --y 150 --width 100 --height 100
-uni gslides add-shape ID --type arrow --color "#FF5500"
-```
 
 ---
 
@@ -1833,79 +1763,20 @@ Add a line to a slide
 | Name | Required | Description |
 |------|----------|-------------|
 | `id` | Yes | Presentation ID or URL |
+| `slide` | Yes | Slide number or ID |
 
 **Options:**
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
-| `--slide` | -s | string |  | Slide number (1-indexed). Default: last slide |
-| `--type` | -t | string |  | Line type: straight, bent, curved (default: straight) |
-| `--start-x` |  | string |  | Start X position (default: 50) |
-| `--start-y` |  | string |  | Start Y position (default: 100) |
-| `--end-x` |  | string |  | End X position (default: 300) |
-| `--end-y` |  | string |  | End Y position (default: 100) |
-| `--color` | -c | string |  | Line color (hex or name) |
-| `--weight` | -w | string |  | Line weight in points |
-| `--dash` | -d | string |  | Dash style: solid, dot, dash, dash-dot |
-
-**Examples:**
-
-```bash
-uni gslides add-line ID
-uni gslides add-line ID --slide 2 --color red --weight 3
-uni gslides add-line ID --start-x 50 --start-y 100 --end-x 400 --end-y 300
-uni gslides add-line ID --type curved --dash dot --color blue
-```
-
----
-
-### `uni gslides notes`
-
-Get or set speaker notes for a slide
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--slide` | -s | string |  | Slide number (1-indexed). Default: 1 |
-| `--text` | -t | string |  | Set speaker notes text |
-| `--get` | -g | boolean |  | Get current speaker notes |
-
-**Examples:**
-
-```bash
-uni gslides notes ID --slide 1 --get
-uni gslides notes ID --slide 2 --text "Remember to mention the key points"
-uni gslides notes ID -s 3 -t "Transition to demo here"
-```
-
----
-
-### `uni gslides reorder`
-
-Move slides to a new position
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-| `slide` | Yes | Slide number to move (1-indexed) |
-| `to` | Yes | New position (1-indexed) |
-
-**Examples:**
-
-```bash
-uni gslides reorder ID 3 1
-uni gslides reorder ID 5 2
-uni gslides reorder ID 1 10
-```
+| `--type` | -t | string |  | Line type: STRAIGHT, BENT, CURVED (default: STRAIGHT) |
+| `--startX` |  | number |  | Start X (default: 50) |
+| `--startY` |  | number |  | Start Y (default: 100) |
+| `--endX` |  | number |  | End X (default: 300) |
+| `--endY` |  | number |  | End Y (default: 100) |
+| `--color` | -c | string |  | Line color |
+| `--weight` | -w | number |  | Line weight in PT |
+| `--dash` | -d | string |  | Dash style: SOLID, DOT, DASH, DASH_DOT |
 
 ---
 
@@ -1918,26 +1789,42 @@ Add a table to a slide
 | Name | Required | Description |
 |------|----------|-------------|
 | `id` | Yes | Presentation ID or URL |
+| `slide` | Yes | Slide number or ID |
+| `rows` | Yes | Number of rows |
+| `columns` | Yes | Number of columns |
 
 **Options:**
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
-| `--slide` | -s | string |  | Slide number (1-indexed). Default: last slide |
-| `--rows` | -r | string |  | Number of rows (default: 3) |
-| `--cols` | -c | string |  | Number of columns (default: 3) |
-| `--x` |  | string |  | X position in points (default: 50) |
-| `--y` |  | string |  | Y position in points (default: 100) |
-| `--width` | -w | string |  | Width in points (default: 400) |
-| `--height` | -h | string |  | Height in points (default: 200) |
+| `--x` |  | number |  | X position (default: 50) |
+| `--y` |  | number |  | Y position (default: 100) |
+| `--width` | -w | number |  | Width (default: 400) |
+| `--height` | -h | number |  | Height (default: 200) |
 
-**Examples:**
+---
 
-```bash
-uni gslides add-table ID --rows 3 --cols 4
-uni gslides add-table ID --slide 2 --rows 5 --cols 2
-uni gslides add-table ID --rows 2 --cols 3 --x 100 --y 150 --width 300
-```
+### `uni gslides add-video`
+
+Add a video to a slide (YouTube or Drive)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `slide` | Yes | Slide number or ID |
+| `videoId` | Yes | YouTube video ID or Drive file ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--source` | -s | string |  | Source: YOUTUBE or DRIVE (default: YOUTUBE) |
+| `--x` |  | number |  | X position (default: 100) |
+| `--y` |  | number |  | Y position (default: 100) |
+| `--width` | -w | number |  | Width (default: 400) |
+| `--height` | -h | number |  | Height (default: 225) |
 
 ---
 
@@ -1959,27 +1846,51 @@ Set slide background color or image
 | `--color` | -c | string |  | Background color (hex or name) |
 | `--image` | -i | string |  | Background image URL |
 
-**Examples:**
-
-```bash
-uni gslides background ID --color blue
-uni gslides background ID --slide 1 --color "#FF5500"
-uni gslides background ID --slide 2 --image "https://example.com/bg.jpg"
-uni gslides background ID --color white
-```
-
 ---
 
-### `uni gslides format-text`
+### `uni gslides notes`
 
-Format text in a shape element
+Get or set speaker notes for a slide
 
 **Arguments:**
 
 | Name | Required | Description |
 |------|----------|-------------|
 | `id` | Yes | Presentation ID or URL |
-| `elementId` | Yes | Element (shape/textbox) ID |
+| `slide` | Yes | Slide number (1-indexed) or slide ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--set` | -s | string |  | Set speaker notes content |
+
+---
+
+### `uni gslides reorder`
+
+Move slides to a new position
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `slides` | Yes | Slide numbers to move (comma-separated) |
+| `position` | Yes | New position (1-indexed) |
+
+---
+
+### `uni gslides format-text`
+
+Format text in a shape
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `shape` | Yes | Shape/text box ID |
 
 **Options:**
 
@@ -1988,78 +1899,85 @@ Format text in a shape element
 | `--bold` | -b | boolean |  | Make text bold |
 | `--italic` | -i | boolean |  | Make text italic |
 | `--underline` | -u | boolean |  | Underline text |
-| `--strike` |  | boolean |  | Strikethrough text |
-| `--size` | -s | string |  | Font size in points |
+| `--size` | -s | number |  | Font size in PT |
 | `--color` | -c | string |  | Text color (hex or name) |
 | `--font` | -f | string |  | Font family |
-| `--start` |  | string |  | Start index (default: all text) |
-| `--end` |  | string |  | End index (default: all text) |
-
-**Examples:**
-
-```bash
-uni gslides format-text ID textbox_123 --bold
-uni gslides format-text ID shape_456 --size 24 --color red
-uni gslides format-text ID element_789 --font "Arial" --italic
-uni gslides format-text ID textbox_123 --bold --start 0 --end 10
-```
-
----
-
-### `uni gslides delete-element`
-
-Delete a page element (shape, image, table, etc.)
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Presentation ID or URL |
-| `elementId` | Yes | Element ID to delete |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--force` | -f | boolean |  | Skip confirmation |
-
-**Examples:**
-
-```bash
-uni gslides delete-element ID textbox_123
-uni gslides delete-element ID shape_456 --force
-uni gslides delete-element ID image_789
-```
 
 ---
 
 ### `uni gslides transform`
 
-Move or resize a page element
+Move or resize an element
 
 **Arguments:**
 
 | Name | Required | Description |
 |------|----------|-------------|
 | `id` | Yes | Presentation ID or URL |
-| `elementId` | Yes | Element ID to transform |
+| `element` | Yes | Element ID |
 
 **Options:**
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
-| `--x` |  | string |  | X position in points |
-| `--y` |  | string |  | Y position in points |
-| `--scale-x` |  | string |  | Scale factor for width (1 = 100%) |
-| `--scale-y` |  | string |  | Scale factor for height (1 = 100%) |
+| `--x` |  | number |  | X position |
+| `--y` |  | number |  | Y position |
+| `--scaleX` |  | number |  | X scale factor |
+| `--scaleY` |  | number |  | Y scale factor |
 
-**Examples:**
+---
 
-```bash
-uni gslides transform ID shape_123 --x 200 --y 150
-uni gslides transform ID textbox_456 --scale-x 1.5 --scale-y 1.5
-uni gslides transform ID image_789 --x 100 --y 100 --scale-x 0.5
-```
+### `uni gslides link`
+
+Add a link to text in a shape
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Presentation ID or URL |
+| `shape` | Yes | Shape ID |
+| `url` | Yes | Link URL |
+
+---
+
+### `uni gslides group`
+
+Group or ungroup elements
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `action` | Yes | group or ungroup |
+| `id` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--elements` | -e | string |  | Element IDs to group (comma-separated) |
+| `--groupId` | -g | string |  | Group ID to ungroup |
+
+---
+
+### `uni gslides comments`
+
+List, add, resolve, or delete comments
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `action` | Yes | list, add, resolve, unresolve, or delete |
+| `presentation` | Yes | Presentation ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--content` | -c | string |  | Comment content (for add) |
+| `--id` |  | string |  | Comment ID (for resolve/delete) |
 
 ---
 
@@ -3012,33 +2930,6 @@ uni gmeet list --days 14
 
 ---
 
-### `uni gmeet delete`
-
-Cancel/delete a scheduled meeting
-
-**Aliases:** `cancel`, `remove`, `rm`
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `search` | Yes | Meeting name to search for |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--days` | -d | number | `14` | Days to search ahead |
-
-**Examples:**
-
-```bash
-uni gmeet delete "Team Sync"
-uni gmeet cancel "1:1 with John"
-```
-
----
-
 ### `uni gmeet get`
 
 Get meeting details
@@ -3085,6 +2976,33 @@ Update meeting title or time
 uni gmeet update EVENT_ID --title "Updated Meeting"
 uni gmeet update EVENT_ID --date "2024-01-20T15:00:00"
 uni gmeet update EVENT_ID --date "2024-01-20T15:00:00" --duration 60
+```
+
+---
+
+### `uni gmeet delete`
+
+Cancel/delete a scheduled meeting
+
+**Aliases:** `cancel`, `remove`, `rm`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `search` | Yes | Meeting name to search for |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--days` | -d | number | `14` | Days to search ahead |
+
+**Examples:**
+
+```bash
+uni gmeet delete "Team Sync"
+uni gmeet cancel "1:1 with John"
 ```
 
 ---
@@ -3311,6 +3229,109 @@ uni gtasks delete 1
 
 ---
 
+### `uni gtasks get`
+
+Get task details
+
+**Aliases:** `view`, `show`
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `taskId` | Yes | Task ID |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | string |  | Task list ID (default: @default) |
+
+**Examples:**
+
+```bash
+uni gtasks get TASK_ID
+uni gtasks get TASK_ID --list LIST_ID
+```
+
+---
+
+### `uni gtasks move`
+
+Move or reorder a task
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `taskId` | Yes | Task ID to move |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | string |  | Task list ID (default: @default) |
+| `--parent` | -p | string |  | Parent task ID (makes it a subtask) |
+| `--after` | -a | string |  | Task ID to position after |
+
+**Examples:**
+
+```bash
+uni gtasks move TASK_ID --parent PARENT_TASK_ID
+uni gtasks move TASK_ID --after OTHER_TASK_ID
+uni gtasks move TASK_ID --list LIST_ID --parent PARENT_ID
+```
+
+---
+
+### `uni gtasks subtask`
+
+Add a subtask under a parent task
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `parentId` | Yes | Parent task ID |
+| `title` | Yes | Subtask title |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | string |  | Task list ID (default: @default) |
+| `--notes` | -n | string |  | Task notes |
+| `--due` | -d | string |  | Due date (YYYY-MM-DD) |
+
+**Examples:**
+
+```bash
+uni gtasks subtask PARENT_ID "Subtask title"
+uni gtasks subtask PARENT_ID "Subtask" --notes "Details here"
+uni gtasks subtask PARENT_ID "Subtask" --due 2024-01-20
+```
+
+---
+
+### `uni gtasks clear`
+
+Clear all completed tasks from a list
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--list` | -l | string |  | Task list ID (default: @default) |
+
+**Examples:**
+
+```bash
+uni gtasks clear
+uni gtasks clear --list LIST_ID
+```
+
+---
+
 ### `uni gtasks lists`
 
 Manage task lists
@@ -3348,109 +3369,6 @@ Delete a task list
 | Option | Short | Type | Description |
 |--------|-------|------|-------------|
 | `--force` | -f | boolean | Skip confirmation |
-
----
-
-### `uni gtasks move`
-
-Move or reorder a task
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `taskId` | Yes | Task ID to move |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--list` | -l | string |  | Task list ID (default: @default) |
-| `--parent` | -p | string |  | Parent task ID (makes it a subtask) |
-| `--after` | -a | string |  | Task ID to position after |
-
-**Examples:**
-
-```bash
-uni gtasks move TASK_ID --parent PARENT_TASK_ID
-uni gtasks move TASK_ID --after OTHER_TASK_ID
-uni gtasks move TASK_ID --list LIST_ID --parent PARENT_ID
-```
-
----
-
-### `uni gtasks clear`
-
-Clear all completed tasks from a list
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--list` | -l | string |  | Task list ID (default: @default) |
-
-**Examples:**
-
-```bash
-uni gtasks clear
-uni gtasks clear --list LIST_ID
-```
-
----
-
-### `uni gtasks subtask`
-
-Add a subtask under a parent task
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `parentId` | Yes | Parent task ID |
-| `title` | Yes | Subtask title |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--list` | -l | string |  | Task list ID (default: @default) |
-| `--notes` | -n | string |  | Task notes |
-| `--due` | -d | string |  | Due date (YYYY-MM-DD) |
-
-**Examples:**
-
-```bash
-uni gtasks subtask PARENT_ID "Subtask title"
-uni gtasks subtask PARENT_ID "Subtask" --notes "Details here"
-uni gtasks subtask PARENT_ID "Subtask" --due 2024-01-20
-```
-
----
-
-### `uni gtasks get`
-
-Get task details
-
-**Aliases:** `view`, `show`
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `taskId` | Yes | Task ID |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--list` | -l | string |  | Task list ID (default: @default) |
-
-**Examples:**
-
-```bash
-uni gtasks get TASK_ID
-uni gtasks get TASK_ID --list LIST_ID
-```
 
 ---
 
@@ -5292,6 +5210,67 @@ uni telegram download "Family Group" 67890 -o ./downloads
 
 Google Docs - documents
 
+### `uni gdocs stats`
+
+Get document statistics (words, characters, pages)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `document` | Yes | The document |
+
+---
+
+### `uni gdocs copy`
+
+Duplicate a document
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `document` | Yes | The document |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--name` | -n | string |  | Name for the copy |
+
+---
+
+### `uni gdocs move`
+
+Move document to a different folder
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `document` | Yes | The document |
+| `folder` | Yes | The folder |
+
+---
+
+### `uni gdocs versions`
+
+View document revision history
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `document` | Yes | The document |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--limit` | -l | number | `10` | Max revisions to show |
+
+---
+
 ### `uni gdocs list`
 
 List recent documents
@@ -5304,12 +5283,17 @@ List recent documents
 |--------|-------|------|---------|-------------|
 | `--limit` | -l | number | `10` | Max documents to show |
 
-**Examples:**
+---
 
-```bash
-uni gdocs list
-uni gdocs list --limit 20
-```
+### `uni gdocs create`
+
+Create a new document
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `title` | Yes | Document title |
 
 ---
 
@@ -5329,33 +5313,6 @@ Get document content
 |--------|-------|------|---------|-------------|
 | `--markdown` | -m | boolean |  | Output as markdown |
 
-**Examples:**
-
-```bash
-uni gdocs get 1abc123XYZ
-uni gdocs get 1abc123XYZ --markdown
-uni gdocs get "https://docs.google.com/document/d/1abc123XYZ/edit"
-```
-
----
-
-### `uni gdocs create`
-
-Create a new document
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `title` | Yes | Document title |
-
-**Examples:**
-
-```bash
-uni gdocs create "Meeting Notes"
-uni gdocs create "Project Plan"
-```
-
 ---
 
 ### `uni gdocs append`
@@ -5368,13 +5325,6 @@ Append text to document
 |------|----------|-------------|
 | `id` | Yes | Document ID or URL |
 | `text` | Yes | Text to append |
-
-**Examples:**
-
-```bash
-uni gdocs append 1abc123XYZ "New paragraph"
-uni gdocs append 1abc123XYZ "\n\nAction Items:\n- Task 1\n- Task 2"
-```
 
 ---
 
@@ -5390,12 +5340,73 @@ Replace text in document
 | `old` | Yes | Text to find |
 | `new` | Yes | Replacement text |
 
-**Examples:**
+---
 
-```bash
-uni gdocs replace 1abc123XYZ "old text" "new text"
-uni gdocs replace 1abc123XYZ "TODO" "DONE"
-```
+### `uni gdocs rename`
+
+Rename a document
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `title` | Yes | New title |
+
+---
+
+### `uni gdocs delete`
+
+Delete a document (moves to trash)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--force` | -f | boolean |  | Skip confirmation |
+
+---
+
+### `uni gdocs clear`
+
+Clear all content from document
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--force` | -f | boolean |  | Skip confirmation |
+
+---
+
+### `uni gdocs share`
+
+Share document with email
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `id` | Yes | Document ID or URL |
+| `email` | Yes | Email address to share with |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--role` | -r | string | `writer` | Permission role: reader or writer |
 
 ---
 
@@ -5414,19 +5425,9 @@ Insert text at position or insert image from URL
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
-| `--at` | -a | string |  | Position: "start", "end", or index number (default: end) |
+| `--at` | -a | string |  | Position: "start", "end", or index number |
 | `--image` | -i | boolean |  | Insert as image (content should be URL) |
 | `--width` | -w | number |  | Image width in points (default: 400) |
-
-**Examples:**
-
-```bash
-uni gdocs insert ID "New paragraph at end"
-uni gdocs insert ID "Header text" --at start
-uni gdocs insert ID "Middle text" --at 100
-uni gdocs insert ID "https://example.com/image.png" --image
-uni gdocs insert ID "https://example.com/logo.png" --image --width 200
-```
 
 ---
 
@@ -5448,92 +5449,26 @@ Find text in document, optionally replace
 | `--replace` | -r | string |  | Replace with this text |
 | `--case` | -c | boolean |  | Case-sensitive search |
 
-**Examples:**
-
-```bash
-uni gdocs find 1abc123XYZ "old text"
-uni gdocs find 1abc123XYZ "TODO" --replace "DONE"
-uni gdocs find 1abc123XYZ "Error" --case
-```
-
 ---
 
-### `uni gdocs clear`
+### `uni gdocs comments`
 
-Clear all content from document
+List, add, resolve, or delete comments
 
 **Arguments:**
 
 | Name | Required | Description |
 |------|----------|-------------|
-| `id` | Yes | Document ID or URL |
+| `action` | Yes | list, add, resolve, unresolve, or delete |
+| `document` | Yes | Document ID or URL |
 
 **Options:**
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
-| `--force` | -f | boolean |  | Skip confirmation |
-
-**Examples:**
-
-```bash
-uni gdocs clear 1abc123XYZ
-uni gdocs clear 1abc123XYZ --force
-```
-
----
-
-### `uni gdocs import`
-
-Import content from text file into document
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Document ID or URL |
-| `file` | Yes | File path to import (.txt, .md) |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--append` | -a | boolean |  | Append to existing content (default: replace) |
-| `--at` |  | string |  | Insert position: "start", "end", or index (default: end for append) |
-
-**Examples:**
-
-```bash
-uni gdocs import ID notes.txt
-uni gdocs import ID readme.md --append
-uni gdocs import ID content.txt --at start
-```
-
----
-
-### `uni gdocs share`
-
-Share document with email
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Document ID or URL |
-| `email` | Yes | Email address to share with |
-
-**Options:**
-
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--role` | -r | string | `writer` | Permission role: reader or writer (default: writer) |
-
-**Examples:**
-
-```bash
-uni gdocs share 1abc123XYZ colleague@company.com
-uni gdocs share 1abc123XYZ viewer@example.com --role reader
-```
+| `--content` | -c | string |  | Comment content (for add) |
+| `--quote` | -q | string |  | Quoted text to comment on (for add) |
+| `--id` |  | string |  | Comment ID (for resolve/delete) |
 
 ---
 
@@ -5554,58 +5489,25 @@ Export document to file
 |--------|-------|------|---------|-------------|
 | `--output` | -o | string |  | Output file path |
 
-**Examples:**
-
-```bash
-uni gdocs export 1abc123XYZ pdf
-uni gdocs export 1abc123XYZ pdf --output report.pdf
-uni gdocs export 1abc123XYZ txt --output notes.txt
-```
-
 ---
 
-### `uni gdocs delete`
+### `uni gdocs import`
 
-Delete a document (moves to trash)
+Import content from text file into document
 
 **Arguments:**
 
 | Name | Required | Description |
 |------|----------|-------------|
 | `id` | Yes | Document ID or URL |
+| `file` | Yes | File path to import (.txt, .md) |
 
 **Options:**
 
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
-| `--force` | -f | boolean |  | Skip confirmation |
-
-**Examples:**
-
-```bash
-uni gdocs delete 1abc123XYZ
-uni gdocs delete 1abc123XYZ --force
-```
-
----
-
-### `uni gdocs rename`
-
-Rename a document
-
-**Arguments:**
-
-| Name | Required | Description |
-|------|----------|-------------|
-| `id` | Yes | Document ID or URL |
-| `title` | Yes | New title |
-
-**Examples:**
-
-```bash
-uni gdocs rename 1abc123XYZ "New Title"
-uni gdocs rename 1abc123XYZ "Meeting Notes - Q1"
-```
+| `--append` | -a | boolean |  | Append to existing content |
+| `--at` |  | string |  | Insert position: "start", "end", or index |
 
 ---
 
@@ -5634,15 +5536,6 @@ Apply text formatting (bold, italic, underline, etc.)
 | `--bg` |  | string |  | Background color (hex or name) |
 | `--font` | -f | string |  | Font family |
 
-**Examples:**
-
-```bash
-uni gdocs format ID 1 10 --bold
-uni gdocs format ID 5 20 --italic --underline
-uni gdocs format ID 1 50 --size 14 --color red
-uni gdocs format ID 10 30 --font "Arial" --bold
-```
-
 ---
 
 ### `uni gdocs style`
@@ -5668,15 +5561,6 @@ Apply paragraph style (heading, alignment, spacing)
 | `--space-below` |  | string |  | Space below paragraph (points) |
 | `--indent` |  | string |  | First line indent (points) |
 
-**Examples:**
-
-```bash
-uni gdocs style ID 1 20 --heading 1
-uni gdocs style ID 1 50 --heading title --align center
-uni gdocs style ID 10 100 --align justified --line-spacing 150
-uni gdocs style ID 1 30 --heading 2 --space-below 12
-```
-
 ---
 
 ### `uni gdocs bullets`
@@ -5697,17 +5581,6 @@ Create or remove bulleted/numbered lists
 |--------|-------|------|---------|-------------|
 | `--type` | -t | string |  | List type: bullet, numbered, checkbox, or remove |
 | `--style` | -s | string |  | Bullet style: disc, diamond, arrow, star (for bullets) or decimal, alpha, roman (for numbered) |
-
-**Examples:**
-
-```bash
-uni gdocs bullets ID 1 100 --type bullet
-uni gdocs bullets ID 1 50 --type numbered
-uni gdocs bullets ID 10 80 --type checkbox
-uni gdocs bullets ID 1 100 --type bullet --style star
-uni gdocs bullets ID 1 100 --type numbered --style roman
-uni gdocs bullets ID 1 100 --type remove
-```
 
 ---
 
@@ -5734,17 +5607,6 @@ Insert a table or manage table rows/columns
 | `--del-row` |  | string |  | Delete row from table (tableStartIndex:rowIndex) |
 | `--del-col` |  | string |  | Delete column from table (tableStartIndex:colIndex) |
 
-**Examples:**
-
-```bash
-uni gdocs table ID --insert --rows 3 --cols 4
-uni gdocs table ID --insert --rows 5 --cols 2 --at 100
-uni gdocs table ID --add-row 50:2
-uni gdocs table ID --add-col 50:1
-uni gdocs table ID --del-row 50:0
-uni gdocs table ID --del-col 50:3
-```
-
 ---
 
 ### `uni gdocs link`
@@ -5766,14 +5628,6 @@ Insert or remove hyperlinks from text
 | `--url` | -u | string |  | URL to link to |
 | `--remove` | -r | boolean |  | Remove existing link |
 
-**Examples:**
-
-```bash
-uni gdocs link ID 10 20 --url "https://example.com"
-uni gdocs link ID 5 15 --url "https://google.com"
-uni gdocs link ID 10 20 --remove
-```
-
 ---
 
 ### `uni gdocs page-break`
@@ -5791,14 +5645,6 @@ Insert a page break
 | Option | Short | Type | Default | Description |
 |--------|-------|------|---------|-------------|
 | `--at` |  | string |  | Insert position (index). Default: end of document |
-
-**Examples:**
-
-```bash
-uni gdocs page-break ID
-uni gdocs page-break ID --at 100
-uni gdocs page-break ID --at 50
-```
 
 ---
 
@@ -5819,14 +5665,6 @@ Add, update, or remove document header
 | `--text` | -t | string |  | Header text to add |
 | `--remove` | -r | string |  | Header ID to remove |
 
-**Examples:**
-
-```bash
-uni gdocs header ID --text "Company Name"
-uni gdocs header ID --text "Confidential Document"
-uni gdocs header ID --remove kix.abc123
-```
-
 ---
 
 ### `uni gdocs footer`
@@ -5846,13 +5684,82 @@ Add, update, or remove document footer
 | `--text` | -t | string |  | Footer text to add |
 | `--remove` | -r | string |  | Footer ID to remove |
 
-**Examples:**
+---
 
-```bash
-uni gdocs footer ID --text "Page 1"
-uni gdocs footer ID --text "© 2025 Company"
-uni gdocs footer ID --remove kix.xyz789
-```
+### `uni gdocs bookmark`
+
+Create or delete named ranges (bookmarks)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `action` | Yes | create or delete |
+| `document` | Yes | Document ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--name` | -n | string |  | Bookmark name (for create) |
+| `--start` | -s | number |  | Start index (for create) |
+| `--end` | -e | number |  | End index (for create) |
+| `--id` |  | string |  | Named range ID (for delete) |
+
+---
+
+### `uni gdocs footnote`
+
+Insert a footnote at a position
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `document` | Yes | Document ID or URL |
+| `position` | Yes | Character index to insert footnote |
+
+---
+
+### `uni gdocs margin`
+
+Set document margins (in points, 72pt = 1 inch)
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `document` | Yes | Document ID or URL |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--top` | -t | number |  | Top margin in points |
+| `--bottom` | -b | number |  | Bottom margin in points |
+| `--left` | -l | number |  | Left margin in points |
+| `--right` | -r | number |  | Right margin in points |
+| `--all` | -a | number |  | Set all margins to this value |
+
+---
+
+### `uni gdocs columns`
+
+Set column layout for a document section
+
+**Arguments:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `document` | Yes | Document ID or URL |
+| `count` | Yes | Number of columns (1-3) |
+
+**Options:**
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--at` | -a | number |  | Section start index (default: 1) |
+| `--gap` | -g | number |  | Gap between columns in points (default: 36) |
 
 ---
 
