@@ -187,6 +187,32 @@ export class GDriveClient extends GoogleAuthClient {
     }
   }
 
+  /**
+   * Share file publicly (anyone with link)
+   */
+  async sharePublic(fileId: string, role: 'reader' | 'writer' = 'reader'): Promise<string> {
+    const token = await this.getAccessToken();
+    const response = await fetch(`${DRIVE_API}/files/${fileId}/permissions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'anyone',
+        role,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Share failed: ${error}`);
+    }
+
+    const file = await this.getFile(fileId);
+    return file.webViewLink || `https://drive.google.com/file/d/${fileId}/view`;
+  }
+
   // ============================================
   // FOLDER OPERATIONS
   // ============================================

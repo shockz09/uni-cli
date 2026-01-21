@@ -223,6 +223,19 @@ export class GoogleSlidesClient extends GoogleAuthClient {
   }
 
   /**
+   * Share presentation publicly (anyone with link)
+   */
+  async sharePublic(presentationId: string, role: 'reader' | 'writer' = 'reader'): Promise<void> {
+    await this.apiRequest(DRIVE_API, `/files/${presentationId}/permissions`, {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'anyone',
+        role,
+      }),
+    });
+  }
+
+  /**
    * Export presentation to different format
    */
   async exportPresentation(presentationId: string, mimeType: string): Promise<ArrayBuffer> {

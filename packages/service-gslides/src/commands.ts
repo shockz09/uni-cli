@@ -213,10 +213,10 @@ export const copyCommand: Command = {
 // Share presentation
 export const shareCommand: Command = {
   name: 'share',
-  description: 'Share a presentation with someone',
+  description: 'Share a presentation with someone or make public',
   args: [
     { name: 'id', required: true, description: 'Presentation ID or URL' },
-    { name: 'email', required: true, description: 'Email address to share with' },
+    { name: 'target', required: true, description: 'Email address or "anyone" for public access' },
   ],
   options: [
     { name: 'role', short: 'r', type: 'string', description: 'Permission role: reader or writer (default: writer)' },
@@ -231,17 +231,29 @@ export const shareCommand: Command = {
     }
 
     const presentationId = extractPresentationId(args.id as string);
-    const email = args.email as string;
+    const target = args.target as string;
     const role = (flags.role as 'reader' | 'writer') || 'writer';
+    const isPublic = target.toLowerCase() === 'anyone' || target.toLowerCase() === 'public';
 
-    await gslides.sharePresentation(presentationId, email, role);
-
-    if (globalFlags.json) {
-      output.json({ presentationId, sharedWith: email, role });
+    if (isPublic) {
+      await gslides.sharePublic(presentationId, role);
+      if (globalFlags.json) {
+        output.json({ presentationId, public: true, role, url: `https://docs.google.com/presentation/d/${presentationId}` });
+        return;
+      }
+      output.success(`Presentation is now public (${role})`);
+      console.log(`URL: https://docs.google.com/presentation/d/${presentationId}`);
       return;
     }
 
-    output.success(`Shared with ${email} (${role})`);
+    await gslides.sharePresentation(presentationId, target, role);
+
+    if (globalFlags.json) {
+      output.json({ presentationId, sharedWith: target, role });
+      return;
+    }
+
+    output.success(`Shared with ${target} (${role})`);
   },
 };
 

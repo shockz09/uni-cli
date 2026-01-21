@@ -242,6 +242,19 @@ export class GoogleFormsClient extends GoogleAuthClient {
   }
 
   /**
+   * Share form publicly (anyone with link)
+   */
+  async sharePublic(formId: string, role: 'reader' | 'writer' = 'reader'): Promise<void> {
+    await this.apiRequest(DRIVE_API, `/files/${formId}/permissions`, {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'anyone',
+        role,
+      }),
+    });
+  }
+
+  /**
    * Update form title/description
    */
   async updateForm(formId: string, updates: { title?: string; description?: string }): Promise<Form> {

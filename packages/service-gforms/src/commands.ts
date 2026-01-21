@@ -334,16 +334,17 @@ const responsesCommand: Command = {
 
 const shareCommand: Command = {
   name: 'share',
-  description: 'Share a form with someone',
+  description: 'Share a form with someone or make public',
   args: [
     { name: 'id', required: true, description: 'Form ID or URL' },
-    { name: 'email', required: true, description: 'Email address to share with' },
+    { name: 'target', required: true, description: 'Email address or "anyone" for public access' },
   ],
   options: [
     { name: 'role', short: 'r', type: 'string', description: 'Permission role: reader or writer (default: writer)' },
   ],
   examples: [
     'uni gforms share <id> colleague@example.com',
+    'uni gforms share <id> anyone',
     'uni gforms share <id> viewer@example.com --role reader',
   ],
 
@@ -351,21 +352,33 @@ const shareCommand: Command = {
     const { args, output, flags, globalFlags } = ctx;
 
     const formId = extractFormId(args.id as string);
-    const email = args.email as string;
+    const target = args.target as string;
     const role = (flags.role as 'reader' | 'writer') || 'writer';
+    const isPublic = target.toLowerCase() === 'anyone' || target.toLowerCase() === 'public';
 
-    await gforms.shareForm(formId, email, role);
+    if (isPublic) {
+      await gforms.sharePublic(formId, role);
+      if (globalFlags.json) {
+        output.json({ formId, public: true, role, url: `https://docs.google.com/forms/d/${formId}` });
+        return;
+      }
+      output.success(`Form is now public (${role})`);
+      console.log(`URL: https://docs.google.com/forms/d/${formId}`);
+      return;
+    }
+
+    await gforms.shareForm(formId, target, role);
 
     if (globalFlags.json) {
       output.json({
         formId,
-        sharedWith: email,
+        sharedWith: target,
         role,
       });
       return;
     }
 
-    output.success(`Shared with ${email} (${role})`);
+    output.success(`Shared with ${target} (${role})`);
   },
 };
 

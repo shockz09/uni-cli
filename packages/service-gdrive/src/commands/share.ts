@@ -1,5 +1,5 @@
 /**
- * uni gdrive share - Share a file with someone
+ * uni gdrive share - Share a file with someone or make it public
  */
 
 import type { Command, CommandContext } from '@uni/shared';
@@ -7,7 +7,7 @@ import { gdrive } from '../api';
 
 export const shareCommand: Command = {
   name: 'share',
-  description: 'Share a file with someone',
+  description: 'Share a file with someone or make it public',
   args: [
     {
       name: 'file',
@@ -15,8 +15,8 @@ export const shareCommand: Command = {
       required: true,
     },
     {
-      name: 'email',
-      description: 'Email address to share with',
+      name: 'target',
+      description: 'Email address or "anyone" for public access',
       required: true,
     },
   ],
@@ -31,6 +31,8 @@ export const shareCommand: Command = {
   ],
   examples: [
     'uni gdrive share 1abc123 user@example.com',
+    'uni gdrive share 1abc123 anyone',
+    'uni gdrive share 1abc123 anyone --role writer',
     'uni gdrive share "report.pdf" team@company.com --role writer',
   ],
 
@@ -43,10 +45,16 @@ export const shareCommand: Command = {
     }
 
     const fileQuery = args.file as string;
-    const email = args.email as string;
+    const target = args.target as string;
     const role = (flags.role as string) || 'reader';
+    const isPublic = target.toLowerCase() === 'anyone' || target.toLowerCase() === 'public';
 
-    if (!['reader', 'writer', 'commenter'].includes(role)) {
+    if (isPublic && !['reader', 'writer'].includes(role)) {
+      output.error('Public sharing only supports reader or writer roles');
+      return;
+    }
+
+    if (!isPublic && !['reader', 'writer', 'commenter'].includes(role)) {
       output.error('Role must be: reader, writer, or commenter');
       return;
     }
@@ -69,13 +77,26 @@ export const shareCommand: Command = {
       fileName = results[0].name;
     }
 
-    await gdrive.shareFile(fileId, email, role as 'reader' | 'writer' | 'commenter');
+    if (isPublic) {
+      const url = await gdrive.sharePublic(fileId, role as 'reader' | 'writer');
 
-    if (globalFlags.json) {
-      output.json({ id: fileId, name: fileName, sharedWith: email, role });
+      if (globalFlags.json) {
+        output.json({ id: fileId, name: fileName, public: true, role, url });
+        return;
+      }
+
+      output.success(`"${fileName}" is now public (${role})`);
+      console.log(`URL: ${url}`);
       return;
     }
 
-    output.success(`Shared "${fileName}" with ${email} as ${role}`);
+    await gdrive.shareFile(fileId, target, role as 'reader' | 'writer' | 'commenter');
+
+    if (globalFlags.json) {
+      output.json({ id: fileId, name: fileName, sharedWith: target, role });
+      return;
+    }
+
+    output.success(`Shared "${fileName}" with ${target} as ${role}`);
   },
 };

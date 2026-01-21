@@ -203,6 +203,19 @@ export class GoogleDocsClient extends GoogleAuthClient {
   }
 
   /**
+   * Share document publicly (anyone with link)
+   */
+  async sharePublic(documentId: string, role: 'reader' | 'writer' = 'reader'): Promise<void> {
+    await this.apiRequest(DRIVE_API, `/files/${documentId}/permissions`, {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'anyone',
+        role,
+      }),
+    });
+  }
+
+  /**
    * Delete a document
    */
   async deleteDocument(documentId: string): Promise<void> {

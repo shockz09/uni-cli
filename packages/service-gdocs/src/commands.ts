@@ -429,10 +429,10 @@ const clearCommand: Command = {
 
 const shareCommand: Command = {
   name: 'share',
-  description: 'Share document with email',
+  description: 'Share document with email or make public',
   args: [
     { name: 'id', description: 'Document ID or URL', required: true },
-    { name: 'email', description: 'Email address to share with', required: true },
+    { name: 'target', description: 'Email address or "anyone" for public access', required: true },
   ],
   options: [
     { name: 'role', short: 'r', type: 'string', description: 'Permission role: reader or writer', default: 'writer' },
@@ -446,21 +446,39 @@ const shareCommand: Command = {
     }
 
     const documentId = extractDocumentId(args.id as string);
-    const email = args.email as string;
+    const target = args.target as string;
     const role = (flags.role as string) === 'reader' ? 'reader' : 'writer';
-    const spinner = output.spinner(`Sharing with ${email}...`);
+    const isPublic = target.toLowerCase() === 'anyone' || target.toLowerCase() === 'public';
 
+    if (isPublic) {
+      const spinner = output.spinner('Making document public...');
+      try {
+        await gdocs.sharePublic(documentId, role);
+        spinner.success('Document is now public');
+        if (globalFlags.json) {
+          output.json({ documentId, public: true, role, url: `https://docs.google.com/document/d/${documentId}` });
+          return;
+        }
+        console.log(`URL: https://docs.google.com/document/d/${documentId}`);
+      } catch (error) {
+        spinner.fail('Failed to make document public');
+        throw error;
+      }
+      return;
+    }
+
+    const spinner = output.spinner(`Sharing with ${target}...`);
     try {
-      await gdocs.shareDocument(documentId, email, role);
+      await gdocs.shareDocument(documentId, target, role);
       spinner.success('Document shared');
 
       if (globalFlags.json) {
-        output.json({ documentId, sharedWith: email, role, success: true });
+        output.json({ documentId, sharedWith: target, role, success: true });
         return;
       }
 
       console.log('');
-      console.log(`${c.green(`Shared with ${email}`)} (${role} access)`);
+      console.log(`${c.green(`Shared with ${target}`)} (${role} access)`);
       console.log('');
     } catch (error) {
       spinner.fail('Failed to share document');
