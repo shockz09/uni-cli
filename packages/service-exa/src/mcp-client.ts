@@ -186,6 +186,25 @@ export class ExaMCPClient {
   }
 
   /**
+   * LinkedIn profile search via MCP
+   */
+  async linkedinSearch(query: string, numResults = 5): Promise<SearchResult[]> {
+    const result = await this.callTool({
+      name: 'linkedin_search_exa',
+      arguments: {
+        query,
+        numResults,
+      },
+    });
+
+    if (typeof result === 'string') {
+      return this.parseTextResults(result);
+    }
+
+    return this.parseSearchResults(result);
+  }
+
+  /**
    * Deep research via MCP
    */
   async research(query: string, mode: 'quick' | 'deep' = 'quick'): Promise<ResearchResult> {
