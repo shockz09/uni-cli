@@ -6,7 +6,6 @@
  *   code     - Get code/documentation context
  *   research - Deep research on a topic
  *   company  - Research a company
- *   linkedin - Search LinkedIn profiles
  */
 
 import type { UniService } from '@uni/shared';
@@ -17,7 +16,6 @@ import { companyCommand } from './commands/company';
 import { similarCommand } from './commands/similar';
 import { crawlCommand } from './commands/crawl';
 import { newsCommand } from './commands/news';
-import { linkedinCommand } from './commands/linkedin';
 
 const exaService: UniService = {
   name: 'exa',
@@ -29,7 +27,6 @@ const exaService: UniService = {
     codeCommand,
     researchCommand,
     companyCommand,
-    linkedinCommand,
     similarCommand,
     crawlCommand,
     newsCommand,
