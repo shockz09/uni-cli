@@ -1560,6 +1560,117 @@ export const commentsCommand: Command = {
 };
 
 // ============================================================
+// CHART COMMAND (from Google Sheets)
+// ============================================================
+
+export const chartCommand: Command = {
+  name: 'chart',
+  description: 'Insert a chart from Google Sheets into a slide',
+  args: [
+    { name: 'presentation', description: 'Presentation ID or URL', required: true },
+    { name: 'spreadsheet', description: 'Spreadsheet ID or URL containing the chart', required: true },
+    { name: 'chartId', description: 'Chart ID from the spreadsheet (use "uni gsheets charts" to find)', required: true },
+  ],
+  options: [
+    { name: 'slide', short: 's', type: 'string', description: 'Slide number (1-indexed, default: 1)' },
+    { name: 'x', type: 'number', description: 'X position in points (default: 100)' },
+    { name: 'y', type: 'number', description: 'Y position in points (default: 100)' },
+    { name: 'width', short: 'w', type: 'number', description: 'Width in points (default: 400)' },
+    { name: 'height', short: 'h', type: 'number', description: 'Height in points (default: 300)' },
+    { name: 'refresh', short: 'r', type: 'string', description: 'Refresh existing chart by element ID instead of inserting' },
+  ],
+  examples: [
+    'uni gslides chart <presentation-id> <spreadsheet-id> 123456789',
+    'uni gslides chart <presentation-id> <spreadsheet-id> 123456789 --slide 2',
+    'uni gslides chart <presentation-id> <spreadsheet-id> 123456789 --width 600 --height 400',
+    'uni gslides chart <presentation-id> --refresh <chart-element-id>',
+  ],
+
+  async handler(ctx: CommandContext): Promise<void> {
+    const { output, args, flags, globalFlags } = ctx;
+
+    if (!gslides.isAuthenticated()) {
+      output.error('Not authenticated. Run "uni gslides auth" first.');
+      return;
+    }
+
+    const presentationId = extractPresentationId(args.presentation as string);
+    const refreshElementId = flags.refresh as string | undefined;
+
+    // Refresh existing chart
+    if (refreshElementId) {
+      const spinner = output.spinner('Refreshing chart...');
+      try {
+        await gslides.refreshChart(presentationId, refreshElementId);
+        spinner.success('Chart refreshed');
+        if (globalFlags.json) {
+          output.json({ refreshed: true, elementId: refreshElementId });
+        }
+      } catch (error) {
+        spinner.fail('Failed to refresh chart');
+        throw error;
+      }
+      return;
+    }
+
+    // Insert new chart
+    const spreadsheetId = extractPresentationId(args.spreadsheet as string); // works for sheets URLs too
+    const chartId = parseInt(args.chartId as string, 10);
+
+    if (isNaN(chartId)) {
+      output.error('Chart ID must be a number. Use "uni gsheets charts <spreadsheet-id>" to find chart IDs.');
+      return;
+    }
+
+    const slideNum = parseInt(flags.slide as string || '1', 10);
+    const x = flags.x as number | undefined;
+    const y = flags.y as number | undefined;
+    const width = flags.width as number | undefined;
+    const height = flags.height as number | undefined;
+
+    const spinner = output.spinner('Inserting chart from Sheets...');
+
+    try {
+      const presentation = await gslides.getPresentation(presentationId);
+      const slides = presentation.slides || [];
+
+      if (slideNum < 1 || slideNum > slides.length) {
+        spinner.fail(`Invalid slide number. Presentation has ${slides.length} slide(s).`);
+        return;
+      }
+
+      const slideId = slides[slideNum - 1].objectId;
+
+      const elementId = await gslides.insertChart(
+        presentationId,
+        slideId,
+        spreadsheetId,
+        chartId,
+        x !== undefined || y !== undefined ? { x: x ?? 100, y: y ?? 100 } : undefined,
+        width !== undefined || height !== undefined ? { width: width ?? 400, height: height ?? 300 } : undefined
+      );
+
+      spinner.success(`Chart inserted on slide ${slideNum}`);
+
+      if (globalFlags.json) {
+        output.json({
+          elementId,
+          slideNumber: slideNum,
+          spreadsheetId,
+          chartId,
+        });
+      } else {
+        console.log(`Element ID: ${elementId}`);
+        console.log(`Use --refresh ${elementId} to update the chart later`);
+      }
+    } catch (error) {
+      spinner.fail('Failed to insert chart');
+      throw error;
+    }
+  },
+};
+
+// ============================================================
 // AUTH COMMAND
 // ============================================================
 
@@ -1637,5 +1748,6 @@ export const commands = [
   linkCommand,
   groupCommand,
   commentsCommand,
+  chartCommand,
   authCommand,
 ];

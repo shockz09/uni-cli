@@ -1279,6 +1279,72 @@ export class GoogleSlidesClient extends GoogleAuthClient {
       pageElements: m.pageElements?.length || 0,
     }));
   }
+
+  // ============================================
+  // CHARTS (from Google Sheets)
+  // ============================================
+
+  /**
+   * Insert a chart from Google Sheets
+   */
+  async insertChart(
+    presentationId: string,
+    slideId: string,
+    spreadsheetId: string,
+    chartId: number,
+    position?: { x: number; y: number },
+    size?: { width: number; height: number }
+  ): Promise<string> {
+    const elementId = `chart_${Date.now()}`;
+
+    const transform: Record<string, unknown> = {
+      scaleX: 1,
+      scaleY: 1,
+      translateX: position?.x ?? 100,
+      translateY: position?.y ?? 100,
+      unit: 'PT',
+    };
+
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          createSheetsChart: {
+            objectId: elementId,
+            spreadsheetId,
+            chartId,
+            linkingMode: 'LINKED',
+            elementProperties: {
+              pageObjectId: slideId,
+              size: {
+                width: { magnitude: size?.width ?? 400, unit: 'PT' },
+                height: { magnitude: size?.height ?? 300, unit: 'PT' },
+              },
+              transform,
+            },
+          },
+        }],
+      }),
+    });
+
+    return elementId;
+  }
+
+  /**
+   * Refresh a linked Sheets chart
+   */
+  async refreshChart(presentationId: string, chartElementId: string): Promise<void> {
+    await this.request(`/presentations/${presentationId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          refreshSheetsChart: {
+            objectId: chartElementId,
+          },
+        }],
+      }),
+    });
+  }
 }
 
 export const gslides = new GoogleSlidesClient();
