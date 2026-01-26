@@ -1664,6 +1664,104 @@ const columnsCommand: Command = {
   },
 };
 
+const tocCommand: Command = {
+  name: 'toc',
+  description: 'Insert, find, or remove table of contents',
+  args: [
+    { name: 'document', description: 'Document ID or URL', required: true },
+  ],
+  options: [
+    { name: 'at', short: 'a', description: 'Insert position: "start", "end", or index (default: start)', type: 'string' },
+    { name: 'remove', short: 'r', description: 'Remove existing table of contents', type: 'boolean' },
+    { name: 'find', short: 'f', description: 'Find and show TOC location', type: 'boolean' },
+  ],
+  examples: [
+    'uni gdocs toc <document-id>',
+    'uni gdocs toc <document-id> --at start',
+    'uni gdocs toc <document-id> --find',
+    'uni gdocs toc <document-id> --remove',
+  ],
+
+  async handler(ctx: CommandContext): Promise<void> {
+    const { output, args, flags, globalFlags } = ctx;
+    if (!gdocs.isAuthenticated()) {
+      output.error('Not authenticated. Run "uni gdocs auth" first.');
+      return;
+    }
+
+    const documentId = extractDocumentId(args.document as string);
+    const remove = flags.remove as boolean;
+    const find = flags.find as boolean;
+    const position = flags.at as string | undefined;
+
+    // Find TOC
+    if (find) {
+      const spinner = output.spinner('Finding table of contents...');
+      const toc = await gdocs.findTableOfContents(documentId);
+      spinner.stop();
+
+      if (globalFlags.json) {
+        output.json({ found: !!toc, ...toc });
+        return;
+      }
+
+      if (toc) {
+        output.success(`Table of contents found at index ${toc.startIndex}-${toc.endIndex}`);
+      } else {
+        output.info('No table of contents found in document');
+      }
+      return;
+    }
+
+    // Remove TOC
+    if (remove) {
+      const spinner = output.spinner('Removing table of contents...');
+      const toc = await gdocs.findTableOfContents(documentId);
+
+      if (!toc) {
+        spinner.fail('No table of contents found to remove');
+        return;
+      }
+
+      await gdocs.deleteTableOfContents(documentId, toc.startIndex, toc.endIndex);
+      spinner.success('Table of contents removed');
+
+      if (globalFlags.json) {
+        output.json({ removed: true, startIndex: toc.startIndex, endIndex: toc.endIndex });
+      }
+      return;
+    }
+
+    // Insert TOC
+    const spinner = output.spinner('Inserting table of contents...');
+
+    try {
+      let insertIndex: number | undefined;
+
+      if (position === 'start') {
+        insertIndex = 1;
+      } else if (position && position !== 'end') {
+        insertIndex = parseInt(position, 10);
+        if (isNaN(insertIndex)) {
+          spinner.fail('Invalid position. Use "start", "end", or a number.');
+          return;
+        }
+      }
+      // If position is 'end' or undefined, insertIndex stays undefined (API defaults to end)
+
+      await gdocs.insertTableOfContents(documentId, insertIndex);
+      spinner.success('Table of contents inserted');
+
+      if (globalFlags.json) {
+        output.json({ inserted: true, position: position || 'end' });
+      }
+    } catch (error) {
+      spinner.fail('Failed to insert table of contents');
+      throw error;
+    }
+  },
+};
+
 // ============================================================
 // Export all commands
 // ============================================================
@@ -1698,4 +1796,5 @@ export const commands: Command[] = [
   footnoteCommand,
   marginCommand,
   columnsCommand,
+  tocCommand,
 ];

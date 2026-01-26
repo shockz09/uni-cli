@@ -1171,6 +1171,65 @@ export class GoogleDocsClient extends GoogleAuthClient {
       }),
     });
   }
+
+  // ============================================
+  // TABLE OF CONTENTS
+  // ============================================
+
+  /**
+   * Insert a table of contents
+   */
+  async insertTableOfContents(documentId: string, insertIndex?: number): Promise<void> {
+    let index: number;
+    if (insertIndex !== undefined) {
+      index = insertIndex;
+    } else {
+      const doc = await this.getDocument(documentId);
+      index = (doc.body?.content?.slice(-1)[0]?.endIndex || 2) - 1;
+    }
+
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          insertTableOfContents: {
+            location: { index },
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Delete table of contents by replacing it with empty content
+   */
+  async deleteTableOfContents(documentId: string, tocStartIndex: number, tocEndIndex: number): Promise<void> {
+    await this.request(`/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [{
+          deleteContentRange: {
+            range: { startIndex: tocStartIndex, endIndex: tocEndIndex },
+          },
+        }],
+      }),
+    });
+  }
+
+  /**
+   * Find table of contents in document
+   */
+  async findTableOfContents(documentId: string): Promise<{ startIndex: number; endIndex: number } | null> {
+    const doc = await this.getDocument(documentId);
+    if (!doc.body?.content) return null;
+
+    for (const element of doc.body.content) {
+      if (element.tableOfContents) {
+        return { startIndex: element.startIndex, endIndex: element.endIndex };
+      }
+    }
+    return null;
+  }
 }
 
 export const gdocs = new GoogleDocsClient();
