@@ -12,9 +12,9 @@ import { gsheets, extractSpreadsheetId } from './api';
 // Auth Command
 // ============================================================
 export const authCommand = createGoogleAuthCommand({
-  serviceName: 'gsheets',
-  scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive',
-  description: 'Authenticate with Google Sheets',
+  serviceName: 'Sheets',
+  serviceKey: 'gsheets',
+  client: gsheets,
 });
 
 // ============================================================
@@ -2612,7 +2612,9 @@ const chartCommand: Command = {
     const chartId = await gsheets.createChart(spreadsheetId, targetSheet.properties.sheetId, {
       startRowIndex: parsed.startRow, endRowIndex: parsed.endRow,
       startColumnIndex: parsed.startCol, endColumnIndex: parsed.endCol,
-    }, mappedType as Parameters<typeof gsheets.createChart>[3], title, anchorCell ? { row: anchorCell.row, col: anchorCell.col } : undefined);
+    }, mappedType as Parameters<typeof gsheets.createChart>[3], title, undefined, {
+      anchorCell: anchorCell ? { rowIndex: anchorCell.row, columnIndex: anchorCell.col } : undefined,
+    });
 
     spinner.success(`Created ${chartType} chart (ID: ${chartId})`);
     if (globalFlags.json) { output.json({ chartId, type: chartType, range: rangeDef, title }); }

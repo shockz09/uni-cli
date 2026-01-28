@@ -1666,19 +1666,15 @@ const columnsCommand: Command = {
 
 const tocCommand: Command = {
   name: 'toc',
-  description: 'Insert, find, or remove table of contents',
+  description: 'Find or remove table of contents (insert via Google Docs UI)',
   args: [
     { name: 'document', description: 'Document ID or URL', required: true },
   ],
   options: [
-    { name: 'at', short: 'a', description: 'Insert position: "start", "end", or index (default: start)', type: 'string' },
     { name: 'remove', short: 'r', description: 'Remove existing table of contents', type: 'boolean' },
-    { name: 'find', short: 'f', description: 'Find and show TOC location', type: 'boolean' },
   ],
   examples: [
     'uni gdocs toc <document-id>',
-    'uni gdocs toc <document-id> --at start',
-    'uni gdocs toc <document-id> --find',
     'uni gdocs toc <document-id> --remove',
   ],
 
@@ -1691,27 +1687,6 @@ const tocCommand: Command = {
 
     const documentId = extractDocumentId(args.document as string);
     const remove = flags.remove as boolean;
-    const find = flags.find as boolean;
-    const position = flags.at as string | undefined;
-
-    // Find TOC
-    if (find) {
-      const spinner = output.spinner('Finding table of contents...');
-      const toc = await gdocs.findTableOfContents(documentId);
-      spinner.stop();
-
-      if (globalFlags.json) {
-        output.json({ found: !!toc, ...toc });
-        return;
-      }
-
-      if (toc) {
-        output.success(`Table of contents found at index ${toc.startIndex}-${toc.endIndex}`);
-      } else {
-        output.info('No table of contents found in document');
-      }
-      return;
-    }
 
     // Remove TOC
     if (remove) {
@@ -1732,32 +1707,20 @@ const tocCommand: Command = {
       return;
     }
 
-    // Insert TOC
-    const spinner = output.spinner('Inserting table of contents...');
+    // Find TOC (default action)
+    const spinner = output.spinner('Finding table of contents...');
+    const toc = await gdocs.findTableOfContents(documentId);
+    spinner.stop();
 
-    try {
-      let insertIndex: number | undefined;
+    if (globalFlags.json) {
+      output.json({ found: !!toc, ...toc });
+      return;
+    }
 
-      if (position === 'start') {
-        insertIndex = 1;
-      } else if (position && position !== 'end') {
-        insertIndex = parseInt(position, 10);
-        if (isNaN(insertIndex)) {
-          spinner.fail('Invalid position. Use "start", "end", or a number.');
-          return;
-        }
-      }
-      // If position is 'end' or undefined, insertIndex stays undefined (API defaults to end)
-
-      await gdocs.insertTableOfContents(documentId, insertIndex);
-      spinner.success('Table of contents inserted');
-
-      if (globalFlags.json) {
-        output.json({ inserted: true, position: position || 'end' });
-      }
-    } catch (error) {
-      spinner.fail('Failed to insert table of contents');
-      throw error;
+    if (toc) {
+      output.success(`Table of contents found at index ${toc.startIndex}-${toc.endIndex}`);
+    } else {
+      output.info('No table of contents found. Insert via: Insert > Table of contents in Google Docs UI');
     }
   },
 };

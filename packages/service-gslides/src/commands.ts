@@ -1568,8 +1568,8 @@ export const chartCommand: Command = {
   description: 'Insert a chart from Google Sheets into a slide',
   args: [
     { name: 'presentation', description: 'Presentation ID or URL', required: true },
-    { name: 'spreadsheet', description: 'Spreadsheet ID or URL containing the chart', required: true },
-    { name: 'chartId', description: 'Chart ID from the spreadsheet (use "uni gsheets charts" to find)', required: true },
+    { name: 'spreadsheet', description: 'Spreadsheet ID or URL containing the chart (not needed with --refresh)', required: false },
+    { name: 'chartId', description: 'Chart ID from the spreadsheet (not needed with --refresh)', required: false },
   ],
   options: [
     { name: 'slide', short: 's', type: 'string', description: 'Slide number (1-indexed, default: 1)' },
@@ -1613,7 +1613,13 @@ export const chartCommand: Command = {
       return;
     }
 
-    // Insert new chart
+    // Insert new chart - validate required args
+    if (!args.spreadsheet || !args.chartId) {
+      output.error('Missing required arguments: spreadsheet and chartId');
+      output.info('Usage: uni gslides chart <presentation> <spreadsheet> <chartId>');
+      return;
+    }
+
     const spreadsheetId = extractPresentationId(args.spreadsheet as string); // works for sheets URLs too
     const chartId = parseInt(args.chartId as string, 10);
 

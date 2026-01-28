@@ -1177,30 +1177,6 @@ export class GoogleDocsClient extends GoogleAuthClient {
   // ============================================
 
   /**
-   * Insert a table of contents
-   */
-  async insertTableOfContents(documentId: string, insertIndex?: number): Promise<void> {
-    let index: number;
-    if (insertIndex !== undefined) {
-      index = insertIndex;
-    } else {
-      const doc = await this.getDocument(documentId);
-      index = (doc.body?.content?.slice(-1)[0]?.endIndex || 2) - 1;
-    }
-
-    await this.request(`/documents/${documentId}:batchUpdate`, {
-      method: 'POST',
-      body: JSON.stringify({
-        requests: [{
-          insertTableOfContents: {
-            location: { index },
-          },
-        }],
-      }),
-    });
-  }
-
-  /**
    * Delete table of contents by replacing it with empty content
    */
   async deleteTableOfContents(documentId: string, tocStartIndex: number, tocEndIndex: number): Promise<void> {
