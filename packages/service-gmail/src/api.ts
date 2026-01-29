@@ -520,6 +520,80 @@ export class GmailClient extends GoogleAuthClient {
   async getThread(threadId: string): Promise<{ id: string; messages: Email[]; snippet: string }> {
     return this.request(`/users/me/threads/${threadId}`);
   }
+
+  // ============================================
+  // UNSUBSCRIBE
+  // ============================================
+
+  /**
+   * Get unsubscribe info from email headers
+   * Returns mailto and/or URL options for unsubscribing
+   */
+  getUnsubscribeInfo(email: Email): { mailto?: string; url?: string; oneClick: boolean } | null {
+    const listUnsubscribe = this.getHeader(email, 'List-Unsubscribe');
+    if (!listUnsubscribe) return null;
+
+    const listUnsubscribePost = this.getHeader(email, 'List-Unsubscribe-Post');
+    const oneClick = listUnsubscribePost?.toLowerCase().includes('list-unsubscribe=one-click') || false;
+
+    // Parse List-Unsubscribe header - can contain mailto: and/or https: URLs
+    // Format: <mailto:unsub@example.com>, <https://example.com/unsub?id=123>
+    const mailtoMatch = listUnsubscribe.match(/<mailto:([^>]+)>/i);
+    const urlMatch = listUnsubscribe.match(/<(https?:\/\/[^>]+)>/i);
+
+    if (!mailtoMatch && !urlMatch) return null;
+
+    return {
+      mailto: mailtoMatch ? mailtoMatch[1] : undefined,
+      url: urlMatch ? urlMatch[1] : undefined,
+      oneClick,
+    };
+  }
+
+  /**
+   * Unsubscribe from a mailing list via mailto
+   * Sends an email to the unsubscribe address
+   */
+  async unsubscribeViaEmail(unsubscribeAddress: string): Promise<{ id: string }> {
+    // Parse mailto: which may include subject and body params
+    // mailto:unsub@example.com?subject=Unsubscribe&body=Please%20unsubscribe
+    const [email, params] = unsubscribeAddress.split('?');
+    let subject = 'Unsubscribe';
+    let body = 'Please unsubscribe me from this mailing list.';
+
+    if (params) {
+      const searchParams = new URLSearchParams(params);
+      if (searchParams.has('subject')) subject = searchParams.get('subject')!;
+      if (searchParams.has('body')) body = decodeURIComponent(searchParams.get('body')!);
+    }
+
+    return this.sendEmail(email, subject, body);
+  }
+
+  /**
+   * Unsubscribe via HTTP POST (one-click or regular)
+   */
+  async unsubscribeViaUrl(url: string, oneClick: boolean): Promise<boolean> {
+    const headers: Record<string, string> = {
+      'User-Agent': 'uni-cli/1.0',
+    };
+
+    let requestBody: string | undefined;
+    if (oneClick) {
+      headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      requestBody = 'List-Unsubscribe=One-Click';
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: requestBody,
+      redirect: 'follow',
+    });
+
+    // 2xx status codes indicate success
+    return response.ok;
+  }
 }
 
 export const gmail = new GmailClient();
