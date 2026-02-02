@@ -31,6 +31,7 @@ import { markCommand } from './commands/mark';
 import { archiveCommand } from './commands/archive';
 import { threadsCommand } from './commands/threads';
 import { unsubscribeCommand } from './commands/unsubscribe';
+import { countCommand } from './commands/count';
 import { gmail } from './api';
 
 const gmailService: UniService = {
@@ -54,6 +55,7 @@ const gmailService: UniService = {
     archiveCommand,
     threadsCommand,
     unsubscribeCommand,
+    countCommand,
     authCommand,
   ],
 

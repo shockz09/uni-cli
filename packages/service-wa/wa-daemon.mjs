@@ -4,18 +4,14 @@
  * Runs with Node.js, listens on Unix socket for commands
  */
 
-import makeWASocket, {
-  DisconnectReason,
-  useMultiFileAuthState,
-  fetchLatestBaileysVersion,
-  makeCacheableSignalKeyStore,
-  Browsers,
-} from '@whiskeysockets/baileys';
+import baileys from '@whiskeysockets/baileys';
+const { default: makeWASocket, DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, Browsers } = baileys;
 import pino from 'pino';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as net from 'net';
 import * as readline from 'readline';
+import qrcode from 'qrcode-terminal';
 
 const HOME = process.env.HOME || '~';
 const UNI_DIR = path.join(HOME, '.uni');
@@ -322,17 +318,14 @@ function startServer() {
 
 // Auth flow (special case - runs interactively)
 async function runAuth() {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const question = (p) => new Promise((r) => rl.question(p, (a) => r(a.trim())));
+  // Clear old auth state for fresh start
+  if (fs.existsSync(AUTH_DIR)) {
+    fs.rmSync(AUTH_DIR, { recursive: true });
+  }
 
   console.log('WhatsApp Authentication\n');
-  const phone = await question('Phone number (with country code): ');
-  rl.close();
-
-  if (!phone || phone.length < 10) {
-    console.log('Invalid phone number');
-    process.exit(1);
-  }
+  console.log('Scan the QR code with WhatsApp:');
+  console.log('Settings > Linked Devices > Link a Device\n');
 
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
   const { version } = await fetchLatestBaileysVersion();
@@ -340,27 +333,52 @@ async function runAuth() {
   const authSock = makeWASocket({
     version,
     logger,
-    browser: Browsers.windows('Chrome'),
+    browser: ['uni-cli', 'Safari', '17.0'],
     auth: {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, logger),
     },
-    printQRInTerminal: false,
   });
 
   authSock.ev.on('creds.update', saveCreds);
 
-  let done = false;
+  let scanned = false;
+  let qrCount = 0;
+
   authSock.ev.on('connection.update', async (u) => {
-    if (u.connection === 'connecting' && !done) {
-      done = true;
-      await new Promise(r => setTimeout(r, 2000));
-      const code = await authSock.requestPairingCode(phone);
-      console.log(`\nPairing code: ${code}\n`);
-      console.log('Open WhatsApp > Settings > Linked Devices > Link a Device\n');
+    if (u.qr) {
+      qrCount++;
+      if (qrCount > 3) {
+        console.log('\nToo many QR refreshes. Try again later.');
+        process.exit(1);
+      }
+      // Display QR code in terminal
+      console.clear();
+      console.log('WhatsApp Authentication\n');
+      console.log('Scan with WhatsApp > Linked Devices > Link a Device\n');
+      qrcode.generate(u.qr, { small: true });
+      console.log(`\nWaiting for scan... (QR ${qrCount}/3)`);
+    }
+
+    // Check if we're in linking phase
+    if (u.receivedPendingNotifications !== undefined || u.isOnline !== undefined) {
+      scanned = true;
+      console.log('\nLinking in progress... please wait');
+    }
+
+    if (u.connection === 'close') {
+      const reason = u.lastDisconnect?.error?.output?.statusCode;
+      console.log('\n[auth] Connection closed, reason:', reason);
+
+      // Don't retry if we were in the middle of scanning
+      if (scanned) {
+        console.log('\nLinking failed. Please try again in a few minutes.');
+        process.exit(1);
+      }
+      return;
     }
     if (u.connection === 'open') {
-      console.log('Connected!');
+      console.log('\n✓ Connected to WhatsApp!\n');
       await authSock.end();
       process.exit(0);
     }
