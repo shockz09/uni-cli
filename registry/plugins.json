@@ -193,6 +193,36 @@
         "sms",
         "messaging"
       ]
+    },
+    {
+      "name": "swiggy",
+      "package": "@uni/plugin-swiggy",
+      "description": "Swiggy - food delivery, groceries (Instamart), and table booking (Dineout)",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/swiggy",
+      "tags": [
+        "food",
+        "delivery",
+        "groceries",
+        "restaurant",
+        "booking"
+      ]
+    },
+    {
+      "name": "zomato",
+      "package": "@uni/plugin-zomato",
+      "description": "Zomato - food delivery with restaurant discovery, menu browsing, and QR code payments",
+      "version": "0.1.0",
+      "repository": "github:shockz09/uni-plugins",
+      "path": "packages/zomato",
+      "tags": [
+        "food",
+        "delivery",
+        "restaurant",
+        "ordering",
+        "payment"
+      ]
     }
   ]
 }
