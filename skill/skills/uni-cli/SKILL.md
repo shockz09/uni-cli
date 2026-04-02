@@ -1,8 +1,14 @@
 ---
 name: uni-cli
-description: |
-  uni CLI overview and meta commands. Use for general uni questions, multi-command execution (uni run), saved flows, natural language (uni ask), plugins, config, aliases, history.
-  For specific services, use their dedicated skills (uni-wa, uni-telegram, uni-google, etc.)
+description: >
+  Universal CLI wrapping 25+ services (WhatsApp, Telegram, Google Calendar,
+  Gmail, Trello, Stripe, Spotify, Airtable, SendGrid, Twilio) into one
+  interface. Handles multi-command execution, saved flows, natural language
+  queries, plugins, config, aliases, and history.
+
+  Use when: the user wants to run uni commands, manage uni flows, use uni ask
+  for natural language, install uni plugins, configure uni settings, or
+  orchestrate multiple services from a single CLI.
 allowed-tools: Bash(uni:*), Bash(~/.local/bin/uni:*)
 ---
 
@@ -93,6 +99,12 @@ uni history --search "gcal"
 uni history run 42                      # Re-run #42
 uni history clear
 ```
+
+## Workflow: Verify Before Acting
+
+1. Preview with `--dry-run` before destructive runs
+2. Use `uni doctor` to confirm service credentials are valid
+3. Chain conditional operators (`&&`, `||`) to handle failures in multi-command runs
 
 ## Output
 
